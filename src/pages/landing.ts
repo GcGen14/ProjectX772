@@ -150,7 +150,7 @@ const hero = (cards: HeroCard[]) => `
           <h1>
             <span class="heading-line hero-title">
               <span>ความทรงจำของ</span>
-              <span class="hand-slot" aria-label="เรา"><span class="hand-word"></span></span>
+              <span class="hand-slot" aria-label="เรา"><span class="hand-word"></span><svg class="hand-line" viewBox="0 0 200 24" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="hand-ink" x1="0" x2="1"><stop offset="0" stop-color="#82bcff"/><stop offset=".35" stop-color="#2483ff"/><stop offset=".7" stop-color="#ff66f4"/><stop offset="1" stop-color="#fe7b02"/></linearGradient></defs><path pathLength="1" d="M4 15C38 7 74 18 108 11S170 6 196 13"/></svg></span>
             </span>
           </h1>
           <p>${CLASS.name} · ${CLASS.gen} · Class of ${CLASS.yearEn}<br><span class="muted">${totals.photos.toLocaleString()} รูป · ${totals.videos} คลิป · ${students.length} คน · 1 ห้อง</span></p>
@@ -874,6 +874,8 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   });
 
   /* ---------- handwritten word cycle ---------- */
+  // Like the original hero: the slot glides to the width of each word, the word is "written"
+  // left to right, a felt-pen underline follows, then it all wipes away for the next word.
   const slot = $(".hand-slot");
   const word = $(".hand-word");
   let handStarted = false;
@@ -884,42 +886,45 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
     const measure = document.createElement("span");
     measure.className = "hand-measure";
     slot.parentElement!.appendChild(measure);
-    // Fix the slot to the widest word (in em, so it scales with the headline) so the
-    // headline never shifts sideways while the words change.
-    const sizeSlot = () => {
+    let widths: number[] = [];
+    const sizeWords = () => {
       const em = parseFloat(getComputedStyle(slot).fontSize) || 1;
-      let max = 0;
-      for (const w of HAND_WORDS) {
+      widths = HAND_WORDS.map((w) => {
         measure.style.fontFamily = w.font;
         measure.lang = w.lang;
         measure.textContent = w.text;
-        max = Math.max(max, measure.offsetWidth);
-      }
-      slot.style.width = `${(max + 6) / em}em`;
+        return (measure.offsetWidth + 4) / em;
+      });
+      slot.style.width = `${widths[i % HAND_WORDS.length]}em`;
     };
-    sizeSlot();
-    void document.fonts?.ready.then(() => alive && sizeSlot());
+    sizeWords();
+    void document.fonts?.ready.then(() => alive && sizeWords());
     const show = () => {
       if (!alive) return;
-      const w = HAND_WORDS[i % HAND_WORDS.length];
+      const n = i % HAND_WORDS.length;
+      const w = HAND_WORDS[n];
+      slot.style.width = `${widths[n]}em`;
+      slot.setAttribute("aria-label", w.text);
       word.textContent = w.text;
       word.style.fontFamily = w.font;
       word.lang = w.lang;
-      word.classList.remove("is-erase");
-      word.classList.add("is-draw");
+      slot.classList.remove("is-erase");
+      void slot.offsetWidth; // restart the CSS animations
+      slot.classList.add("is-draw");
       later(
         () => {
-          word.classList.remove("is-draw");
-          word.classList.add("is-erase");
+          slot.classList.remove("is-draw");
+          slot.classList.add("is-erase");
           later(() => {
             i++;
             show();
-          }, 420);
+          }, 480);
         },
-        i % HAND_WORDS.length === 0 ? 2600 : 1700,
+        n === 0 ? 2800 : 1900,
       );
     };
-    show();
+    // let the slot settle on the first word's width before writing it
+    later(show, 60);
   }
 
   /* ---------- countdown to graduation ---------- */
