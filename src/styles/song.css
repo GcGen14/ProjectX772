@@ -292,30 +292,25 @@ html.has-viewer .song-mini {
 }
 
 /* ---------- song button in every navigation bar ---------- */
+/* It takes the exact look of its neighbours (rail item / tab / pill); the only extra is a small
+   equaliser while music is actually playing. */
 .song-nav {
   position: relative;
-  font: inherit;
+  font-family: inherit;
   cursor: pointer;
 }
 
-button.rail-item.song-nav,
-.tab-bar .tab-song {
+button.rail-item.song-nav {
   background: none;
-  color: inherit;
 }
 
-.lang-pill.song-nav {
+.tab-bar .tab-song {
+  background: none;
   color: var(--ink-900);
 }
 
-html[data-song="open"] .song-nav,
-html[data-song="playing"] .song-nav {
-  color: var(--blue-500, #0569ff);
-}
-
 .lang-pill.song-nav[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--blue-500, #0569ff) 40%, transparent);
-  background: color-mix(in srgb, var(--blue-500, #0569ff) 8%, #fff);
+  border-color: var(--ink-900);
 }
 
 .song-nav-eq {
@@ -329,8 +324,9 @@ html[data-song="playing"] .song-nav {
 }
 
 .lang-pill .song-nav-eq {
-  top: 4px;
-  right: 6px;
+  position: static;
+  height: 10px;
+  margin-left: 1px;
 }
 
 .song-nav-eq i {
@@ -349,8 +345,7 @@ html[data-song="playing"] .song-nav {
   animation-delay: -0.6s;
 }
 
-html[data-song="playing"] .song-nav-eq,
-html[data-song="open"] .song-nav-eq {
+html[data-song-audible] .song-nav-eq {
   display: flex;
 }
 
@@ -363,7 +358,7 @@ html:has(.song-nav) .song-mini:not([data-state="open"]) .song-card {
   bottom: 0;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 819px) {
   .lang-pill.song-nav > span:not(.song-nav-eq) {
     display: none;
   }
