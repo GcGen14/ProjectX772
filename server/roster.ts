@@ -26,6 +26,8 @@ type Session = { no: number | null; isAdmin: boolean } | null;
 type Raw = Record<string, unknown>;
 
 const UPLOAD_DIR = path.join(ROOT, "data", "uploads");
+/** photos one student may upload from /me */
+const MAX_STUDENT_UPLOADS = 30;
 const ID = /^[\w-]{6,80}$/;
 const now = () => new Date().toISOString();
 
@@ -381,6 +383,32 @@ export async function handleRoster(
   const m = req.method;
   const admin = !!session?.isAdmin;
   if (urlPath === "/api/roster" && m === "GET") return roster(admin);
+
+  // a student's own photos (uploaded from /me for their profile picture / cover)
+  if (urlPath === "/api/me/upload" || urlPath.startsWith("/api/me/upload/")) {
+    if (!session || session.isAdmin || !session.no) throw new HttpError(401, "ต้องเข้าสู่ระบบก่อน");
+    const key = `s${session.no}`;
+    if (urlPath === "/api/me/upload" && m === "POST") {
+      const mine = db()
+        .prepare("SELECT COUNT(*) AS n FROM photo_owner WHERE owner = ? AND photo_id LIKE 'up-%'")
+        .get(key) as { n: number };
+      if (mine.n >= MAX_STUDENT_UPLOADS)
+        throw new HttpError(400, `อัปโหลดได้สูงสุด ${MAX_STUDENT_UPLOADS} รูป ลบรูปเก่าก่อนนะ`);
+      const id = saveUpload(await readBig(req, 8_000_000));
+      setOwner([id], key);
+      return { ...roster(false), uploaded: id };
+    }
+    const own = urlPath.match(/^\/api\/me\/upload\/(up-[\w-]{6,40})$/);
+    if (own && m === "DELETE") {
+      const row = db().prepare("SELECT owner FROM photo_owner WHERE photo_id = ?").get(own[1]) as
+        | { owner: string }
+        | undefined;
+      if (row?.owner !== key) throw new HttpError(403, "ลบได้เฉพาะรูปที่ตัวเองอัปโหลด");
+      deleteUpload(own[1]);
+      return roster(false);
+    }
+    throw new HttpError(404, "ไม่พบ");
+  }
 
   const isRoster =
     urlPath === "/api/admin/owner" ||
