@@ -15,6 +15,7 @@ import "./styles/chat.css";
 import "./styles/extras.css";
 import "./styles/theme-more.css";
 import "./styles/me-editor.css";
+import "./styles/album-viewer.css";
 import {
   applyAlbums,
   applyPeople,
