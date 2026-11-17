@@ -1,0 +1,478 @@
+/* Profile theme: dark mode, floating effects, corners, avatar ring, cover height (src/lib/theme.ts) */
+
+/* ---------- dark mode ---------- */
+/* Variables live on the themed element (profile page, /me preview) and, on the profile page, on
+   <html class="pf-dark"> so the rail, tab bar, menus and modals outside .pf-main follow along. */
+.has-theme.th-dark,
+html.pf-dark {
+  --pf-base: #111318;
+  --ink: #e6e8ec;
+  --ink-strong: #fff;
+  --ink-900: #f1f2f4;
+  --muted: #8a909a;
+  --muted-2: #a9aeb7;
+  --line: #2a2e36;
+  --surface: #1b1e24;
+  --surface-2: #22262d;
+  color-scheme: dark;
+}
+
+.has-theme.th-dark {
+  --pf-accent: #8ab4ff;
+  --pf-tint: color-mix(in srgb, var(--pf-accent) 14%, var(--pf-base));
+  --pf-line: color-mix(in srgb, var(--pf-accent) 22%, transparent);
+  --pf-surface: var(--pf-base);
+  color: var(--ink);
+}
+
+.has-theme.th-dark.th-bg-soft,
+.has-theme.th-dark.th-bg-hearts {
+  --pf-surface: var(--pf-tint);
+}
+
+.th-dark.th-bg-plain {
+  background: var(--pf-base);
+}
+
+html.pf-dark,
+html.pf-dark body.page-profile {
+  background: #07080a;
+}
+
+html.pf-dark .rail-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+html.pf-dark .rail-sep {
+  background: #2a2e36;
+}
+
+html.pf-dark .tab-bar {
+  background: rgba(22, 24, 29, 0.86);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.th-dark .pf-more {
+  background: var(--surface);
+}
+
+.th-dark .pf-more:hover {
+  background: var(--surface-2);
+}
+
+html.pf-dark .pf-menu,
+html.pf-dark .pf-modal-card {
+  background: #181b20;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 16px 40px rgba(0, 0, 0, 0.5);
+}
+
+.th-dark .pf-client.more,
+.th-dark .pf-svc-row,
+.th-dark .sx-chip,
+.th-dark .pf-follow {
+  border-color: var(--line);
+  background: var(--surface);
+}
+
+.th-dark .pf-step-nav,
+.th-dark .pf-chip:not(.is-on) {
+  background: var(--surface);
+}
+
+.th-dark .pf-chip.is-on {
+  color: var(--pf-base);
+}
+
+.th-dark .pf-chip.is-on span {
+  color: color-mix(in srgb, var(--pf-base) 60%, transparent);
+}
+
+.th-dark .pf-step-nav a:hover {
+  background: var(--surface-2);
+}
+
+.th-dark .pf-svc-row:hover {
+  border-color: #3a3f48;
+}
+
+.th-dark .pf-cover,
+.th-dark .pf-tile,
+.th-dark .pf-carousel {
+  background: var(--surface);
+}
+
+.th-dark .pf-tabs-wrap.is-stuck {
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.pf-main.has-theme.th-dark .pf-follow.is-following {
+  color: var(--pf-base);
+}
+
+.th-dark .skeleton {
+  background: var(--surface);
+}
+
+.th-dark .pf-cover:empty {
+  background:
+    radial-gradient(
+      60% 120% at 85% 0%,
+      color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 34%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--pf-accent) 22%, var(--pf-base)),
+      color-mix(in srgb, var(--pf-accent) 8%, var(--pf-base))
+    );
+}
+
+/* ---------- floating effects ---------- */
+.th-fx {
+  --fx: color-mix(in srgb, var(--pf-accent) 45%, transparent);
+}
+
+.th-fx-snow {
+  --fx: color-mix(in srgb, var(--pf-accent) 30%, #b9d6ff);
+}
+
+.th-dark.th-fx-snow {
+  --fx: rgba(255, 255, 255, 0.7);
+}
+
+.th-fx-hearts,
+.th-fx-petals {
+  --fx: color-mix(in srgb, var(--pf-accent2, #ff7eb6) 55%, transparent);
+}
+
+.th-fx-sparkle {
+  --fx: color-mix(in srgb, var(--pf-accent) 55%, #ffd36b);
+}
+
+/* a sticky full-height layer at the top of the scroll area, behind the cards */
+.pf-main.th-fx {
+  isolation: isolate;
+}
+
+.pf-main.th-fx::before {
+  position: sticky;
+  top: 0;
+  z-index: -1;
+  display: block;
+  height: calc(100dvh - 12px);
+  margin-bottom: calc(12px - 100dvh);
+  content: "";
+  pointer-events: none;
+}
+
+.me-preview.th-fx::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.th-fx::before {
+  background: var(--fx);
+  -webkit-mask-repeat: repeat;
+  mask-repeat: repeat;
+  animation: th-fx-move 16s linear infinite;
+}
+
+.th-fx-snow::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27180%27 height=%27180%27 viewBox=%270 0 180 180%27%3E%3Ccircle cx=%2720%27 cy=%2730%27 r=%272.4%27/%3E%3Ccircle cx=%2792%27 cy=%2712%27 r=%271.6%27/%3E%3Ccircle cx=%27134%27 cy=%2786%27 r=%272.8%27/%3E%3Ccircle cx=%2752%27 cy=%27122%27 r=%271.9%27/%3E%3Ccircle cx=%27112%27 cy=%27152%27 r=%271.4%27/%3E%3Ccircle cx=%27166%27 cy=%2740%27 r=%271.8%27/%3E%3Ccircle cx=%278%27 cy=%27170%27 r=%271.5%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27260%27 height=%27260%27 viewBox=%270 0 260 260%27%3E%3Ccircle cx=%2740%27 cy=%2760%27 r=%273.6%27/%3E%3Ccircle cx=%27180%27 cy=%2730%27 r=%272.8%27/%3E%3Ccircle cx=%27120%27 cy=%27170%27 r=%274%27/%3E%3Ccircle cx=%27230%27 cy=%27210%27 r=%273%27/%3E%3Ccircle cx=%2770%27 cy=%27240%27 r=%272.6%27/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27180%27 height=%27180%27 viewBox=%270 0 180 180%27%3E%3Ccircle cx=%2720%27 cy=%2730%27 r=%272.4%27/%3E%3Ccircle cx=%2792%27 cy=%2712%27 r=%271.6%27/%3E%3Ccircle cx=%27134%27 cy=%2786%27 r=%272.8%27/%3E%3Ccircle cx=%2752%27 cy=%27122%27 r=%271.9%27/%3E%3Ccircle cx=%27112%27 cy=%27152%27 r=%271.4%27/%3E%3Ccircle cx=%27166%27 cy=%2740%27 r=%271.8%27/%3E%3Ccircle cx=%278%27 cy=%27170%27 r=%271.5%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27260%27 height=%27260%27 viewBox=%270 0 260 260%27%3E%3Ccircle cx=%2740%27 cy=%2760%27 r=%273.6%27/%3E%3Ccircle cx=%27180%27 cy=%2730%27 r=%272.8%27/%3E%3Ccircle cx=%27120%27 cy=%27170%27 r=%274%27/%3E%3Ccircle cx=%27230%27 cy=%27210%27 r=%273%27/%3E%3Ccircle cx=%2770%27 cy=%27240%27 r=%272.6%27/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    180px 180px,
+    260px 260px;
+  mask-size:
+    180px 180px,
+    260px 260px;
+  --fx-to: 0 180px, 0 260px;
+}
+
+.th-fx-sparkle::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27 viewBox=%270 0 200 200%27%3E%3Cpath transform=%27translate%2830 40%29 scale%287%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28150 30%29 scale%284%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28100 120%29 scale%289%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28180 160%29 scale%285%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%2840 170%29 scale%284.5%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27320%27 height=%27320%27 viewBox=%270 0 320 320%27%3E%3Cpath transform=%27translate%2880 90%29 scale%285%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28250 60%29 scale%287%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28200 250%29 scale%284%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%2840 280%29 scale%286%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27200%27 height=%27200%27 viewBox=%270 0 200 200%27%3E%3Cpath transform=%27translate%2830 40%29 scale%287%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28150 30%29 scale%284%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28100 120%29 scale%289%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28180 160%29 scale%285%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%2840 170%29 scale%284.5%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27320%27 height=%27320%27 viewBox=%270 0 320 320%27%3E%3Cpath transform=%27translate%2880 90%29 scale%285%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28250 60%29 scale%287%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%28200 250%29 scale%284%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3Cpath transform=%27translate%2840 280%29 scale%286%29%27 d=%27M0-1L.25-.25 1 0 .25.25 0 1-.25.25-1 0-.25-.25z%27/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    200px 200px,
+    320px 320px;
+  mask-size:
+    200px 200px,
+    320px 320px;
+  --fx-to: 0 -200px, 0 -320px;
+  animation:
+    th-fx-move 60s linear infinite,
+    th-fx-twinkle 2.6s ease-in-out infinite alternate;
+}
+
+.th-fx-hearts::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27220%27 height=%27220%27 viewBox=%270 0 220 220%27%3E%3Cpath transform=%27translate%2840 50%29 scale%281.4%29 rotate%28-12%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28160 30%29 scale%281.0%29 rotate%2810%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28110 140%29 scale%281.8%29 rotate%28-6%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28190 190%29 scale%281.1%29 rotate%2814%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%2830 190%29 scale%280.9%29 rotate%280%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27320%27 height=%27320%27 viewBox=%270 0 320 320%27%3E%3Cpath transform=%27translate%2890 80%29 scale%282.2%29 rotate%288%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28250 160%29 scale%281.6%29 rotate%28-10%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28140 270%29 scale%282.6%29 rotate%284%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27220%27 height=%27220%27 viewBox=%270 0 220 220%27%3E%3Cpath transform=%27translate%2840 50%29 scale%281.4%29 rotate%28-12%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28160 30%29 scale%281.0%29 rotate%2810%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28110 140%29 scale%281.8%29 rotate%28-6%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28190 190%29 scale%281.1%29 rotate%2814%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%2830 190%29 scale%280.9%29 rotate%280%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27320%27 height=%27320%27 viewBox=%270 0 320 320%27%3E%3Cpath transform=%27translate%2890 80%29 scale%282.2%29 rotate%288%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28250 160%29 scale%281.6%29 rotate%28-10%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3Cpath transform=%27translate%28140 270%29 scale%282.6%29 rotate%284%29%27 d=%27M0 6s-6-3.8-6-7.9A3.2 3.2 0 0 1 0-3.6a3.2 3.2 0 0 1 6 1.7C6 2.2 0 6 0 6z%27/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    220px 220px,
+    320px 320px;
+  mask-size:
+    220px 220px,
+    320px 320px;
+  --fx-to: 0 -220px, 0 -320px;
+  animation-duration: 18s;
+}
+
+.th-fx-petals::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27220%27 height=%27220%27 viewBox=%270 0 220 220%27%3E%3Cellipse cx=%2730%27 cy=%2740%27 rx=%276%27 ry=%273.3%27 transform=%27rotate%2830 30 40%29%27/%3E%3Cellipse cx=%27150%27 cy=%2720%27 rx=%274.5%27 ry=%272.5%27 transform=%27rotate%28-20 150 20%29%27/%3E%3Cellipse cx=%27100%27 cy=%27120%27 rx=%277%27 ry=%273.9%27 transform=%27rotate%2860 100 120%29%27/%3E%3Cellipse cx=%27190%27 cy=%27170%27 rx=%275%27 ry=%272.8%27 transform=%27rotate%2810 190 170%29%27/%3E%3Cellipse cx=%2740%27 cy=%27190%27 rx=%274%27 ry=%272.2%27 transform=%27rotate%28-40 40 190%29%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Cellipse cx=%2780%27 cy=%2770%27 rx=%279%27 ry=%275.0%27 transform=%27rotate%28-30 80 70%29%27/%3E%3Cellipse cx=%27240%27 cy=%27140%27 rx=%277%27 ry=%273.9%27 transform=%27rotate%2845 240 140%29%27/%3E%3Cellipse cx=%27140%27 cy=%27250%27 rx=%2710%27 ry=%275.5%27 transform=%27rotate%2815 140 250%29%27/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27220%27 height=%27220%27 viewBox=%270 0 220 220%27%3E%3Cellipse cx=%2730%27 cy=%2740%27 rx=%276%27 ry=%273.3%27 transform=%27rotate%2830 30 40%29%27/%3E%3Cellipse cx=%27150%27 cy=%2720%27 rx=%274.5%27 ry=%272.5%27 transform=%27rotate%28-20 150 20%29%27/%3E%3Cellipse cx=%27100%27 cy=%27120%27 rx=%277%27 ry=%273.9%27 transform=%27rotate%2860 100 120%29%27/%3E%3Cellipse cx=%27190%27 cy=%27170%27 rx=%275%27 ry=%272.8%27 transform=%27rotate%2810 190 170%29%27/%3E%3Cellipse cx=%2740%27 cy=%27190%27 rx=%274%27 ry=%272.2%27 transform=%27rotate%28-40 40 190%29%27/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27300%27 height=%27300%27 viewBox=%270 0 300 300%27%3E%3Cellipse cx=%2780%27 cy=%2770%27 rx=%279%27 ry=%275.0%27 transform=%27rotate%28-30 80 70%29%27/%3E%3Cellipse cx=%27240%27 cy=%27140%27 rx=%277%27 ry=%273.9%27 transform=%27rotate%2845 240 140%29%27/%3E%3Cellipse cx=%27140%27 cy=%27250%27 rx=%2710%27 ry=%275.5%27 transform=%27rotate%2815 140 250%29%27/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    220px 220px,
+    300px 300px;
+  mask-size:
+    220px 220px,
+    300px 300px;
+  --fx-to: 220px 220px, 300px 300px;
+  animation-duration: 20s;
+}
+
+@keyframes th-fx-move {
+  from {
+    -webkit-mask-position:
+      0 0,
+      0 0;
+    mask-position:
+      0 0,
+      0 0;
+  }
+  to {
+    -webkit-mask-position: var(--fx-to);
+    mask-position: var(--fx-to);
+  }
+}
+
+@keyframes th-fx-twinkle {
+  from {
+    opacity: 0.35;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .th-fx::before {
+    animation: none !important;
+  }
+}
+
+/* ---------- corners ---------- */
+.th-corner-sharp .pf-cover,
+.th-corner-sharp .pf-cover-sk,
+.th-corner-sharp .pf-tile,
+.th-corner-sharp .pf-carousel,
+.th-corner-sharp .pf-stats,
+.th-corner-sharp .pf-about-card,
+.th-corner-sharp .pf-svc-row,
+.th-corner-sharp .pf-rev-summary,
+.th-corner-sharp .me-preview-cover {
+  border-radius: 4px;
+}
+
+.th-corner-round .pf-cover,
+.th-corner-round .pf-cover-sk,
+.th-corner-round .pf-about-card,
+.th-corner-round .pf-svc-row,
+.th-corner-round .pf-rev-summary,
+.th-corner-round .me-preview-cover {
+  border-radius: 30px;
+}
+
+.th-corner-round .pf-tile,
+.th-corner-round .pf-carousel,
+.th-corner-round .pf-stats {
+  border-radius: 22px;
+}
+
+/* ---------- avatar ring ---------- */
+.pf-main.has-theme.th-ring-none .pf-avatar,
+.me-preview.has-theme.th-ring-none .me-preview-avatar {
+  box-shadow: none;
+}
+
+.pf-main.has-theme.th-ring-rainbow .pf-avatar,
+.me-preview.has-theme.th-ring-rainbow .me-preview-avatar {
+  padding: 3px;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(var(--pf-base, #fff), var(--pf-base, #fff)) padding-box,
+    conic-gradient(from 200deg, #82bcff, #2483ff, #ff66f4, #ff3029, #fe7b02, #82bcff) border-box;
+  box-shadow: none;
+}
+
+/* ---------- cover height ---------- */
+.th-cover-short .pf-cover,
+.th-cover-short .pf-cover-sk {
+  aspect-ratio: 664 / 240;
+}
+
+.th-cover-tall .pf-cover,
+.th-cover-tall .pf-cover-sk {
+  aspect-ratio: 664 / 470;
+}
+
+/* ---------- new fonts ---------- */
+.th-font-itim {
+  font-family: "Itim", var(--font-family-body);
+}
+
+.th-font-sriracha {
+  font-family: "Sriracha", "Mali", var(--font-family-body);
+}
+
+/* ---------- editor previews ---------- */
+.th-modeprev {
+  display: flex;
+  overflow: hidden;
+  width: 64px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.th-modeprev i {
+  display: block;
+  flex: 1;
+}
+
+.th-modeprev i:first-child {
+  margin: 9px 0 0 9px;
+  border-radius: 4px 0 0;
+  background: #e9edf3;
+}
+
+.th-modeprev i:last-child {
+  display: none;
+}
+
+.th-modeprev.is-dark {
+  border-color: #2a2e36;
+  background: #111318;
+}
+
+.th-modeprev.is-dark i:first-child {
+  background: #262a32;
+}
+
+.th-modeprev.is-auto {
+  background: linear-gradient(135deg, #fff 50%, #111318 50%);
+}
+
+.th-modeprev.is-auto i:first-child {
+  background: linear-gradient(135deg, #e9edf3 50%, #262a32 50%);
+}
+
+.th-fxprev {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--th-preview-accent, #0569ff);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.th-fxprev.is-snow {
+  background: #eef5ff;
+  color: #7fb2ff;
+}
+
+.th-fxprev.is-hearts,
+.th-fxprev.is-petals {
+  color: #ff7eb6;
+}
+
+.th-fxprev.is-sparkle {
+  color: #f5b301;
+}
+
+.th-fxprev.is-none {
+  color: var(--muted);
+}
+
+.th-ringprev.is-accent {
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px var(--th-preview-accent, #0569ff);
+}
+
+.th-ringprev.is-rainbow {
+  border: 3px solid transparent;
+  background:
+    linear-gradient(135deg, #d9dde3, #b9bfc8) padding-box,
+    conic-gradient(from 200deg, #82bcff, #2483ff, #ff66f4, #ff3029, #fe7b02, #82bcff) border-box;
+}
+
+.th-cornerprev {
+  display: block;
+  width: 64px;
+  height: 42px;
+  border: 2px solid #b9bfc8;
+  border-radius: 10px;
+  background: #f3f5f8;
+}
+
+.th-cornerprev.is-sharp {
+  border-radius: 2px;
+}
+
+.th-cornerprev.is-round {
+  border-radius: 20px;
+}
+
+.th-coverprev {
+  display: flex;
+  align-items: flex-start;
+  width: 64px;
+  height: 42px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.th-coverprev i {
+  display: block;
+  width: 100%;
+  height: 16px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #b9d6ff, #ffc2e5);
+}
+
+.th-coverprev.is-short i {
+  height: 10px;
+}
+
+.th-coverprev.is-tall i {
+  height: 26px;
+}

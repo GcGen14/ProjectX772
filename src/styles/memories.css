@@ -1,0 +1,782 @@
+/* =========================================================
+   CLASS MEMORIES — landing additions
+   ========================================================= */
+.hero-copy p .muted {
+  font-size: 14px;
+}
+
+.countdown-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.countdown-label {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pain-note p {
+  font-family: "Playpen Sans", "Mali", "Caveat", cursive;
+}
+
+.sp-avatar.is-square img {
+  border-radius: 18px;
+}
+
+.sp-mates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  align-content: start;
+  gap: 18px 10px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.sp-mate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-900);
+  font-size: 12px;
+  text-align: center;
+}
+
+.sp-mate img {
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.sp-mate:hover img {
+  transform: scale(1.08);
+}
+
+.classmates {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 24px 180px;
+}
+
+.classmates header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.classmates .faces {
+  display: flex;
+}
+
+.classmates .faces img {
+  width: 40px;
+  height: 40px;
+  margin-right: -10px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+}
+
+.classmates h2 {
+  color: var(--ink);
+  font-size: clamp(30px, 3.4vw, 44px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.mates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 14px;
+  margin-top: 44px;
+}
+
+.mate-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s var(--ease-out),
+    transform 0.6s var(--ease-out),
+    box-shadow 0.3s,
+    border-color 0.3s;
+}
+
+.classmates.is-in .mate-card {
+  opacity: 1;
+  transform: none;
+}
+
+.classmates.is-in .mate-card:hover {
+  border-color: #d6dae1;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+}
+
+.mate-card img {
+  width: 72px;
+  height: 72px;
+  margin-bottom: 6px;
+  border-radius: 999px;
+}
+
+.mate-card b {
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.mate-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.why-albums li a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 6px;
+  border-radius: 14px;
+  transition: background-color 0.2s;
+}
+
+.why-albums li a:hover {
+  background: var(--surface);
+}
+
+.why-albums img {
+  flex: none;
+  width: 72px;
+  height: 54px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+img.flag {
+  object-fit: cover;
+}
+
+/* =========================================================
+   CLASS MEMORIES — album / student page additions
+   ========================================================= */
+html.has-viewer,
+html.has-viewer body {
+  overflow: hidden;
+}
+
+.pf-avatar.is-square {
+  border-radius: 20px;
+}
+
+.pf-friend {
+  width: 36px;
+  height: 36px;
+  margin-right: -8px;
+  object-fit: cover;
+  border: 2px solid #fff;
+  border-radius: 999px;
+}
+
+.pf-friends .pf-client.more {
+  margin-left: 4px;
+  border-radius: 999px;
+}
+
+.pf-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pf-step-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 40px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #ededed;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.pf-step-nav a {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+}
+
+.pf-step-nav a:hover {
+  background: #dedede;
+}
+
+.pf-step-nav span {
+  padding: 0 6px;
+}
+
+.pf-menu a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.pf-menu a:hover {
+  background: var(--surface);
+}
+
+.pf-tab-count {
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.pf-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.pf-chip {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+}
+
+.pf-chip span {
+  color: var(--muted);
+}
+
+.pf-chip.is-on {
+  border-color: var(--ink-strong);
+  background: var(--ink-strong);
+  color: #fff;
+}
+
+.pf-chip.is-on span {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.pf-portfolio.is-wide {
+  grid-template-columns: 1fr;
+}
+
+.pf-more-sentinel {
+  padding: 28px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.pf-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  color: #4b5058;
+  font-size: 14px;
+}
+
+.pf-empty {
+  padding: 48px 0;
+  color: var(--muted);
+  text-align: center;
+}
+
+.pf-video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 22px 18px;
+}
+
+.pf-video {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-video-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #1c1f26;
+}
+
+.pf-video-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s var(--ease-out);
+}
+
+.pf-video:hover .pf-video-thumb img {
+  transform: scale(1.04);
+}
+
+.pf-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.45);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.pf-video:hover .pf-play {
+  transform: scale(1.12);
+}
+
+.pf-video-name {
+  display: block;
+  margin-top: 10px;
+  overflow: hidden;
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pf-v-stage.is-video iframe {
+  display: block;
+  width: min(1100px, 80vw);
+  max-height: 80vh;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 12px;
+  background: #000;
+}
+
+.pf-mate-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+}
+
+.pf-mates .pf-client-row:hover b {
+  text-decoration: underline;
+}
+
+.pf-mate-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.pf-mate-strip a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 76px;
+  color: var(--ink-900);
+  font-size: 12px;
+  text-align: center;
+}
+
+.pf-mate-strip img {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+}
+
+.pf-ph {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.pf-about-card a,
+.pf-line a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rail-class {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: default;
+}
+
+.rail-class:hover {
+  background: none;
+}
+
+.rail-class b {
+  color: var(--ink-900);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.rail-class span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+a.pf-svc-card {
+  display: block;
+}
+
+.pf-svc-card h3 .muted {
+  font-weight: 400;
+}
+
+@media (max-width: 819px) {
+  .zero-mark {
+    left: 150px;
+  }
+
+  .classmates {
+    padding: 72px 16px 96px;
+  }
+
+  .mates-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .mate-card img {
+    width: 56px;
+    height: 56px;
+  }
+
+  .pf-step-nav span {
+    display: none;
+  }
+
+  .pf-video-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px 10px;
+  }
+
+  .pf-v-stage.is-video iframe {
+    width: 94vw;
+  }
+}
+
+/* "100%" is wider than the original "0%" mark */
+.zero-mark {
+  left: 38%;
+  font-size: clamp(56px, 6.2vw, 92px);
+}
+
+/* =========================================================
+   LAYOUT FIXES — Thai text + overlaps
+   ========================================================= */
+/* Thai has marks above and below the line; the original English design used ~1.15,
+   which makes stacked Thai lines collide. */
+.hero h1,
+.hero-title,
+.heading-line,
+.future-title,
+.pain-head h2,
+.commission-header h2,
+.commission-copy h3,
+.platform-title,
+.platform-copy h3,
+.classmates h2,
+.sp-id h3,
+.pf-info h1,
+.pf-about h2,
+.why-panel h3,
+.me-card h1,
+.me-card h2 {
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.showcase-tab {
+  line-height: 1.6;
+}
+
+.pain-note p,
+.cred-card p,
+.bubble,
+.pf-bio,
+.sp-bio,
+.future-head p,
+.commission-copy p {
+  line-height: 1.6;
+}
+
+/* hero text always sits above the floating photo cards, with a soft halo for contrast */
+.hero-copy {
+  z-index: 6;
+}
+
+.hero-copy::before {
+  content: "";
+  position: absolute;
+  inset: -48px -72px;
+  z-index: -1;
+  border-radius: 48px;
+  background: radial-gradient(
+    closest-side,
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.85) 62%,
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
+}
+
+.hero-title {
+  align-items: center;
+}
+
+.hand-slot {
+  height: 1.4em;
+  transition: none;
+}
+
+.hand-word:lang(th),
+.hand-measure:lang(th) {
+  font-size: 1.02em;
+}
+
+/* long Thai titles should wrap nicely instead of overflowing */
+.commission-header h2,
+.platform-copy h3,
+.classmates h2,
+.pain-head h2 {
+  text-wrap: balance;
+}
+
+.commission-header h2 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.platform-copy h3 {
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+/* nav pills: never wrap their labels */
+.nav-logo,
+.lang-pill,
+.nav-cta {
+  white-space: nowrap;
+}
+
+.nav-actions {
+  gap: 6px;
+}
+
+@media (max-width: 1100px) {
+  .tile {
+    width: 100px;
+    height: 100px;
+  }
+
+  .digits {
+    font-size: 34px;
+  }
+}
+
+@media (max-width: 819px) {
+  /* headline: "ความทรงจำของ" on one line, the hand-written word under it */
+  .hero h1 {
+    font-size: clamp(34px, 10vw, 44px);
+  }
+
+  .hero-title {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .hero-copy {
+    gap: 28px;
+  }
+
+  .hero-copy::before {
+    inset: -24px -16px;
+  }
+
+  .countdown {
+    gap: 8px;
+  }
+
+  .tile {
+    width: 68px;
+    height: 68px;
+  }
+
+  .digits {
+    font-size: 22px;
+  }
+
+  .tile .label {
+    font-size: 11px;
+  }
+
+  /* compact top bar: brand + icon-only buttons */
+  .site-nav .nav-logo {
+    padding: 0 12px;
+    font-size: 16px;
+  }
+
+  .nav-me span,
+  .lang-pill[data-albums] span,
+  .lang-pill[data-albums] .icon:last-child {
+    display: none;
+  }
+
+  .lang-pill {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .site-nav.is-scrolled .nav-cta {
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
+  /* give the hero room so the photo deck sits below the buttons */
+  .hero {
+    min-height: max(100svh, 780px);
+    padding-top: 15svh;
+  }
+
+  .deck-card.is-a,
+  .deck-card.is-c {
+    top: auto;
+    bottom: 60px;
+  }
+
+  .deck-card.is-b,
+  .deck-card.is-d {
+    top: auto;
+    bottom: -90px;
+  }
+}
+
+/* ---- hero: hand-written word (slot glides to each word, word is written, underline follows) ---- */
+.hand-slot {
+  transition: width 0.55s var(--ease-out);
+}
+
+.hand-word {
+  left: 0;
+  translate: 0 -46%;
+}
+
+.hand-slot.is-draw .hand-word {
+  animation: hand-write 1s cubic-bezier(0.6, 0.05, 0.3, 1) forwards;
+}
+
+.hand-slot.is-erase .hand-word {
+  animation: hand-erase 0.45s ease-in forwards;
+}
+
+@keyframes hand-write {
+  from {
+    clip-path: inset(-30% 100% -30% 0);
+    translate: 0 -38%;
+  }
+  to {
+    clip-path: inset(-30% -5% -30% 0);
+    translate: 0 -46%;
+  }
+}
+
+.hand-line {
+  position: absolute;
+  bottom: -0.06em;
+  left: -3%;
+  width: 106%;
+  height: 0.3em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hand-line path {
+  fill: none;
+  stroke: url(#hand-ink);
+  stroke-width: clamp(3px, 0.085em, 6px);
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand-slot.is-draw .hand-line path {
+  animation: hand-underline 0.6s 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.hand-slot.is-erase .hand-line path {
+  stroke-dashoffset: 0;
+  animation: hand-underline-out 0.4s ease-in forwards;
+}
+
+@keyframes hand-underline {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hand-underline-out {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-slot {
+    transition: none;
+  }
+
+  .hand-slot.is-draw .hand-word,
+  .hand-slot.is-draw .hand-line path {
+    animation: none;
+    clip-path: none;
+    stroke-dashoffset: 0;
+  }
+}

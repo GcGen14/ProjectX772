@@ -1,0 +1,13 @@
+/* Teachers section on the landing page (reuses .classmates / .mate-card) */
+.classmates.teachers {
+  padding-bottom: 0;
+}
+
+.classmates.teachers + .classmates {
+  padding-top: 72px;
+}
+
+.classmates.teachers .mates-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 190px));
+  justify-content: center;
+}

@@ -1,0 +1,201 @@
+/* /backend — student database editor */
+body.page-backend {
+  background: var(--surface);
+}
+
+.adm {
+  padding: 20px 24px 40px;
+}
+
+.adm-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px 24px;
+  margin: -20px -24px 0;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.adm-title {
+  flex: 1;
+  min-width: 240px;
+}
+
+.adm-title h1 {
+  color: var(--ink-900);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.adm-title p {
+  font-size: 13px;
+}
+
+.adm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm-search {
+  height: 40px;
+  width: 200px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+}
+
+.adm-btn {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.adm-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink-strong);
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.adm-save:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.adm-table-wrap {
+  margin-top: 20px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+}
+
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.adm-table th {
+  position: sticky;
+  top: 0;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  background: #fafafa;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.adm-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f0f1f3;
+  vertical-align: middle;
+}
+
+.adm-table tr:hover td {
+  background: #fcfcfd;
+}
+
+.adm-table input,
+.adm-table textarea,
+.adm-table select {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-900);
+  font: inherit;
+  font-size: 14px;
+  resize: vertical;
+}
+
+.adm-table input:hover,
+.adm-table textarea:hover,
+.adm-table select:hover {
+  border-color: var(--line);
+}
+
+.adm-table input:focus,
+.adm-table textarea:focus,
+.adm-table select:focus {
+  border-color: var(--blue);
+  outline: none;
+  background: #fff;
+}
+
+.adm-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.adm-no {
+  color: var(--ink-900);
+  font-weight: 600;
+  text-align: center;
+}
+
+.adm-open {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  color: var(--muted-2);
+}
+
+.adm-open:hover {
+  background: var(--surface);
+  color: var(--ink-900);
+}
+
+.adm-foot {
+  margin-top: 14px;
+  font-size: 13px;
+}
+
+.adm-foot code {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.adm-table td:first-child {
+  width: 56px;
+  min-width: 56px;
+}
+
+.adm-avatar {
+  display: block;
+  min-width: 40px;
+}
+
+.adm-actions[hidden] {
+  display: none;
+}

@@ -1,0 +1,5 @@
+{
+  "_help": "Manual fixes for face matching. Keys are portrait set numbers (see scripts/people_groups.json). Values are Google Drive file ids of class photos. Re-run: python scripts/faces.py match",
+  "addPhotos": {},
+  "removePhotos": {}
+}

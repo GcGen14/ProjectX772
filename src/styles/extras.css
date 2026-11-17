@@ -1,0 +1,393 @@
+/* Student extras: social links, face stickers, character builder, privacy toggles, more theme backgrounds */
+
+/* ---- social chips on profiles ---- */
+.sx-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink-900);
+  font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+}
+
+a.sx-chip:hover {
+  border-color: var(--pf-accent, var(--ink-900));
+}
+
+.sx-chip .icon {
+  flex: none;
+  color: var(--pf-accent, var(--ink-900));
+}
+
+.sx-name {
+  color: var(--muted-2);
+  font-size: 12px;
+}
+
+.sx-val {
+  overflow: hidden;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.pf-about-socials b {
+  font-weight: inherit;
+}
+
+/* ---- character stuck over a hidden face in class photos ---- */
+.pv-sticker {
+  position: absolute;
+  z-index: 2;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 4px 14px rgba(0, 0, 0, 0.25);
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* ---- /me: character builder ---- */
+.mx-char {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 20px;
+  margin: 14px 0;
+}
+
+.mx-char-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.mx-char-img {
+  width: 180px;
+  height: 180px;
+  border-radius: 24px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.mx-char-parts {
+  display: grid;
+  gap: 8px;
+}
+
+.mx-part {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.mx-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mx-stepper select {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+  text-transform: capitalize;
+}
+
+.mx-icon-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.mx-icon-btn:hover {
+  background: var(--surface);
+}
+
+.mx-char-colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.mx-color {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.mx-color input {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.mx-color input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.mx-color input::-webkit-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 50%;
+}
+
+/* ---- /me: socials ---- */
+.mx-socials {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.mx-socials:empty {
+  margin: 4px 0;
+}
+
+.mx-social {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr) 40px;
+  gap: 8px;
+}
+
+.mx-social select,
+.mx-social input {
+  height: 40px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+
+.mx-social .mx-icon-btn {
+  width: 40px;
+  height: 40px;
+}
+
+/* ---- /me: privacy toggles ---- */
+.mx-toggles {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.mx-toggle {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  padding: 10px 4px;
+  cursor: pointer;
+}
+
+.mx-toggle input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mx-switch {
+  position: relative;
+  width: 44px;
+  height: 26px;
+  margin-top: 2px;
+  border-radius: 999px;
+  background: #d4d4d8;
+  transition: background-color 0.2s;
+}
+
+.mx-switch::after {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  content: "";
+  transition: translate 0.2s var(--ease-out);
+}
+
+.mx-toggle input:checked + .mx-switch {
+  background: var(--blue-500, #0569ff);
+}
+
+.mx-toggle input:checked + .mx-switch::after {
+  translate: 18px 0;
+}
+
+.mx-toggle input:focus-visible + .mx-switch {
+  outline: 2px solid var(--blue-500, #0569ff);
+  outline-offset: 2px;
+}
+
+.mx-toggle-text b {
+  display: block;
+  color: var(--ink-900);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.mx-toggle-text small {
+  display: block;
+  color: var(--muted-2);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mx-note {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  line-height: 1.6;
+}
+
+.mx-note .icon {
+  flex: none;
+  margin-top: 3px;
+}
+
+/* profile with hidden photos: a plain themed cover instead of a photo */
+.pf-cover:empty {
+  background:
+    radial-gradient(
+      60% 120% at 85% 0%,
+      color-mix(in srgb, var(--pf-accent2, var(--pf-accent, #0569ff)) 30%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--pf-accent, #0569ff) 18%, var(--pf-base, #fff)),
+      color-mix(in srgb, var(--pf-accent, #0569ff) 6%, var(--pf-base, #fff))
+    );
+}
+
+/* ---- more profile backgrounds (theme.ts) ---- */
+.th-bg-glow {
+  background:
+    radial-gradient(
+      120% 520px at 80% -120px,
+      color-mix(in srgb, var(--pf-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      90% 420px at 0% -80px,
+      color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 16%, transparent),
+      transparent 70%
+    ),
+    var(--pf-base, #fff);
+}
+
+.th-bg-aurora {
+  background:
+    radial-gradient(
+      70% 480px at 15% -60px,
+      color-mix(in srgb, var(--pf-accent) 26%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      60% 440px at 85% -40px,
+      color-mix(in srgb, var(--pf-accent2, #db2777) 24%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50% 360px at 50% 120px,
+      color-mix(in srgb, var(--pf-accent2, #db2777) 10%, transparent),
+      transparent 70%
+    ),
+    var(--pf-base, #fff);
+}
+
+.th-bg-hearts {
+  --pf-surface: var(--pf-tint);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2244%22 height=%2244%22 viewBox=%220 0 44 44%22%3E%3Cpath d=%22M22 30s-8-5-8-10a4 4 0 0 1 8-1 4 4 0 0 1 8 1c0 5-8 10-8 10z%22 fill=%22%23000%22 opacity=%22.06%22/%3E%3C/svg%3E")
+      0 0 / 44px 44px,
+    var(--pf-tint);
+}
+
+.th-bg-stars {
+  background:
+    radial-gradient(color-mix(in srgb, var(--pf-accent) 40%, transparent) 1px, transparent 1.6px) 0
+      0 / 34px 34px,
+    radial-gradient(
+        color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 30%, transparent) 1.4px,
+        transparent 2px
+      )
+      17px 17px / 34px 34px,
+    var(--pf-base, #fff);
+}
+
+.th-bg-checker {
+  background:
+    conic-gradient(
+        color-mix(in srgb, var(--pf-accent) 6%, transparent) 25%,
+        transparent 0 50%,
+        color-mix(in srgb, var(--pf-accent) 6%, transparent) 0 75%,
+        transparent 0
+      )
+      0 0 / 40px 40px,
+    var(--pf-base, #fff);
+}
+
+@media (max-width: 700px) {
+  .mx-char {
+    grid-template-columns: 1fr;
+  }
+
+  .mx-char-img {
+    width: 150px;
+    height: 150px;
+  }
+
+  .mx-part {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .mx-social {
+    grid-template-columns: 112px minmax(0, 1fr) 40px;
+  }
+}

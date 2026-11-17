@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# face-matching models and image cache (re-downloadable)
+scripts/models/
+scripts/.cache/
+
+# class database (SQLite) + generated admin password (root only; src/data is app data)
+/data/
+
+# python bytecode
+__pycache__/

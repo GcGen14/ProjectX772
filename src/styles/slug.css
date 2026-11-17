@@ -1,0 +1,64 @@
+/* /me — "ลิงก์โปรไฟล์ของฉัน" (personal profile address) field */
+.me-slug-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.me-slug-prefix {
+  display: flex;
+  flex: none;
+  align-items: center;
+  max-width: 45%;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid #d9dde3;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted-2);
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.me-slug-row input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.01em;
+}
+
+.me-slug-row .me-small {
+  flex: none;
+  height: auto;
+  min-height: 44px;
+}
+
+.me-slug small {
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+[data-slug-state].is-ok {
+  color: #15803d;
+}
+
+[data-slug-state].is-bad {
+  color: #c2410c;
+}
+
+@media (max-width: 560px) {
+  .me-slug-row {
+    flex-wrap: wrap;
+  }
+
+  .me-slug-prefix {
+    max-width: none;
+    min-height: 44px;
+  }
+
+  .me-slug-row input {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
