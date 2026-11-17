@@ -107,6 +107,75 @@ export const PRESETS: { name: string; theme: ProfileTheme }[] = [
       ring: "rainbow",
     },
   },
+  {
+    // pink + gold magical-girl look (Madoka-style)
+    name: "สาวน้อยเวทมนตร์",
+    theme: {
+      accent: "#ec4899",
+      accent2: "#eab308",
+      bg: "magic",
+      font: "mali",
+      corner: "round",
+      fx: "gems",
+      ring: "rainbow",
+    },
+  },
+  {
+    name: "แม่มดรัตติกาล",
+    theme: {
+      mode: "dark",
+      accent: "#a78bfa",
+      accent2: "#f472b6",
+      bg: "magic",
+      font: "serif",
+      fx: "gems",
+    },
+  },
+  {
+    name: "ปริ้น 3D",
+    theme: {
+      accent: "#f97316",
+      accent2: "#0ea5e9",
+      bg: "layers",
+      font: "mono",
+      corner: "sharp",
+      fx: "cubes",
+    },
+  },
+  {
+    name: "พิมพ์เขียว",
+    theme: {
+      mode: "dark",
+      accent: "#60a5fa",
+      accent2: "#93c5fd",
+      bg: "blueprint",
+      font: "mono",
+      corner: "sharp",
+      ring: "none",
+    },
+  },
+  {
+    name: "เกมพิกเซล",
+    theme: {
+      accent: "#16a34a",
+      accent2: "#eab308",
+      bg: "pixel",
+      font: "mono",
+      corner: "sharp",
+      cover: "short",
+    },
+  },
+  {
+    name: "ใต้ทะเล",
+    theme: {
+      accent: "#0891b2",
+      accent2: "#22d3ee",
+      bg: "waves",
+      font: "itim",
+      corner: "round",
+      fx: "bubbles",
+    },
+  },
 ];
 const PERSONAL = ["emoji", "song", "hobbies", "avatar"] as const;
 

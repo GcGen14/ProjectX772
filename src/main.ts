@@ -14,6 +14,7 @@ import "./styles/teachers.css";
 import "./styles/chat.css";
 import "./styles/extras.css";
 import "./styles/theme-more.css";
+import "./styles/theme-hobby.css";
 import "./styles/me-editor.css";
 import "./styles/album-viewer.css";
 import "./styles/timeline.css";

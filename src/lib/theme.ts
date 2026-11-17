@@ -17,13 +17,18 @@ export type ProfileTheme = {
     | "aurora"
     | "hearts"
     | "stars"
-    | "checker";
-  font?: "default" | "mali" | "playpen" | "serif" | "itim" | "sriracha";
+    | "checker"
+    | "magic"
+    | "layers"
+    | "blueprint"
+    | "pixel"
+    | "waves";
+  font?: "default" | "mali" | "playpen" | "serif" | "itim" | "sriracha" | "mono";
   avatar?: "round" | "square";
   /** light (default), dark, or follow the viewer's device */
   mode?: "light" | "dark" | "auto";
   /** floating particles over the page background */
-  fx?: "none" | "snow" | "sparkle" | "hearts" | "petals";
+  fx?: "none" | "snow" | "sparkle" | "hearts" | "petals" | "gems" | "cubes" | "bubbles";
   corner?: "sharp" | "normal" | "round";
   ring?: "accent" | "rainbow" | "none";
   cover?: "short" | "normal" | "tall";
@@ -55,6 +60,11 @@ export const BACKGROUNDS: { key: NonNullable<ProfileTheme["bg"]>; name: string }
   { key: "hearts", name: "หัวใจ" },
   { key: "stars", name: "ดาว" },
   { key: "checker", name: "ตารางหมากรุก" },
+  { key: "magic", name: "วงเวทมนตร์" },
+  { key: "layers", name: "เลเยอร์ 3D" },
+  { key: "blueprint", name: "พิมพ์เขียว" },
+  { key: "pixel", name: "พิกเซล" },
+  { key: "waves", name: "คลื่น" },
 ];
 export const FONTS: { key: NonNullable<ProfileTheme["font"]>; name: string }[] = [
   { key: "default", name: "ปกติ" },
@@ -63,6 +73,7 @@ export const FONTS: { key: NonNullable<ProfileTheme["font"]>; name: string }[] =
   { key: "serif", name: "ทางการ" },
   { key: "itim", name: "กลมมน" },
   { key: "sriracha", name: "ปากกา" },
+  { key: "mono", name: "โค้ด" },
 ];
 
 type Choice<K extends keyof ProfileTheme> = { key: NonNullable<ProfileTheme[K]>; name: string }[];
@@ -77,6 +88,9 @@ export const EFFECTS: (Choice<"fx">[number] & { glyph: string })[] = [
   { key: "sparkle", name: "ประกาย", glyph: "✦" },
   { key: "hearts", name: "หัวใจลอย", glyph: "♥" },
   { key: "petals", name: "ซากุระ", glyph: "✿" },
+  { key: "gems", name: "อัญมณี", glyph: "◆" },
+  { key: "cubes", name: "ลูกบาศก์", glyph: "⬢" },
+  { key: "bubbles", name: "ฟองน้ำ", glyph: "○" },
 ];
 export const CORNERS: Choice<"corner"> = [
   { key: "sharp", name: "เหลี่ยม" },

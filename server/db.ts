@@ -64,13 +64,18 @@ const THEME_BG = [
   "hearts",
   "stars",
   "checker",
+  "magic",
+  "layers",
+  "blueprint",
+  "pixel",
+  "waves",
 ];
-const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha"];
+const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha", "mono"];
 const THEME_AVATAR = ["round", "square"];
 /** extra look settings: [key, allowed values, default (not stored)] */
 const THEME_PICKS: [keyof ProfileTheme, string[], string][] = [
   ["mode", ["light", "dark", "auto"], "light"],
-  ["fx", ["none", "snow", "sparkle", "hearts", "petals"], "none"],
+  ["fx", ["none", "snow", "sparkle", "hearts", "petals", "gems", "cubes", "bubbles"], "none"],
   ["corner", ["sharp", "normal", "round"], "normal"],
   ["ring", ["accent", "rainbow", "none"], "accent"],
   ["cover", ["short", "normal", "tall"], "normal"],
