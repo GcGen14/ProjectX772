@@ -395,3 +395,222 @@ html:has(.song-nav) .song-mini:not([data-state="open"]) .song-card {
     right: 8px;
   }
 }
+
+/* ---------- now-playing card (src/lib/song.ts) ---------- */
+.song-card {
+  width: min(360px, calc(100vw - 24px));
+  padding: 14px;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 24px 60px rgba(0, 0, 0, 0.2);
+}
+
+.song-card-head {
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.song-cover {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.song-card-head .song-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 0;
+}
+
+.song-kicker-sm {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  margin-bottom: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-900) !important;
+  font-size: 11px !important;
+  font-weight: 600;
+}
+
+.song-card-head b {
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.35;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.song-icon-btn,
+.song-card-head button.song-icon-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-900);
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.song-icon-btn:hover {
+  background: var(--surface-2);
+}
+
+.song-card .song-video {
+  border-radius: 16px;
+}
+
+.song-mini.is-loading .song-video::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      100deg,
+      transparent 30%,
+      rgba(255, 255, 255, 0.18) 50%,
+      transparent 70%
+    )
+    0 0 / 200% 100%;
+  content: "";
+  animation: song-shimmer 1.2s linear infinite;
+}
+
+@keyframes song-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* progress + volume sliders */
+.song-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--muted-2);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.song-progress input,
+.song-volume input {
+  --p: 0%;
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  border-radius: 4px;
+  background:
+    linear-gradient(90deg, #2483ff, #ff66f4) 0 0 / var(--p) 100% no-repeat,
+    #e6e9ee;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.song-progress input::-webkit-slider-thumb,
+.song-volume input::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink-strong);
+  box-shadow: 0 0 0 3px #fff;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.song-progress input::-moz-range-thumb,
+.song-volume input::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink-strong);
+}
+
+.song-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.song-play-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink-strong);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.song-play-btn:hover {
+  transform: scale(1.06);
+}
+
+.song-volume {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  margin-left: 4px;
+  color: var(--muted-2);
+}
+
+.song-card-link {
+  display: none;
+}
+
+/* equalisers move only while sound is actually playing */
+.song-eq-sm {
+  display: none;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 8px;
+  margin-left: 2px;
+}
+
+.song-eq-sm i {
+  width: 2px;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--blue);
+  animation: song-eq 0.9s ease-in-out infinite;
+}
+
+.song-eq-sm i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.song-eq-sm i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+.song-mini.is-audible .song-eq-sm {
+  display: inline-flex;
+}
+
+html:not([data-song-audible]) .song-nav-eq i,
+.song-mini:not(.is-audible) .song-eq i {
+  height: 35%;
+  animation-play-state: paused;
+}
