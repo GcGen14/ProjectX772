@@ -699,6 +699,26 @@ a.pf-svc-card {
 }
 
 /* ---- hero: hand-written word (slot glides to each word, word is written, underline follows) ---- */
+/* two lines: "ความทรงจำของ" on top, the hand-written word centred under it, every word the same
+   font, size and animation */
+.hero-title {
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.hand-slot {
+  height: 1.5em;
+}
+
+.hand-word,
+.hand-measure,
+.hand-word:lang(th),
+.hand-measure:lang(th) {
+  font-size: 1.12em;
+  font-weight: 500;
+}
+
 .hand-slot {
   transition: width 0.55s var(--ease-out);
 }

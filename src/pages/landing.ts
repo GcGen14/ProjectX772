@@ -80,10 +80,10 @@ function heroCards(): HeroCard[] {
 
 const HAND_WORDS: { text: string; font: string; lang: string }[] = [
   { text: "เรา", font: "'Mali', cursive", lang: "th" },
-  { text: "6/2", font: "'Caveat', cursive", lang: "en" },
+  { text: "6/2", font: "'Mali', cursive", lang: "th" },
   { text: "ทุกคน", font: "'Mali', cursive", lang: "th" },
-  { text: "602", font: "'Caveat', cursive", lang: "en" },
-  { text: "GC14", font: "'Caveat', cursive", lang: "en" },
+  { text: "602", font: "'Mali', cursive", lang: "th" },
+  { text: "GC14", font: "'Mali', cursive", lang: "th" },
 ];
 const GRAD_AT = Date.parse(CLASS.graduation);
 
