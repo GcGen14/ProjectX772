@@ -1,0 +1,322 @@
+/* /backend — tabs + albums / Google Drive folders */
+.adm-tabs {
+  display: flex;
+  gap: 6px;
+  margin: 18px 0 4px;
+}
+
+.adm-tabs[hidden],
+.adm-student-tools[hidden] {
+  display: none;
+}
+
+.adm-student-tools {
+  display: contents;
+}
+
+.adm-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted-2);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.adm-tabs button.is-on {
+  border-color: var(--ink-strong);
+  background: var(--ink-strong);
+  color: #fff;
+}
+
+.alb-add,
+.alb-faces {
+  margin-top: 18px;
+}
+
+.alb-add h2,
+.alb-faces h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: 18px;
+}
+
+.alb-form,
+.alb-edit {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+  margin-top: 14px;
+}
+
+.alb-form label,
+.alb-edit label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink-900);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.alb-form .wide,
+.alb-edit .wide {
+  grid-column: 1 / -1;
+}
+
+.alb-form input,
+.alb-edit input:not([type="checkbox"]),
+.alb-edit textarea,
+.alb-addfolder input {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #d9dde3;
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink-900);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.alb-form input:focus,
+.alb-edit input:focus,
+.alb-edit textarea:focus,
+.alb-addfolder input:focus {
+  border-color: var(--blue);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(5, 105, 255, 0.15);
+}
+
+.alb-edit label.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+}
+
+.alb-form > .me-btn {
+  justify-self: start;
+}
+
+.alb-faces {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.alb-faces > div {
+  flex: 1;
+  min-width: 260px;
+}
+
+.alb-h {
+  margin: 28px 0 12px;
+  color: var(--ink-900);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.alb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.alb-card {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: start;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.alb-card.is-hidden {
+  opacity: 0.7;
+}
+
+.alb-cover {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.alb-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.alb-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.alb-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.alb-title .muted {
+  font-size: 13px;
+}
+
+.alb-badge {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted-2);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.alb-badge.is-warn {
+  background: #fff7e6;
+  color: #9a3412;
+}
+
+.alb-meta {
+  color: var(--muted-2);
+  font-size: 13px;
+}
+
+.alb-folders {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 13px;
+}
+
+.alb-folders a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.alb-job {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.alb-job span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.alb-job.is-done {
+  color: #15803d;
+}
+
+.alb-job.is-error {
+  color: #b91c1c;
+}
+
+.alb-job.is-running {
+  color: var(--ink-900);
+}
+
+.alb-bar {
+  height: 6px;
+  max-width: 420px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--surface-2);
+}
+
+.alb-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--grad);
+  transition: width 0.4s;
+}
+
+.alb-addfolder {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.alb-addfolder[hidden],
+.alb-edit[hidden] {
+  display: none;
+}
+
+.alb-row {
+  display: flex;
+  gap: 8px;
+}
+
+.alb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  max-width: 300px;
+}
+
+.alb-actions .me-small {
+  height: 34px;
+  padding: 0 12px;
+}
+
+.alb-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.alb-del:hover {
+  border-color: #b91c1c;
+  color: #b91c1c;
+}
+
+@media (max-width: 820px) {
+  .alb-card {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .alb-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .alb-form,
+  .alb-edit {
+    grid-template-columns: 1fr;
+  }
+}
