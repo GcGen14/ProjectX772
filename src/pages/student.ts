@@ -147,6 +147,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
         <aside class="pf-about-card">
           <div><span>${icon("user", 18)} ชื่อจริง</span><b>${field(s.fullName, "รอเพิ่ม")}</b></div>
           <div><span>${icon("home", 18)} เลขที่</span><b>${s.no}</b></div>
+          ${s.studentId ? `<div><span>${icon("book", 18)} รหัสนักเรียน</span><b>${esc(s.studentId)}</b></div>` : ""}
           ${s.group ? `<div><span>${icon("users", 18)} กลุ่ม</span><b>${esc(s.group)}</b></div>` : ""}
           <div><span>${icon("cake", 18)} วันเกิด</span><b>${field(s.birthday, "รอเพิ่ม")}</b></div>
           <div><span>${icon("sparkle", 18)} ความฝัน</span><b>${field(s.dream.startsWith("ความฝัน: รอ") ? "" : s.dream, "รอเพิ่ม")}</b></div>
@@ -173,11 +174,13 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     nameBadge: theme.emoji,
     theme: s.theme,
     handle: `@602.${String(s.no).padStart(2, "0")}`,
-    handleNote: `<b>เลขที่ ${s.no}</b> ${CLASS.name}`,
+    handleNote: `<b>เลขที่ ${s.no}</b>${s.studentId ? ` · ID ${esc(s.studentId)}` : ` ${CLASS.name}`}`,
     bio: s.quote,
     lines: [
       { icon: "sparkle", html: esc(s.dream) },
-      { icon: "home", html: `${CLASS.name} · ${CLASS.gen} · Class of ${CLASS.yearEn}` },
+      s.studentId
+        ? { icon: "book", html: `รหัสนักเรียน (ID) <b>${esc(s.studentId)}</b>` }
+        : { icon: "home", html: `${CLASS.name} · ${CLASS.gen} · Class of ${CLASS.yearEn}` },
       ...(s.fullName ? [{ icon: "user", html: esc(s.fullName) }] : []),
       ...(theme.song ? [{ icon: "music", html: `เพลงโปรด: ${esc(theme.song)}` }] : []),
       ...(socials ? [{ icon: "globe", html: socials }] : []),
@@ -191,7 +194,9 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     follow: ["เป็นเพื่อนกัน", "เพื่อนกันแล้ว"],
     covers,
     tags: [
-      { label: CLASS.name, icon: "home" },
+      s.studentId
+        ? { label: `ID ${s.studentId}`, icon: "book" }
+        : { label: CLASS.name, icon: "home" },
       ...(s.group ? [{ label: s.group, icon: "users" as const }] : []),
       { label: `Class of ${CLASS.yearEn}`, icon: "sparkle" },
       ...hobbies.slice(0, 2).map((h) => ({ label: h, icon: "heart" })),

@@ -15,7 +15,7 @@ export const CLASS = {
   year: "2569",
   yearEn: "2026",
   /** Countdown target on the landing page. Change to your real graduation day. */
-  graduation: "2027-03-01T09:00:00+07:00",
+  graduation: "2027-02-21T09:00:00+07:00",
 };
 
 export const BRAND = "602 memories";
@@ -180,6 +180,8 @@ export type StudentRecord = {
   group: string;
   portraitSet: number | null;
   photoNote: string;
+  /** school student ID (เลขประจำตัวนักเรียน) */
+  studentId?: string;
   /** id of the student's chosen cover photo (one of their portraits or memories) */
   coverPhoto?: string;
   /** how the student decorated their profile page (see src/lib/theme.ts) */

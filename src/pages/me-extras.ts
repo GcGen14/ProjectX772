@@ -44,10 +44,18 @@ const socialRow = (s: Social) => `
     <button type="button" class="mx-icon-btn" data-social-remove aria-label="ลบ">${icon("trash", 16)}</button>
   </div>`;
 
-export function extrasEditorHtml(no: number): string {
+export type ExtrasPart = "character" | "socials" | "privacy";
+
+/** All three sections in one block (kept for callers that want them together). */
+export const extrasEditorHtml = (no: number): string =>
+  (["character", "socials", "privacy"] as const).map((k) => extrasSectionHtml(no, k)).join("");
+
+/** One section; the editor can put each in its own tab as long as all sit inside bindExtrasEditor's host. */
+export function extrasSectionHtml(no: number, part: ExtrasPart): string {
   const e = extrasOf(no);
   const p = e.privacy;
-  return `
+  if (part === "character")
+    return `
     <section class="me-section" data-mx-character>
       <h2>${icon("user", 18)} ตัวการ์ตูนของฉัน</h2>
       <p class="me-help small">แต่งตัวการ์ตูนของตัวเอง ใช้แทนรูปหน้าจริงได้ทั้งเว็บ (ตัวการ์ตูนจาก <a href="https://github.com/humation-labs/humation" target="_blank" rel="noopener">Humation</a>)</p>
@@ -62,15 +70,16 @@ export function extrasEditorHtml(no: number): string {
         </div>
       </div>
       ${toggle("useCharacter", !!p.useCharacter, "ใช้ตัวการ์ตูนเป็นรูปโปรไฟล์", "รูปโปรไฟล์ทุกที่ในเว็บจะเป็นตัวการ์ตูนนี้แทนรูปหน้า")}
-    </section>
-
+    </section>`;
+  if (part === "socials")
+    return `
     <section class="me-section" data-mx-socials>
       <h2>${icon("globe", 18)} โซเชียลมีเดีย</h2>
       <p class="me-help small">ใส่ช่องทางติดต่ออื่น ๆ ได้สูงสุด ${MAX_SOCIALS} ช่องทาง จะขึ้นในหน้าโปรไฟล์ (Instagram ช่องด้านบนยังใช้ได้เหมือนเดิม)</p>
       <div class="mx-socials" data-social-list>${e.socials.map(socialRow).join("")}</div>
       <button type="button" class="btn-outline me-small" data-social-add>${icon("plus", 14)} เพิ่มช่องทาง</button>
-    </section>
-
+    </section>`;
+  return `
     <section class="me-section" data-mx-privacy>
       <h2>${icon("shield", 18)} ความเป็นส่วนตัว</h2>
       <div class="mx-toggles">

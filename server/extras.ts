@@ -13,7 +13,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createAvatar, getPartsForSlot } from "@humation/core";
 import { humation1 } from "@humation/assets-humation-1";
 import { readSession } from "./auth.ts";
-import { clean, getDb, getStudentRow } from "./db.ts";
+import fs from "node:fs";
+import path from "node:path";
+import { ROOT, clean, getDb, getStudentRow } from "./db.ts";
 
 type Req = IncomingMessage;
 type Res = ServerResponse;
@@ -140,11 +142,28 @@ export const defaultColors = (no: number) =>
     Object.entries(PALETTE).map(([k, arr]) => [k, arr[(no * 7 + SALT[k] * 13) % arr.length]]),
   );
 
+/** Look-alike defaults made from school photos by scripts/auto_characters.py. */
+let AUTO: Record<string, CharacterState> | null = null;
+function autoCharacter(no: number): CharacterState {
+  if (!AUTO) {
+    try {
+      const file = path.join(ROOT, "src", "data", "auto_characters.json");
+      AUTO = (
+        JSON.parse(fs.readFileSync(file, "utf8")) as { characters: Record<string, CharacterState> }
+      ).characters;
+    } catch {
+      AUTO = {};
+    }
+  }
+  return AUTO[String(no)] ?? { selections: {}, colors: {} };
+}
+
 const avatarOptions = (no: number, state: CharacterState) => {
-  const { background, ...colors } = { ...defaultColors(no), ...state.colors };
+  const auto = autoCharacter(no);
+  const { background, ...colors } = { ...defaultColors(no), ...auto.colors, ...state.colors };
   return {
     seed: `602-gen14-${no}`, // fills any slot the student didn't pick, same as their default avatar
-    selections: state.selections,
+    selections: { ...auto.selections, ...state.selections },
     colors,
     background, // a separate option in Humation, not one of the colour slots
   };
@@ -273,6 +292,47 @@ async function readBody(req: Req): Promise<Record<string, unknown>> {
 }
 
 /** Connect-style middleware; mounted next to the main API (vite.config.ts, server/index.ts). */
+/* ---------------- teacher's letter ---------------- */
+
+export type Letter = { text: string; signed: string; updatedAt: string };
+
+function letterTable() {
+  getDb().exec(`CREATE TABLE IF NOT EXISTS class_letter (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    text TEXT NOT NULL DEFAULT '',
+    signed TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT ''
+  )`);
+}
+
+export function getLetter(): Letter {
+  letterTable();
+  const r = getDb()
+    .prepare("SELECT text, signed, updated_at FROM class_letter WHERE id = 1")
+    .get() as { text: string; signed: string; updated_at: string } | undefined;
+  return { text: r?.text ?? "", signed: r?.signed ?? "", updatedAt: r?.updated_at ?? "" };
+}
+
+function saveLetter(body: Record<string, unknown>): Letter {
+  letterTable();
+  // keep line breaks (it is a letter), drop other control characters
+  const raw = typeof body.text === "string" ? body.text.replace(/\r\n?/g, "\n") : "";
+  let kept = "";
+  for (let i = 0; i < raw.length && kept.length < 6000; i++) {
+    const c = raw.charCodeAt(i);
+    if (c === 10 || c === 9 || (c >= 32 && c !== 127)) kept += raw[i];
+  }
+  const text = kept.trim();
+  const signed = clean(body.signed, 120);
+  getDb()
+    .prepare(
+      `INSERT INTO class_letter (id, text, signed, updated_at) VALUES (1, ?, ?, ?)
+       ON CONFLICT(id) DO UPDATE SET text = excluded.text, signed = excluded.signed, updated_at = excluded.updated_at`,
+    )
+    .run(text, signed, new Date().toISOString());
+  return getLetter();
+}
+
 export function createExtrasApi() {
   return (req: Req, res: Res, next: Next) => {
     const url = new URL(req.url ?? "/", "http://x");
@@ -324,6 +384,20 @@ export function createExtrasApi() {
         return send(res, 401, { error: "กรุณาเข้าสู่ระบบ" });
       readBody(req)
         .then((body) => send(res, 200, { extras: saveExtras(s.no!, body) }))
+        .catch((e: unknown) => send(res, 400, { error: (e as Error).message || "ข้อมูลไม่ถูกต้อง" }));
+      return;
+    }
+    // the teacher's letter to the whole class (landing page); only the admin can write it
+    if (p === "/api/letter" && m === "GET") return send(res, 200, { letter: getLetter() });
+    if (p === "/api/admin/letter" && m === "PUT") {
+      if (!(req.headers["content-type"] ?? "").includes("application/json"))
+        return send(res, 415, { error: "ต้องส่งเป็น JSON" });
+      const origin = req.headers.origin;
+      if (origin && new URL(origin).host !== req.headers.host)
+        return send(res, 403, { error: "ไม่อนุญาต" });
+      if (!sessionOf(req)?.isAdmin) return send(res, 401, { error: "ต้องเข้าสู่ระบบผู้ดูแล" });
+      readBody(req)
+        .then((body) => send(res, 200, { letter: saveLetter(body) }))
         .catch((e: unknown) => send(res, 400, { error: (e as Error).message || "ข้อมูลไม่ถูกต้อง" }));
       return;
     }

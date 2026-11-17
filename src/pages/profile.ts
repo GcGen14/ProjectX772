@@ -3,7 +3,9 @@
 import {
   BRAND,
   CLASS,
+  photoExif,
   photoSrc,
+  photoTags,
   students,
   studentAvatar,
   thumb,
@@ -22,7 +24,7 @@ import { createViewer, type MediaItem } from "../lib/viewer.ts";
 export type { MediaItem } from "../lib/viewer.ts";
 
 export type PageApi = {
-  openViewer(items: MediaItem[], index: number): void;
+  openViewer(items: MediaItem[], index: number, opts?: { slideshow?: boolean }): void;
   setTab(key: string): void;
   toast(msg: string): void;
   later(fn: () => void, ms: number): void;
@@ -102,8 +104,33 @@ const skeleton = () => `
   <div class="pf-tabs-wrap"><div class="pf-tabs"><span class="skeleton" style="width:240px;height:20px;margin:14px 0"></span></div></div>
   <section class="pf-panel"><div class="pf-sk-grid">${Array.from({ length: 6 }, (_, i) => `<span class="skeleton" style="height:${[260, 340, 200, 300, 220, 280][i]}px"></span>`).join("")}</div></section>`;
 
-const tile = (p: Photo, i: number) =>
-  `<button class="pf-tile" type="button" data-view="${i}" style="aspect-ratio:${p.w}/${p.h}" aria-label="เปิดรูป ${i + 1}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async"></button>`;
+const shortDate = (d?: string) => {
+  if (!d) return "";
+  const t = new Date(d.replace(" ", "T"));
+  return Number.isNaN(t.getTime())
+    ? ""
+    : new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", year: "2-digit" }).format(
+        t,
+      );
+};
+
+/** Grid tile; class photos show the date + who is in it on hover. */
+const tile = (p: Photo, i: number) => {
+  const tags = p.local ? [] : photoTags(p.id);
+  const date = p.local ? "" : shortDate(photoExif(p.id).date);
+  const info =
+    date || tags.length
+      ? `<span class="pf-tile-info">${date ? `<span>${icon("calendar", 12)} ${date}</span>` : "<span></span>"}${
+          tags.length
+            ? `<span class="pf-tile-people">${tags
+                .slice(0, 3)
+                .map((t) => `<img src="${studentAvatar(t.student)}" alt="">`)
+                .join("")}${tags.length > 3 ? `<b>+${tags.length - 3}</b>` : ""}</span>`
+            : ""
+        }</span>`
+      : "";
+  return `<button class="pf-tile" type="button" data-view="${i}" style="aspect-ratio:${p.w}/${p.h}" aria-label="เปิดรูป ${i + 1}${tags.length ? ` · ${tags.length} คนในรูป` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async">${info}</button>`;
+};
 
 /**
  * Masonry photo grid that appends photos in batches as you scroll.
@@ -114,8 +141,10 @@ export function mountMasonry(
   photos: Photo[],
   api: PageApi,
   caption: (p: Photo) => string,
+  opts: { cols?: number } = {},
 ) {
-  const cols = innerWidth < 1100 ? 2 : 3;
+  const auto = innerWidth < 1100 ? 2 : 3;
+  const cols = Math.max(1, Math.min(innerWidth < 640 ? 2 : 5, opts.cols ?? auto));
   host.innerHTML = `<div class="pf-masonry" style="--cols:${cols}">${Array.from({ length: cols }, () => `<div class="pf-mcol"></div>`).join("")}</div><div class="pf-more-sentinel"></div>`;
   const colEls = [...host.querySelectorAll<HTMLElement>(".pf-mcol")];
   const heights = Array.from({ length: cols }, () => 0);
@@ -367,8 +396,8 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
     // viewer (photos with face tags + details panel, Drive videos)
     const viewer = createViewer(root.querySelector<HTMLElement>(".pf-app")!, later);
     disposers.push(viewer.dispose);
-    function openViewer(list: MediaItem[], i: number) {
-      viewer.open(list, i);
+    function openViewer(list: MediaItem[], i: number, opts?: { slideshow?: boolean }) {
+      viewer.open(list, i, opts);
     }
 
     // classmates modal

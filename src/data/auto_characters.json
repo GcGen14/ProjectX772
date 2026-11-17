@@ -1,0 +1,740 @@
+{
+  "_help": "Default characters made by scripts/auto_characters.py from school photos.",
+  "characters": {
+    "1": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DEAF9E",
+        "hair": "#0F1321",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "2": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DBAEA0",
+        "hair": "#080D1B",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "3": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDAC98",
+        "hair": "#030411",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "4": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E5BCA4",
+        "hair": "#0E101D",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "5": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E5C1B2",
+        "hair": "#10121E",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "6": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E6B49B",
+        "hair": "#232124",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "7": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDAA94",
+        "hair": "#1B1E2B",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "8": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E1B7A8",
+        "hair": "#10111C",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "9": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B4A1",
+        "hair": "#030512",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "10": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B9A9",
+        "hair": "#191925",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "11": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E2BCB0",
+        "hair": "#070C1A",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "12": {
+      "selections": {
+        "head": "messy-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB7A6",
+        "hair": "#050A17",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "13": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E5C0AD",
+        "hair": "#14141D",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "14": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DEB7A9",
+        "hair": "#121521",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "15": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#D9A892",
+        "hair": "#101320",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "16": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DFB8A4",
+        "hair": "#1E212A",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "17": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E3B9A7",
+        "hair": "#121421",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "18": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E2B9AC",
+        "hair": "#0F1422",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "19": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#D9A893",
+        "hair": "#1E202C",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "20": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E1B5A0",
+        "hair": "#1D1C27",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "21": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB7A5",
+        "hair": "#0E1319",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "22": {
+      "selections": {
+        "head": "short-bangs",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB8AD",
+        "hair": "#151520",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "23": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DEAFA0",
+        "hair": "#080B1D",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "24": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B2A1",
+        "hair": "#171824",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "25": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B9AA",
+        "hair": "#060A1A",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "26": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E1B6A4",
+        "hair": "#0A1324",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "27": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B8A7",
+        "hair": "#101423",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "28": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E0B4A2",
+        "hair": "#0D0F1D",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "29": {
+      "selections": {
+        "head": "side-swept-short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E6C0B0",
+        "hair": "#060C1C",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "30": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DFB6A4",
+        "hair": "#131622",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "31": {
+      "selections": {
+        "head": "short",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E5BCAA",
+        "hair": "#080815",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "32": {
+      "selections": {
+        "head": "short-bangs",
+        "body": "shirt",
+        "bottom": "cropped-pants",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DFBCAF",
+        "hair": "#0C0E1D",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "33": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#D9B5AA",
+        "hair": "#2D2C36",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "34": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E2BDB1",
+        "hair": "#182334",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "35": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DEBBAE",
+        "hair": "#162035",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "36": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DFBDAF",
+        "hair": "#1E2231",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "37": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB9AC",
+        "hair": "#2C2B36",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "38": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E3BFB2",
+        "hair": "#252431",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "39": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DCB8AD",
+        "hair": "#262530",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "40": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E1BCB0",
+        "hair": "#1F2637",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "41": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E2BBAA",
+        "hair": "#32303B",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "42": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB4A7",
+        "hair": "#2A2A35",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "43": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E3C1B2",
+        "hair": "#2D2C36",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "44": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E3BDB2",
+        "hair": "#262734",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "45": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#D7B0A2",
+        "hair": "#1B2031",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "46": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DCB6AB",
+        "hair": "#282A3A",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "47": {
+      "selections": {
+        "head": "blunt-bob",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#DDB4A3",
+        "hair": "#242531",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "48": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E1BAAB",
+        "hair": "#2C2C38",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    },
+    "49": {
+      "selections": {
+        "head": "ponytail",
+        "body": "shirt",
+        "bottom": "flared-skirt",
+        "glasses": "none",
+        "item": "none"
+      },
+      "colors": {
+        "skin": "#E3BAA6",
+        "hair": "#20222F",
+        "clothes": "#F3F5F9",
+        "bottom": "#25345C"
+      }
+    }
+  }
+}

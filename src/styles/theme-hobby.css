@@ -1,0 +1,205 @@
+/* Profile theme: hobby-themed backgrounds, effects and a code font (src/lib/theme.ts).
+   Presets that use them live in src/pages/me-editor.ts (magical girl, 3D print, blueprint, ...). */
+
+/* ---------- backgrounds ---------- */
+/* magical girl: a magic circle in the corner over a fine diamond lattice */
+.th-bg-magic {
+  --mg-a: color-mix(in srgb, var(--pf-accent) 34%, transparent);
+  --mg-b: color-mix(in srgb, var(--pf-accent2, #eab308) 46%, transparent);
+  --mg-l: color-mix(in srgb, var(--pf-accent) 7%, transparent);
+  background:
+    radial-gradient(
+      circle at 88% 150px,
+      transparent 0 62px,
+      var(--mg-b) 62px 63.5px,
+      transparent 64px 74px,
+      var(--mg-a) 74px 75px,
+      transparent 75.5px 128px,
+      var(--mg-b) 128px 129px,
+      transparent 129.5px 136px,
+      var(--mg-a) 136px 137px,
+      transparent 137.5px
+    ),
+    radial-gradient(
+      circle at 6% 520px,
+      transparent 0 40px,
+      var(--mg-a) 40px 41px,
+      transparent 41.5px
+    ),
+    repeating-linear-gradient(60deg, var(--mg-l) 0 1px, transparent 1px 26px),
+    repeating-linear-gradient(-60deg, var(--mg-l) 0 1px, transparent 1px 26px),
+    radial-gradient(
+      100% 520px at 50% -160px,
+      color-mix(in srgb, var(--pf-accent) 18%, transparent),
+      transparent 70%
+    ),
+    var(--pf-base, #fff);
+}
+
+/* 3D print: thin layer lines over a build-plate grid */
+.th-bg-layers {
+  background:
+    repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--pf-accent) 8%, transparent) 0 1px,
+      transparent 1px 5px
+    ),
+    linear-gradient(
+        color-mix(in srgb, var(--pf-accent2, #0ea5e9) 12%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 48px 48px,
+    linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--pf-accent2, #0ea5e9) 12%, transparent) 1px,
+        transparent 1px
+      )
+      0 0 / 48px 48px,
+    var(--pf-base, #fff);
+}
+
+.th-bg-blueprint {
+  --pf-surface: var(--pf-tint);
+  --bp-major: color-mix(in srgb, var(--pf-accent) 24%, transparent);
+  --bp-minor: color-mix(in srgb, var(--pf-accent) 10%, transparent);
+  background:
+    linear-gradient(var(--bp-major) 1px, transparent 1px) -1px -1px / 100px 100px,
+    linear-gradient(90deg, var(--bp-major) 1px, transparent 1px) -1px -1px / 100px 100px,
+    linear-gradient(var(--bp-minor) 1px, transparent 1px) -1px -1px / 20px 20px,
+    linear-gradient(90deg, var(--bp-minor) 1px, transparent 1px) -1px -1px / 20px 20px,
+    var(--pf-tint);
+}
+
+.th-bg-pixel {
+  background:
+    conic-gradient(
+        from 270deg at 12px 12px,
+        color-mix(in srgb, var(--pf-accent) 12%, transparent) 25%,
+        transparent 0
+      )
+      0 0 / 48px 48px,
+    conic-gradient(
+        from 270deg at 12px 12px,
+        color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 16%, transparent) 25%,
+        transparent 0
+      )
+      24px 36px / 72px 72px,
+    conic-gradient(
+        from 270deg at 6px 6px,
+        color-mix(in srgb, var(--pf-accent) 9%, transparent) 25%,
+        transparent 0
+      )
+      30px 6px / 60px 60px,
+    var(--pf-base, #fff);
+}
+
+.th-bg-waves {
+  --wv: color-mix(in srgb, var(--pf-accent) 12%, transparent);
+  background:
+    radial-gradient(circle at 50% 100%, transparent 13px, var(--wv) 13.5px 15px, transparent 15.5px)
+      0 0 / 40px 20px,
+    radial-gradient(
+        circle at 50% 100%,
+        transparent 13px,
+        color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 12%, transparent) 13.5px 15px,
+        transparent 15.5px
+      )
+      20px 10px / 40px 20px,
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--pf-accent) 10%, var(--pf-base, #fff)),
+      var(--pf-base, #fff) 600px
+    );
+}
+
+.has-theme.th-dark.th-bg-blueprint {
+  --pf-surface: var(--pf-tint);
+}
+
+/* ---------- code font ---------- */
+.th-font-mono {
+  font-family:
+    ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, "Noto Sans Thai", monospace;
+}
+
+/* ---------- floating effects ---------- */
+.th-fx-gems {
+  --fx: color-mix(in srgb, var(--pf-accent) 50%, transparent);
+}
+
+.th-fx-cubes {
+  --fx: color-mix(in srgb, var(--pf-accent) 48%, transparent);
+}
+
+.th-fx-bubbles {
+  --fx: color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 55%, transparent);
+}
+
+.th-dark.th-fx-bubbles {
+  --fx: color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 45%, #fff);
+}
+
+.th-fx-gems::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath transform='translate%2830 40%29 rotate%28-10%29 scale%287%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2830 40%29 rotate%28-10%29 scale%287%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28150 30%29 rotate%2812%29 scale%284.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28150 30%29 rotate%2812%29 scale%284.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28100 125%29 rotate%284%29 scale%289%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28100 125%29 rotate%284%29 scale%289%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28178 165%29 rotate%28-14%29 scale%285%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28178 165%29 rotate%28-14%29 scale%285%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 172%29 rotate%288%29 scale%284%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 172%29 rotate%288%29 scale%284%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cpath transform='translate%2880 90%29 rotate%2810%29 scale%285.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2880 90%29 rotate%2810%29 scale%285.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28250 60%29 rotate%28-6%29 scale%288%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28250 60%29 rotate%28-6%29 scale%288%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28205 250%29 rotate%2816%29 scale%284.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28205 250%29 rotate%2816%29 scale%284.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 280%29 rotate%28-4%29 scale%286.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 280%29 rotate%28-4%29 scale%286.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath transform='translate%2830 40%29 rotate%28-10%29 scale%287%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2830 40%29 rotate%28-10%29 scale%287%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28150 30%29 rotate%2812%29 scale%284.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28150 30%29 rotate%2812%29 scale%284.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28100 125%29 rotate%284%29 scale%289%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28100 125%29 rotate%284%29 scale%289%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28178 165%29 rotate%28-14%29 scale%285%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28178 165%29 rotate%28-14%29 scale%285%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 172%29 rotate%288%29 scale%284%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 172%29 rotate%288%29 scale%284%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cpath transform='translate%2880 90%29 rotate%2810%29 scale%285.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2880 90%29 rotate%2810%29 scale%285.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28250 60%29 rotate%28-6%29 scale%288%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28250 60%29 rotate%28-6%29 scale%288%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28205 250%29 rotate%2816%29 scale%284.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%28205 250%29 rotate%2816%29 scale%284.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 280%29 rotate%28-4%29 scale%286.5%29' d='M0-1.5L.75-.3 0 1.5z'/%3E%3Cpath transform='translate%2840 280%29 rotate%28-4%29 scale%286.5%29' fill-opacity='.5' d='M0-1.5L-.75-.3 0 1.5z'/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    200px 200px,
+    320px 320px;
+  mask-size:
+    200px 200px,
+    320px 320px;
+  --fx-to: 0 -200px, 0 -320px;
+  animation-duration: 22s;
+}
+
+.th-fx-cubes::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath transform='translate%2834 40%29 scale%288%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2834 40%29 scale%288%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2834 40%29 scale%288%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cpath transform='translate%2884 90%29 scale%286%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2884 90%29 scale%286%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2884 90%29 scale%286%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cpath transform='translate%2834 40%29 scale%288%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2834 40%29 scale%288%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2834 40%29 scale%288%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28150 30%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28104 124%29 scale%2811%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28180 170%29 scale%286%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2840 176%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Cpath transform='translate%2884 90%29 scale%286%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2884 90%29 scale%286%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2884 90%29 scale%286%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28254 70%29 scale%289%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%28200 252%29 scale%285%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' d='M0-1L.87-.5 0 0-.87-.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' fill-opacity='.6' d='M-.87-.5L0 0 0 1-.87.5z'/%3E%3Cpath transform='translate%2844 282%29 scale%287%29' fill-opacity='.32' d='M.87-.5L0 0 0 1 .87.5z'/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    200px 200px,
+    320px 320px;
+  mask-size:
+    200px 200px,
+    320px 320px;
+  --fx-to: 0 200px, 0 320px;
+  animation-duration: 26s;
+}
+
+.th-fx-bubbles::before {
+  -webkit-mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Ccircle cx='30' cy='40' r='7' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='27.6' cy='37.5' r='1.3'/%3E%3Ccircle cx='150' cy='30' r='4' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='148.6' cy='28.6' r='1.0'/%3E%3Ccircle cx='100' cy='125' r='10' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='96.5' cy='121.5' r='1.8'/%3E%3Ccircle cx='178' cy='165' r='5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='176.2' cy='163.2' r='1.0'/%3E%3Ccircle cx='42' cy='175' r='3.5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='40.8' cy='173.8' r='1.0'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Ccircle cx='84' cy='90' r='6' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='81.9' cy='87.9' r='1.1'/%3E%3Ccircle cx='254' cy='60' r='9' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='250.8' cy='56.9' r='1.6'/%3E%3Ccircle cx='205' cy='250' r='4.5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='203.4' cy='248.4' r='1.0'/%3E%3Ccircle cx='44' cy='282' r='7' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='41.5' cy='279.6' r='1.3'/%3E%3C/svg%3E");
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Ccircle cx='30' cy='40' r='7' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='27.6' cy='37.5' r='1.3'/%3E%3Ccircle cx='150' cy='30' r='4' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='148.6' cy='28.6' r='1.0'/%3E%3Ccircle cx='100' cy='125' r='10' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='96.5' cy='121.5' r='1.8'/%3E%3Ccircle cx='178' cy='165' r='5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='176.2' cy='163.2' r='1.0'/%3E%3Ccircle cx='42' cy='175' r='3.5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='40.8' cy='173.8' r='1.0'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' viewBox='0 0 320 320'%3E%3Ccircle cx='84' cy='90' r='6' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='81.9' cy='87.9' r='1.1'/%3E%3Ccircle cx='254' cy='60' r='9' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='250.8' cy='56.9' r='1.6'/%3E%3Ccircle cx='205' cy='250' r='4.5' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='203.4' cy='248.4' r='1.0'/%3E%3Ccircle cx='44' cy='282' r='7' fill='none' stroke='black' stroke-width='1.4'/%3E%3Ccircle cx='41.5' cy='279.6' r='1.3'/%3E%3C/svg%3E");
+  -webkit-mask-size:
+    200px 200px,
+    320px 320px;
+  mask-size:
+    200px 200px,
+    320px 320px;
+  --fx-to: 0 -200px, 0 -320px;
+  animation-duration: 14s;
+}
+
+/* ---------- editor previews ---------- */
+.th-fxprev.is-gems {
+  color: #ec4899;
+}
+
+.th-fxprev.is-cubes {
+  color: #f97316;
+}
+
+.th-fxprev.is-bubbles {
+  background: #ecfeff;
+  color: #0891b2;
+}

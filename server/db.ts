@@ -23,6 +23,8 @@ export type StudentRow = {
   group: string;
   portraitSet: number | null;
   photoNote: string;
+  /** school student ID (เลขประจำตัวนักเรียน) */
+  studentId: string;
   coverPhoto: string;
   theme: ProfileTheme;
   /** id of the photo used as profile picture ("" = first of their photos) */
@@ -62,13 +64,18 @@ const THEME_BG = [
   "hearts",
   "stars",
   "checker",
+  "magic",
+  "layers",
+  "blueprint",
+  "pixel",
+  "waves",
 ];
-const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha"];
+const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha", "mono"];
 const THEME_AVATAR = ["round", "square"];
 /** extra look settings: [key, allowed values, default (not stored)] */
 const THEME_PICKS: [keyof ProfileTheme, string[], string][] = [
   ["mode", ["light", "dark", "auto"], "light"],
-  ["fx", ["none", "snow", "sparkle", "hearts", "petals"], "none"],
+  ["fx", ["none", "snow", "sparkle", "hearts", "petals", "gems", "cubes", "bubbles"], "none"],
   ["corner", ["sharp", "normal", "round"], "normal"],
   ["ring", ["accent", "rainbow", "none"], "accent"],
   ["cover", ["short", "normal", "tall"], "normal"],
@@ -92,7 +99,7 @@ export const SELF_FIELDS = {
 /** Allowed values for the "group" field (empty = not chosen). */
 export const GROUPS = ["SII", "ERA", "DAG"] as const;
 /** Extra fields only the admin may change. */
-export const ADMIN_FIELDS = { ...SELF_FIELDS, photoNote: 120 } as const;
+export const ADMIN_FIELDS = { ...SELF_FIELDS, photoNote: 120, studentId: 10 } as const;
 
 const COLS: Record<string, string> = {
   nickname: "nickname",
@@ -104,6 +111,7 @@ const COLS: Record<string, string> = {
   birthday: "birthday",
   group: "group_name",
   photoNote: "photo_note",
+  studentId: "student_id",
   coverPhoto: "cover_photo",
   theme: "theme",
   avatar: "avatar",
@@ -180,6 +188,17 @@ function migrate(d: DatabaseSync) {
   if (!cols.has("avatar"))
     d.exec("ALTER TABLE students ADD COLUMN avatar TEXT NOT NULL DEFAULT ''");
   if (!cols.has("slug")) d.exec("ALTER TABLE students ADD COLUMN slug TEXT NOT NULL DEFAULT ''");
+  if (!cols.has("student_id")) {
+    d.exec("ALTER TABLE students ADD COLUMN student_id TEXT NOT NULL DEFAULT ''");
+    // fill school IDs from the seed file once
+    if (fs.existsSync(SEED_FILE)) {
+      const seedIds = JSON.parse(fs.readFileSync(SEED_FILE, "utf8")) as {
+        students: { no: number; studentId?: string }[];
+      };
+      const put = d.prepare("UPDATE students SET student_id = ? WHERE no = ? AND student_id = ''");
+      for (const st of seedIds.students) if (st.studentId) put.run(st.studentId, st.no);
+    }
+  }
   // one address per student, case-insensitive; empty = not set
   d.exec(
     "CREATE UNIQUE INDEX IF NOT EXISTS students_slug ON students (slug COLLATE NOCASE) WHERE slug <> ''",
@@ -254,6 +273,7 @@ const toStudent = (r: Raw): StudentRow => ({
   group: String(r.group_name),
   portraitSet: r.portrait_set == null ? null : Number(r.portrait_set),
   photoNote: String(r.photo_note),
+  studentId: typeof r.student_id === "string" ? r.student_id : "",
   coverPhoto: String(r.cover_photo),
   theme: parseTheme(r.theme),
   avatar: typeof r.avatar === "string" ? r.avatar : "",
@@ -418,6 +438,7 @@ export function updateStudent(
     }
     let v = clean(patch[key], max);
     if (key === "ig") v = v.replace(/^@/, "").replace(/[^A-Za-z0-9._]/g, "");
+    if (key === "studentId") v = v.replace(/\D/g, "");
     if (key === "group" && v && !(GROUPS as readonly string[]).includes(v))
       throw new Error(`กลุ่มต้องเป็น ${GROUPS.join(" / ")}`);
     sets.push(`${COLS[key]} = ?`);

@@ -5,6 +5,12 @@ Match classmates' faces to the class photos.
   python scripts/faces.py class       # 2. download + embed every face in the class photos
   python scripts/faces.py match       # 3. write src/data/people.json for the site
   python scripts/faces.py pool        # every portrait + a face crop of each (run by "match" too)
+  python scripts/faces.py refs        # embed the school profile photos (scripts/.cache/refs/NN.jpg)
+  python scripts/faces.py assign      # give each student number the portrait set that matches their
+                                      # school photo (keeps number 1 as is), then run "match" again
+
+The school photos are the reference face for each student number: they decide which portrait set is
+whose, and they are added to that set's reference faces when tagging class photos.
 
 Which portraits belong together is set by hand in scripts/people_groups.json (one entry per
 student, by file name). Which student number gets which set is in src/data/students.json
@@ -43,6 +49,11 @@ GROUPS = os.path.join(HERE, "people_groups.json")
 OVERRIDES = os.path.join(HERE, "people_overrides.json")
 PUBLIC_PEOPLE = os.path.join(ROOT, "public", "photos", "people")
 
+REFS = os.path.join(CACHE, "refs")  # school profile photos, NN.jpg = student number NN (git-ignored)
+REF_FEATS = os.path.join(CACHE, "ref_feats.npy")
+STUDENTS_JSON = os.path.join(ROOT, "src", "data", "students.json")
+DB_FILE = os.path.join(ROOT, "data", "602.sqlite")
+KEEP_NUMBERS = {1}  # numbers whose portrait set was checked by hand
 PORTRAIT_FOLDER = "1sYKD2lfBaDR2lavqTWxa9AhebtMb50WY"
 UA = {"User-Agent": "Mozilla/5.0"}
 
@@ -238,14 +249,106 @@ def cmd_pool():
     print("pool:", len(out), "portraits ->", os.path.relpath(POOL_JSON, ROOT))
 
 
+def cmd_refs():
+    """Embed each student's school profile photo (the biggest face in it)."""
+    F = Faces()
+    feats = np.zeros((49, 128), np.float32)
+    for no in range(1, 50):
+        path = os.path.join(REFS, f"{no:02d}.jpg")
+        fs = F.faces(path) if os.path.exists(path) else []
+        if not fs:
+            print(f"  no face for number {no}")
+            continue
+        feats[no - 1] = max(fs, key=lambda f: f["size"])["feat"]
+    np.save(REF_FEATS, feats)
+    print("embedded", int((np.linalg.norm(feats, axis=1) > 0).sum()), "school photos")
+
+
+def set_of_numbers():
+    """{student number: portrait set} from the site database (falls back to students.json)."""
+    if os.path.exists(DB_FILE):
+        import sqlite3
+
+        con = sqlite3.connect(DB_FILE)
+        try:
+            return {no: ps for no, ps in con.execute("SELECT no, portrait_set FROM students")}
+        finally:
+            con.close()
+    return {s["no"]: s.get("portraitSet") for s in json.load(open(STUDENTS_JSON, encoding="utf8"))["students"]}
+
+
+def cmd_assign():
+    """Optimal one-to-one assignment of portrait sets to student numbers by school-photo similarity."""
+    from scipy.optimize import linear_sum_assignment
+
+    items, sets = load_sets()
+    pfeats = np.load(os.path.join(CACHE, "portrait_feats.npy"))
+    by_id = {it["id"]: pfeats[i] for i, it in enumerate(items)}
+    refs = np.load(REF_FEATS)
+    current = set_of_numbers()
+    kept_sets = {current.get(n) for n in KEEP_NUMBERS} - {None}
+    numbers = [n for n in range(1, 50) if n not in KEEP_NUMBERS and np.linalg.norm(refs[n - 1]) > 0]
+    set_ids = [k + 1 for k in range(len(sets)) if k + 1 not in kept_sets]
+
+    def sim(set_no, no):
+        fs = [by_id[p["id"]] for p in sets[set_no - 1] if np.linalg.norm(by_id[p["id"]]) > 0]
+        if not fs:
+            return 0.0
+        sims = np.sort(np.array(fs) @ refs[no - 1])
+        return float(sims[-3:].mean())  # 3 best portraits of the set
+
+    M = np.array([[sim(k, n) for n in numbers] for k in set_ids])  # sets x numbers
+    rows, cols = linear_sum_assignment(-M)
+    new = {n: None for n in numbers}
+    report = []
+    for r, c in zip(rows, cols):
+        k, n = set_ids[r], numbers[c]
+        s = M[r, c]
+        runner = np.sort(M[:, c])[-2] if len(set_ids) > 1 else 0
+        if s >= 0.363:  # SFace "same person" threshold
+            new[n] = k
+        report.append((n, k, s, s - runner))
+    print(" no  old -> new   sim  margin")
+    for n, k, s, m in sorted(report):
+        old = current.get(n)
+        flag = "" if old == new[n] else "  <- changed"
+        print(f"{n:3d}  {str(old):>3} -> {str(new[n]):>3}  {s:.2f}  {m:+.2f}{flag}")
+    for n in numbers:
+        if n not in {r[0] for r in report}:
+            print(f"{n:3d}  {str(current.get(n)):>3} -> none (no portrait set left)")
+    if "--write" not in sys.argv:
+        print("dry run; add --write to save")
+        return
+    if os.path.exists(DB_FILE):
+        import sqlite3
+
+        con = sqlite3.connect(DB_FILE)
+        for n, k in new.items():
+            con.execute("UPDATE students SET portrait_set = ? WHERE no = ?", (k, n))
+        con.commit()
+        con.close()
+    data = json.load(open(STUDENTS_JSON, encoding="utf8"))
+    for st in data["students"]:
+        if st["no"] in new:
+            st["portraitSet"] = new[st["no"]]
+    with open(STUDENTS_JSON, "w", encoding="utf8", newline="\n") as f:
+        f.write(json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    print("saved to the database + src/data/students.json")
+
+
 def cmd_match():
     items, sets = load_sets()
     pfeats = np.load(os.path.join(CACHE, "portrait_feats.npy"))
     by_id = {it["id"]: pfeats[i] for i, it in enumerate(items)}
+    school = np.load(REF_FEATS) if os.path.exists(REF_FEATS) else None
+    owner = {ps: no for no, ps in set_of_numbers().items() if ps}
     refs = []
-    for s in sets:
-        fs = np.array([by_id[p["id"]] for p in s if np.linalg.norm(by_id[p["id"]]) > 0])
-        refs.append(fs if len(fs) else np.zeros((1, 128), np.float32))
+    for k, s in enumerate(sets):
+        fs = [by_id[p["id"]] for p in s if np.linalg.norm(by_id[p["id"]]) > 0]
+        no = owner.get(k + 1)
+        if school is not None and no and np.linalg.norm(school[no - 1]) > 0:
+            fs += [school[no - 1]] * 2  # the school photo counts double: it is the reference face
+        refs.append(np.array(fs) if fs else np.zeros((1, 128), np.float32))
 
     faces = json.load(open(os.path.join(CACHE, "class_faces.json")))
     feats = np.load(os.path.join(CACHE, "class_feats.npy"))
@@ -305,4 +408,11 @@ def cmd_match():
 
 
 if __name__ == "__main__":
-    {"portraits": cmd_portraits, "class": cmd_class, "match": cmd_match, "pool": cmd_pool}[sys.argv[1]]()
+    {
+        "portraits": cmd_portraits,
+        "class": cmd_class,
+        "match": cmd_match,
+        "pool": cmd_pool,
+        "refs": cmd_refs,
+        "assign": cmd_assign,
+    }[sys.argv[1]]()

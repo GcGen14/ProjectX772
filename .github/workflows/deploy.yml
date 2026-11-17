@@ -1,0 +1,59 @@
+name: Deploy
+
+# Builds the site and ships it to project772.jn03.cloud whenever code lands on main.
+# The server side (/opt/projectx772/deploy-receive.sh) swaps the build in, installs
+# production deps, restarts the service, health-checks it and rolls back on failure.
+# data/ (SQLite + uploads) on the server is never touched.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DEPLOY_HOST: 72.62.41.174
+      DEPLOY_USER: projectx772
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build
+        run: npm run build
+
+      - name: Package
+        run: |
+          tar -czf bundle.tgz --exclude=server/tsconfig.json \
+            dist server src/data package.json package-lock.json
+
+      - name: Deploy over SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o BatchMode=yes "$DEPLOY_USER@$DEPLOY_HOST" < bundle.tgz
+
+      - name: Smoke test
+        run: curl -fsS --retry 5 --retry-delay 3 -o /dev/null https://project772.jn03.cloud/
