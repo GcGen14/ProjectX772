@@ -658,13 +658,27 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
     heroEl.classList.add("is-splashing");
     const N = cards.length;
     const start = performance.now();
-    const MIN_SPIN = 1250;
-    let ready = false;
-    let releaseAt = 0;
-    let thetaAtRelease = 0;
-    const flyStart: number[] = Array.from({ length: N }, () => 0);
-    const ringPosAtFly: { x: number; y: number; r: number; s: number }[] = [];
+    const STACK_W = 150; // on-screen width of a card in the centre stack (matches the boot screen)
+    const DEAL_GAP = 85; // ms between cards landing on the stack
+    const DEAL_MS = 380;
+    const SHUFFLE_MS = 640; // one "top card tucks under" while photos are still loading
+    const SQUEEZE_MS = 170; // anticipation before the burst
+    const FLY_GAP = 45;
+    const FLY_MS = 1150;
+    const dealEnd = (N - 1) * DEAL_GAP + DEAL_MS;
 
+    // A slightly messy pile: fixed per-card tilt and offset so it looks hand-stacked.
+    const pile = Array.from({ length: N }, (_, i) => ({
+      r: ((i * 47) % 15) - 7,
+      dx: (((i * 29) % 9) - 4) * 1.6,
+      dy: (((i * 13) % 7) - 3) * 1.4,
+      dir: i % 2 ? 1 : -1,
+    }));
+    let order = cards.map((_, i) => i); // bottom -> top
+    const restack = () => order.forEach((c, z) => (cards[c].style.zIndex = String(10 + z)));
+    restack();
+
+    let ready = false;
     // Wait for the class photos on the cards (or a timeout) so they land fully painted.
     const imgs = cards.map((c) => c.querySelector("img")!);
     const loaded = Promise.all(
@@ -679,56 +693,92 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
     );
     void Promise.race([loaded, new Promise((r) => setTimeout(r, 3500))]).then(() => (ready = true));
 
-    const theta = (t: number) => {
-      const sec = t / 1000;
-      return sec < 0.6 ? (80 * (sec * sec)) / 1.2 : 80 * (sec - 0.3);
-    };
+    let shuffleAt = 0; // start time of the current shuffle (0 = none yet)
+    let shuffleN = 0;
+    let swapped = false;
+    let releaseAt = 0;
+    const flyStart: number[] = Array.from({ length: N }, () => Infinity);
+    const from: { x: number; y: number; r: number; s: number }[] = [];
 
     const frame = (now: number) => {
       if (!alive) return;
       const t = now - start;
-      const R = Math.min(vw, vh) * 0.4;
       const cx = vw / 2;
       const cy = vh / 2;
-      if (ready && !releaseAt && t > MIN_SPIN) {
-        releaseAt = t;
-        thetaAtRelease = theta(t);
-        for (let i = 0; i < N; i++) flyStart[i] = t + i * 55;
-        later(() => heroEl.classList.add("is-copy-in"), 520);
+
+      // stack done and settled: either burst now, or tuck the top card under until photos are in
+      const shuffling = shuffleAt && t - shuffleAt < SHUFFLE_MS;
+      if (!releaseAt && t >= dealEnd && !shuffling) {
+        if (ready) {
+          releaseAt = t;
+          // top of the pile flies first
+          [...order].reverse().forEach((c, rank) => {
+            flyStart[c] = t + SQUEEZE_MS + rank * FLY_GAP;
+          });
+          later(() => heroEl.classList.add("is-copy-in"), SQUEEZE_MS + 480);
+        } else {
+          shuffleAt = t;
+          shuffleN++;
+          swapped = false;
+        }
       }
+      const squeeze = releaseAt
+        ? 1 - 0.07 * Math.sin((Math.PI / 2) * clamp((t - releaseAt) / SQUEEZE_MS))
+        : 1;
+      const top = order[N - 1];
+      const sp = shuffleAt && !releaseAt ? clamp((t - shuffleAt) / SHUFFLE_MS) : 1;
+      if (sp >= 0.5 && !swapped && shuffleAt && !releaseAt) {
+        swapped = true;
+        order = [top, ...order.slice(0, -1)];
+        restack();
+      }
+
       let finished = 0;
       for (let i = 0; i < N; i++) {
-        const base = -90 + (360 / N) * i;
-        const th = releaseAt ? thetaAtRelease + (t - releaseAt) * 0.03 : theta(t);
-        const a = ((base + th) * Math.PI) / 180;
-        const ring = {
-          x: cx + R * Math.cos(a),
-          y: cy + R * Math.sin(a),
-          r: HERO[i].r * 2.2 + Math.sin(a) * 6,
-          s: 112 / HERO[i].w / scaleNow(),
-        };
-        const appear = clamp((t - i * 70) / 260);
-        if (!releaseAt || t < flyStart[i]) {
-          ringPosAtFly[i] = ring;
-          place(i, ring.x, ring.y, ring.r, ring.s * easeOutBack(appear), 0, appear);
+        const P = pile[i];
+        const s = STACK_W / HERO[i].w / scaleNow();
+        if (t < flyStart[i]) {
+          // dealing onto the pile
+          const dp = clamp((t - i * DEAL_GAP) / DEAL_MS);
+          const dk = easeOut(dp);
+          let x = cx + P.dx;
+          let y = cy + P.dy - (1 - dk) * 70;
+          let r = P.r + (1 - dk) * 16 * P.dir;
+          let sc = s * (1.16 - 0.16 * dk) * squeeze;
+          // the card being shuffled swings out sideways and back under the pile
+          const isShuffled =
+            shuffleAt && !releaseAt && (swapped ? order[0] === i : top === i) && sp < 1;
+          if (isShuffled) {
+            const arc = Math.sin(Math.PI * sp);
+            const side = shuffleN % 2 ? 1 : -1;
+            x += arc * STACK_W * 0.88 * side;
+            y -= arc * 12;
+            r += arc * 12 * side;
+            sc *= 1 + arc * 0.03;
+          }
+          from[i] = { x, y, r, s: sc };
+          place(i, x, y, r, sc, 0, clamp(dp * 2.5));
           continue;
         }
-        const p = clamp((t - flyStart[i]) / 1250);
+        // burst out to the hero layout
+        const p = clamp((t - flyStart[i]) / FLY_MS);
         const k = easeOut(p);
-        const from = ringPosAtFly[i];
+        const kr = easeOutBack(clamp(p * 1.1));
+        const f = from[i];
         const g = geo[i];
-        const midLift = Math.sin(Math.PI * k) * 28;
+        const lift = Math.sin(Math.PI * k) * 36;
         place(
           i,
-          from.x + (g.cx - from.x) * k,
-          from.y + (g.cy - from.y) * k - midLift,
-          from.r + (HERO[i].r - from.r) * k,
-          from.s + (1 - from.s) * k,
-          clamp((p - 0.25) / 0.6),
+          f.x + (g.cx - f.x) * k,
+          f.y + (g.cy - f.y) * k - lift,
+          f.r + (HERO[i].r - f.r) * kr,
+          f.s + (1 - f.s) * k,
+          clamp((p - 0.3) / 0.55),
         );
         if (p >= 1) finished++;
       }
       if (finished === N) {
+        cards.forEach((c) => (c.style.zIndex = ""));
         heroEl.classList.remove("is-splashing");
         finishSplash();
         return;
