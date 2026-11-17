@@ -1,0 +1,353 @@
+/* =========================================================
+   Profile themes (src/lib/theme.ts) + theme editor controls
+   ========================================================= */
+.has-theme {
+  --pf-accent: var(--ink-900);
+  --pf-tint: color-mix(in srgb, var(--pf-accent) 9%, #fff);
+  --pf-line: color-mix(in srgb, var(--pf-accent) 14%, transparent);
+  --pf-surface: #fff;
+}
+
+/* ---- backgrounds ---- */
+.th-bg-soft {
+  --pf-surface: var(--pf-tint);
+  background: var(--pf-tint);
+}
+
+.th-bg-glow {
+  background:
+    radial-gradient(
+      120% 520px at 80% -120px,
+      color-mix(in srgb, var(--pf-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      90% 420px at 0% -80px,
+      color-mix(in srgb, var(--pf-accent) 12%, transparent),
+      transparent 70%
+    ),
+    #fff;
+}
+
+.th-bg-dots {
+  background:
+    radial-gradient(color-mix(in srgb, var(--pf-accent) 26%, transparent) 1.2px, transparent 1.6px)
+      0 0 / 18px 18px,
+    #fff;
+}
+
+.th-bg-grid {
+  background:
+    linear-gradient(var(--pf-line) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, var(--pf-line) 1px, transparent 1px) 0 0 / 28px 28px,
+    #fff;
+}
+
+.th-bg-stripes {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      color-mix(in srgb, var(--pf-accent) 7%, transparent) 0 14px,
+      transparent 14px 28px
+    ),
+    #fff;
+}
+
+/* ---- fonts ---- */
+.th-font-mali {
+  font-family: "Mali", var(--font-family-body);
+}
+
+.th-font-playpen {
+  font-family: "Playpen Sans", "Mali", var(--font-family-body);
+}
+
+.th-font-serif {
+  font-family: Georgia, "Noto Serif Thai", "Times New Roman", serif;
+}
+
+/* ---- profile page ---- */
+.pf-main.has-theme .pf-tabs-wrap {
+  background: color-mix(in srgb, var(--pf-surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.pf-main.has-theme .pf-avatar {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5px var(--pf-accent);
+}
+
+.pf-avatar.is-square {
+  border-radius: 22px;
+}
+
+.pf-emoji {
+  font-size: 0.85em;
+}
+
+.pf-main.has-theme .pf-tab.is-active::after {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--pf-accent);
+}
+
+.pf-main.has-theme .pf-tab-count {
+  background: var(--pf-tint);
+  color: var(--pf-accent);
+}
+
+.pf-main.has-theme .pf-line .icon,
+.pf-main.has-theme .pf-tag .icon,
+.pf-main.has-theme .pf-about-card .icon {
+  color: var(--pf-accent);
+}
+
+.pf-main.has-theme .pf-line a,
+.pf-main.has-theme .pf-about-card a {
+  color: var(--pf-accent);
+  font-weight: 500;
+}
+
+.pf-main.has-theme .pf-tag {
+  border-color: color-mix(in srgb, var(--pf-accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--pf-surface) 85%, transparent);
+}
+
+.pf-main.has-theme .pf-stats {
+  border-color: color-mix(in srgb, var(--pf-accent) 28%, var(--line));
+  background: color-mix(in srgb, var(--pf-surface) 85%, transparent);
+}
+
+.pf-main.has-theme .pf-follow:hover {
+  border-color: var(--pf-accent);
+}
+
+.pf-main.has-theme .pf-follow.is-following {
+  border-color: var(--pf-accent);
+  background: var(--pf-accent);
+}
+
+.pf-main.has-theme .pf-cover {
+  box-shadow: 0 0 0 1px var(--pf-line);
+}
+
+/* ---- editor ---- */
+.th-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.th-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.th-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.th-swatches,
+.th-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.th-opt {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: none;
+  color: var(--muted-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.th-opt:hover {
+  background: var(--surface);
+}
+
+.th-opt[aria-checked="true"],
+.th-custom.is-on {
+  border-color: var(--ink-strong);
+  color: var(--ink-900);
+}
+
+.th-opt:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.th-sw {
+  display: block;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+.th-sw-none {
+  border: 1px dashed #b9bdc4;
+  background: linear-gradient(
+    135deg,
+    transparent calc(50% - 1px),
+    #c7cbd1 calc(50% - 1px) calc(50% + 1px),
+    transparent calc(50% + 1px)
+  );
+}
+
+.th-custom {
+  position: relative;
+  flex-direction: row;
+  padding: 4px 10px 4px 4px;
+}
+
+.th-custom input {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+}
+
+.th-custom input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.th-custom input::-webkit-color-swatch {
+  border: 0;
+  border-radius: 999px;
+}
+
+.th-bgprev {
+  --pf-accent: var(--th-preview-accent, #0569ff);
+  display: block;
+  width: 64px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.th-bg-plain.th-bgprev {
+  background: #fff;
+}
+
+.th-fontprev {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-900);
+  font-size: 17px;
+}
+
+.th-shape {
+  display: block;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d9dde3, #b9bfc8);
+}
+
+.th-shape.is-square {
+  border-radius: 12px;
+}
+
+.th-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.th-wide {
+  grid-column: 1 / -1;
+}
+
+.th-fields em {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.th-emoji {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.th-emoji-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.th-emoji-picks button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.th-emoji-picks button:hover {
+  background: var(--surface);
+}
+
+@media (max-width: 640px) {
+  .th-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- /me preview card + section ---- */
+.me-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.me-section h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-900);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.me-preview.has-theme .me-preview-avatar {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--pf-accent);
+}
+
+.me-preview-avatar.is-square {
+  border-radius: 22px;
+}
+
+.me-preview.has-theme .me-preview-line .icon {
+  color: var(--pf-accent);
+}
