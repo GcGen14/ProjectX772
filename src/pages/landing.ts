@@ -7,6 +7,8 @@ import {
   large,
   messages,
   notes,
+  photoExif,
+  photoTags,
   students,
   studentAvatar,
   thumb,
@@ -21,7 +23,7 @@ import {
   teachers,
 } from "../data.ts";
 import { icon, logoMark, onlineDot } from "../lib/icons.ts";
-import { myNo } from "../lib/api.ts";
+import { myNo, session } from "../lib/api.ts";
 import { bindSongPlayers, songNavButton, songSectionHtml } from "../lib/song.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { clamp, esc, prefersReducedMotion, type Cleanup } from "../lib/router.ts";
@@ -174,89 +176,6 @@ const hero = (cards: HeroCard[]) => `
 
 /* ---- showcase shells (album "mini profiles") ---- */
 
-const miniTiles = (photos: Photo[]) => {
-  const cols: string[][] = [[], [], []];
-  const h = [0, 0, 0];
-  photos.slice(0, 12).forEach((p) => {
-    const c = h.indexOf(Math.min(...h));
-    h[c] += p.h / p.w;
-    cols[c].push(
-      `<div class="mp-tile" style="aspect-ratio:${p.w}/${p.h}"><img src="${thumb(p.id)}" alt="" loading="lazy"></div>`,
-    );
-  });
-  return cols.map((c) => `<div class="sp-col">${c.join("")}</div>`).join("");
-};
-
-const miniAlbum = (a: Album, idx: number) => {
-  const others = albums.filter((x) => x !== a);
-  const sample = a.photos.length
-    ? a.photos.filter((_, i) => i % Math.max(1, Math.floor(a.photos.length / 12)) === 0)
-    : [];
-  const videoTiles = a.videos
-    .filter((v) => v.thumb)
-    .slice(0, 9)
-    .map((v) => ({ id: v.id, name: v.name, w: v.w ?? 16, h: v.h ?? 9 }) as Photo);
-  return `
-  <article class="sp-shell${idx === 0 ? " is-active" : ""}" data-idx="${idx}" id="album-${a.slug}">
-    <div class="sp-label">อัลบั้ม ${esc(a.title)}</div>
-    <div class="sp-card">
-      <div class="sp-head">
-        <div class="sp-id">
-          <span class="sp-avatar is-square"><img src="${albumCoverSrc(a)}" alt=""></span>
-          <div class="sp-id-text">
-            <h3>${esc(a.title)}</h3>
-            <div class="sp-handle"><a href="/album/${a.slug}" data-link>@602 · ${esc(a.en)}</a><span class="muted"> · </span><span>${albumCount(a)}</span></div>
-            <p class="sp-bio">${esc(a.tagline)}</p>
-            <div class="sp-stats">
-              <div><b>${a.photos.length.toLocaleString()}</b><span>รูป</span></div>
-              <div><b>${a.videos.length}</b><span>คลิป</span></div>
-              <div><b>${a.groups.length || 1}</b><span>${a.groups.length ? "กลุ่ม" : "อัลบั้ม"}</span></div>
-              <div><b>${students.length}</b><span>เพื่อน</span></div>
-            </div>
-          </div>
-        </div>
-        <div class="sp-cover-col">
-          <div class="sp-cover"><img src="${albumCoverSrc(a)}" alt=""></div>
-          <div class="sp-tags">${a.tags.map((t) => `<span class="chip">${esc(t.label)}</span>`).join("")}<span class="sp-loc">${icon("home", 12)} ${CLASS.name}</span></div>
-        </div>
-      </div>
-      <nav class="sp-tabs"><span class="is-active">${a.photos.length >= a.videos.length ? "รูปภาพ" : "วิดีโอ"}</span><span>${a.photos.length >= a.videos.length ? "วิดีโอ" : "รูปภาพ"}</span><span>เกี่ยวกับ</span></nav>
-      <div class="sp-body">
-        <div class="sp-grid">${miniTiles(sample.length >= videoTiles.length ? sample : videoTiles)}</div>
-        <aside class="sp-services">
-          <div class="sp-services-head"><b>อัลบั้มอื่น</b><a href="/album/${a.slug}" data-link>ดูทั้งหมด</a></div>
-          ${others
-            .slice(0, 3)
-            .map(
-              (o) => `<a class="sp-service" href="/album/${o.slug}" data-link>
-                <img src="${albumCover(o) ? thumb(albumCover(o).id) : albumCoverSrc(o)}" alt="">
-                <div><b>${esc(o.title)}</b><span>${esc(o.en)}</span><span>${albumCount(o)}</span></div>
-              </a>`,
-            )
-            .join("")}
-        </aside>
-      </div>
-      <a class="sp-open" href="/album/${a.slug}" data-link>เปิดอัลบั้ม ${icon("arrowUpRight", 14)}</a>
-    </div>
-  </article>`;
-};
-
-const miniClassmates = (idx: number) => `
-  <article class="sp-shell" data-idx="${idx}" id="album-classmates">
-    <div class="sp-label">เพื่อน ${CLASS.name} ทั้ง ${students.length} คน</div>
-    <div class="sp-card">
-      <div class="sp-mates">${students
-        .map(
-          (s) =>
-            `<a href="${profileUrl(s)}" data-link class="sp-mate"><img src="${studentAvatar(s)}" alt=""><span>${esc(s.nickname)}</span></a>`,
-        )
-        .join("")}</div>
-      <a class="sp-open" href="#classmates" data-scroll="#classmates">ดูโปรไฟล์เพื่อน ${icon("arrowUpRight", 14)}</a>
-    </div>
-  </article>`;
-
-const showcaseTabs = () => [...albums.map((a) => a.title), `เพื่อน ${students.length} คน`];
-
 const future = () => `
   <section class="future" id="future">
     <div class="future-inner">
@@ -271,23 +190,9 @@ const future = () => `
             )
             .join("")}</span></span>ple</span><span class="future-lead"> ever.</span>
         </h2>
-        <p>ไม่ใช่แค่เพื่อนร่วมห้อง แต่คือคนที่อยู่ด้วยกันตลอด ม.ปลาย<br>นี่คือทุกอัลบั้มของ ${CLASS.name} เลื่อนลงเพื่อดูทีละอัลบั้ม</p>
+        <p>ไม่ใช่แค่เพื่อนร่วมห้อง แต่คือคนที่อยู่ด้วยกันตลอด ม.ปลาย<br>เลื่อนลงเพื่อย้อนดูทุกช่วงของ ${CLASS.name}</p>
       </header>
-      <div class="showcase-track" id="showcase" style="--n:${showcaseTabs().length}">
-        <div class="showcase-sticky">
-          <div class="showcase-chrome">
-            <div class="showcase-tabs" role="tablist">
-              ${showcaseTabs()
-                .map(
-                  (t, i) =>
-                    `<button class="showcase-tab${i === 0 ? " is-active" : ""}" role="tab" data-idx="${i}" style="--tab-i:${i}">${esc(t)}</button>`,
-                )
-                .join("")}
-            </div>
-            <div class="showcase-deck">${albums.map(miniAlbum).join("")}${miniClassmates(albums.length)}</div>
-          </div>
-        </div>
-      </div>
+      ${timeline()}
       ${teachersSection()}
       <section class="classmates" id="classmates">
         <header>
@@ -353,49 +258,6 @@ const pain = () => `
     </div>
   </section>`;
 
-const underlineSvg = `<svg class="draw-underline" viewBox="0 0 300 20" preserveAspectRatio="none" aria-hidden="true"><path d="M4 12c40-6 90-9 150-8 50 1 100 4 142 8M30 16c60-5 140-6 230-2" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
-
-const commission = () => `
-  <section class="commission" id="commission">
-    <div class="commission-card">
-      <header class="commission-header">
-        <h2><span class="muted">ห้องอื่นแค่ถ่ายรูป.</span><span class="accent">แต่เราเก็บความทรงจำ.${underlineSvg}</span></h2>
-      </header>
-      <div class="commission-rows">
-        <div class="commission-row">
-          <div class="commission-visual byoc">
-            <div class="byoc-client"><span class="faces">${students
-              .slice(6, 9)
-              .map((s) => `<img src="${studentAvatar(s)}" alt="">`)
-              .join("")}</span><span>ทุกคนในห้อง</span></div>
-            <svg class="byoc-arrow" viewBox="0 0 220 160" aria-hidden="true"><path d="M20 10c-10 60 10 110 70 125 40 10 80 0 110-10" fill="none" stroke="#2b313b" stroke-width="2.4" stroke-linecap="round"/><path d="m188 112 14 13-17 8" fill="none" stroke="#2b313b" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            <div class="zero-mark">100<span>%</span></div>
-          </div>
-          <div class="commission-copy">
-            <h3>ทุกรูปจาก Drive ของห้อง <b>ครบ <span class="grad-text">100%!</span></b></h3>
-            <p>รวม ${totals.photos.toLocaleString()} รูปและ ${totals.videos} คลิปจากทุกโฟลเดอร์ไว้ที่เดียว ทั้งถ่ายรูปรุ่น G1–G6 ชีวิตประจำวัน วันลาบ TEP และคลิปโมเม้น ไม่ต้องไล่เปิดทีละลิงก์อีกแล้ว</p>
-            <button class="text-link" type="button" data-albums>ดูอัลบั้มทั้งหมด ${icon("chevronRight", 14)}</button>
-          </div>
-        </div>
-        <hr class="commission-rule">
-        <div class="commission-row">
-          <div class="commission-visual connect" data-total="${totals.photos}">
-            <div class="chat"><img src="${studentAvatar(students[11])}" alt=""><span class="bubble"><span class="typed" data-text="เฮ้ย ใครมีรูปวันลาบบ้าง ส่งมาหน่อยยย 🙏"></span></span></div>
-            <div class="fee-card">
-              <div class="fee-top"><span>รวมรูปแล้ว</span><b class="fee-rate">0%</b></div>
-              <div class="fee-meta">จากทุกคนในห้อง <span class="fee-amount">0</span><span class="muted">/${totals.photos.toLocaleString()}</span></div>
-              <div class="fee-bar"><span></span></div>
-            </div>
-          </div>
-          <div class="commission-copy">
-            <h3>ลืมไปแล้วว่าใครถ่าย?<br><b class="sweep-text">ไม่เป็นไร เราเก็บไว้ให้หมดแล้ว</b></h3>
-            <p>ทุกรูปเปิดดูแบบเต็มความละเอียดได้ทันที คลิปก็กดเล่นได้เลยในหน้าเว็บ และกดลูกศรซ้ายขวาเพื่อดูรูปถัดไปได้</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>`;
-
 const messageCards = () => {
   // approved public messages first; sample cards top the row up so the marquee stays full
   const real = wall
@@ -412,91 +274,251 @@ const messageCards = () => {
   return `<div class="cred-marquee"><div class="cred-set">${set}${set}</div></div>`;
 };
 
-const platform = () => {
-  const s = students[0];
-  const s12 = students[11];
-  const s13 = students[12];
-  const grid = albums.find((a) => a.slug === "life")!.photos;
+/* ---- timeline: every album, as stops along the 3 years (horizontal) ---- */
+
+type Stop = {
+  key: string;
+  /** "YYYY-MM" (or "0000" for the everyday chapter, "9999" for graduation) */
+  date: string;
+  label: string;
+  sub: string;
+  title: string;
+  album?: Album;
+  photos: Photo[];
+  count: number;
+  videos: number;
+};
+const TH_MONTHS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
+const gradDate = new Date(GRAD_AT);
+// the school year starts in May; ม.6 is the year that ends with graduation
+const M6_START = gradDate.getMonth() < 4 ? gradDate.getFullYear() - 1 : gradDate.getFullYear();
+const gradeOf = (ym: string) => {
+  const [y, m] = ym.split("-").map(Number);
+  const start = m >= 5 ? y : y - 1;
+  const g = 6 - (M6_START - start);
+  return g >= 4 && g <= 6 ? `ม.${g}` : "";
+};
+const monthLabel = (ym: string) => {
+  const [y, m] = ym.split("-").map(Number);
+  return `${TH_MONTHS[m - 1]} ${y + 543}`;
+};
+
+function timelineStops(): Stop[] {
+  const stops: Stop[] = [];
+  for (const a of albums) {
+    const byMonth = new Map<string, Photo[]>();
+    const undated: Photo[] = [];
+    for (const p of a.photos) {
+      const d = photoExif(p.id).date;
+      if (d && d >= "2020") byMonth.set(d.slice(0, 7), [...(byMonth.get(d.slice(0, 7)) ?? []), p]);
+      else undated.push(p);
+    }
+    // tiny clusters aren't worth a stop of their own
+    // (deleting the current entry while iterating a Map is safe)
+    for (const [ym, list] of byMonth) {
+      if (list.length < 3) {
+        undated.push(...list);
+        byMonth.delete(ym);
+      }
+    }
+    const months = [...byMonth.keys()].sort();
+    if (months.length === 1 || (!months.length && (undated.length || a.videos.length))) {
+      // one event (a shoot, a trip): everything in one stop
+      const ym = months[0];
+      stops.push({
+        key: a.slug,
+        date: ym ?? "0001",
+        label: ym ? monthLabel(ym) : "ตลอด ม.ปลาย",
+        sub: ym ? gradeOf(ym) : "",
+        title: a.title,
+        album: a,
+        photos: [...(byMonth.get(ym) ?? []), ...undated],
+        count: a.photos.length,
+        videos: a.videos.length,
+      });
+      continue;
+    }
+    for (const ym of months)
+      stops.push({
+        key: `${a.slug}-${ym}`,
+        date: ym,
+        label: monthLabel(ym),
+        sub: gradeOf(ym),
+        title: a.title,
+        album: a,
+        photos: byMonth.get(ym)!,
+        count: byMonth.get(ym)!.length,
+        videos: 0,
+      });
+    if (undated.length || a.videos.length)
+      stops.push({
+        key: `${a.slug}-all`,
+        date: "0000",
+        label: "ตลอด ม.ปลาย",
+        sub: "ม.4 – ม.6",
+        title: `${a.title} · ทุกวันของเรา`,
+        album: a,
+        photos: undated,
+        count: undated.length,
+        videos: a.videos.length,
+      });
+  }
+  stops.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
+  stops.push({
+    key: "grad",
+    date: "9999",
+    label: `${gradDate.getDate()} ${TH_MONTHS[gradDate.getMonth()]} ${gradDate.getFullYear() + 543}`,
+    sub: "ม.6",
+    title: "วันจบ ม.6",
+    photos: [],
+    count: 0,
+    videos: 0,
+  });
+  return stops;
+}
+
+const tlStop = (s: Stop, i: number) => {
+  // a spread of photos from the whole stop, not just the first few
+  // (offset by half a step so a stop never opens on its first file, often a sign / test shot)
+  const step = Math.max(1, Math.floor(s.photos.length / 3));
+  const pics = [0, 1, 2]
+    .map((k) => s.photos[Math.min(s.photos.length - 1, k * step + Math.floor(step / 2))])
+    .filter((p, k, arr) => p && arr.indexOf(p) === k);
+  const vids = s.album?.videos.filter((v) => v.thumb).slice(0, 3 - pics.length) ?? [];
+  const meta = [s.count ? `${s.count.toLocaleString()} รูป` : "", s.videos ? `${s.videos} คลิป` : ""]
+    .filter(Boolean)
+    .join(" · ");
+  const days = Math.max(0, Math.ceil((GRAD_AT - Date.now()) / 86_400_000));
+  const inner = s.album
+    ? `<div class="tl-photos n-${pics.length + vids.length}">${pics
+        .map((p) => `<img src="${thumb(p.id)}" alt="" loading="lazy">`)
+        .join(
+          "",
+        )}${vids.map((v) => `<img src="${thumb(v.id)}" alt="" loading="lazy">`).join("")}</div>
+      <div class="tl-text"><b>${esc(s.title)}</b><span>${meta}</span></div>`
+    : `<div class="tl-grad"><span class="tl-grad-faces">${students
+        .slice(0, 6)
+        .map((st) => `<img src="${studentAvatar(st)}" alt="">`)
+        .join(
+          "",
+        )}</span><b>${esc(s.title)}</b><span>${days ? `อีก ${days.toLocaleString()} วัน` : "วันนี้แหละ 🎓"}</span></div>`;
+  const href = s.album
+    ? `/album/${s.album.slug}${s.photos[0] ? `#photo=${s.photos[0].id}` : ""}`
+    : "#classmates";
+  return `<li class="tl-stop${s.album ? "" : " is-grad"}" style="--i:${i}">
+    <span class="tl-when"><b>${s.label}</b>${s.sub ? `<small>${s.sub}</small>` : ""}</span>
+    <span class="tl-dot" aria-hidden="true"></span>
+    <a class="tl-card" href="${href}" ${s.album ? "data-link" : `data-scroll="#classmates"`}>${inner}</a>
+  </li>`;
+};
+
+const timeline = () => `
+      <section class="tl" id="showcase" aria-label="ไทม์ไลน์ความทรงจำ">
+        <div class="tl-sticky">
+          <header class="tl-head">
+            <span class="tl-kicker">${icon("clock", 14)} ไทม์ไลน์</span>
+            <h2>3 ปีของ ${CLASS.name} ตั้งแต่ ม.4 จนวันจบ</h2>
+            <p>เลื่อนลงเพื่อเดินทางผ่านแต่ละช่วง · กดการ์ดเพื่อเปิดรูปของช่วงนั้น</p>
+          </header>
+          <div class="tl-viewport"><ol class="tl-track">${timelineStops().map(tlStop).join("")}</ol></div>
+          <div class="tl-progress" aria-hidden="true"><i></i></div>
+        </div>
+      </section>`;
+
+/* ---- memories: polaroids, the teacher's letter, messages between friends ---- */
+
+const memoryPhotos = () => {
+  // one good landscape photo from each album, spread over the years
+  const out: { p: Photo; a: Album }[] = [];
+  for (const a of albums) {
+    // the landscape shot with the most classmates found in it (face detection also means the
+    // picture is the right way up)
+    const f = featured(a).filter((p) => p.w >= p.h);
+    const pick =
+      [...f].sort((x, y) => photoTags(y.id).length - photoTags(x.id).length)[0] ?? a.photos[0];
+    if (pick) out.push({ p: pick, a });
+  }
+  return out.slice(0, 5);
+};
+
+const memories = () => {
+  const lead = teachers.find((t) => t.name && !t.hidden);
   return `
-  <section class="platform" data-theme="dark" id="platform">
-    <h2 class="platform-title">ทุกอย่างของ ${CLASS.name} อยู่ที่นี่</h2>
-    <div class="platform-rows">
-      <div class="platform-row">
-        <div class="stage stage-doc">
-          <div class="doc-col">
-            <div class="doc-profile">
-              <div class="doc-head"><img src="${studentAvatar(s)}" alt=""><div><b>${esc(s.nickname)}</b><span>@602.01 · เลขที่ 1</span></div></div>
-              <p>${esc(s.quote)}</p>
-              <span class="doc-loc">${icon("home", 12)} ${CLASS.name} · ${CLASS.gen}</span>
-            </div>
-            <div class="doc-gap"></div>
-            <div class="doc-stats"><div><b>1</b><span>เลขที่</span></div><div><b>${albums.length}</b><span>อัลบั้ม</span></div><div><b>24</b><span>ความทรงจำ</span></div><div><b>${students.length - 1}</b><span>เพื่อน</span></div></div>
-            <div class="doc-grid"><img src="${thumb(grid[10].id)}" alt=""><img src="${thumb(grid[40].id)}" alt=""></div>
-          </div>
-          ${messageCards()}
+  <section class="mem" id="memories">
+    <header class="mem-head">
+      <span class="tl-kicker">${icon("heart", 14)} ความทรงจำ</span>
+      <h2>บางอย่างที่เราจะไม่มีวันลืม</h2>
+    </header>
+    <div class="mem-grid">
+      <div class="mem-polaroids">${memoryPhotos()
+        .map(({ p, a }, i) => {
+          const d = photoExif(p.id).date;
+          const when = d ? monthLabel(d.slice(0, 7)) : a.en;
+          return `<a class="mem-polaroid" href="/album/${a.slug}#photo=${p.id}" data-link style="--i:${i}">
+            <img src="${large(p)}" alt="" loading="lazy">
+            <span class="mem-cap"><b>${esc(a.title)}</b><small>${esc(when)}</small></span>
+          </a>`;
+        })
+        .join("")}</div>
+      <article class="mem-letter" data-letter aria-label="จดหมายจากคุณครู">
+        <div class="mem-envelope" aria-hidden="true"><span class="mem-flap"></span><span class="mem-seal">${icon("heart", 18)}</span></div>
+        <div class="mem-paper">
+          <span class="mem-to">ถึง นักเรียน ${CLASS.name} ทุกคน</span>
+          <div class="mem-text" data-letter-text><p class="mem-wait">คุณครูกำลังเขียนจดหมายถึงพวกเราอยู่… เร็ว ๆ นี้นะ</p></div>
+          <span class="mem-sign" data-letter-sign>${lead ? `— ${esc(teacherName(lead))}` : "— คุณครูของเรา"}</span>
+          <div class="mem-admin" data-letter-admin hidden></div>
         </div>
-        <div class="platform-copy"><h3><b class="grad-sweep">Profile</b> <span>ของเพื่อนทุกคน</span></h3><a class="platform-link" href="/chat/public" data-link>${icon("heart", 16)} เขียนข้อความถึงเพื่อน ${icon("arrowUpRight", 14)}</a></div>
-      </div>
-      <div class="platform-row is-reverse">
-        <div class="stage stage-ai">
-          <div class="ai-box">
-            <div class="ai-q">อยากหาใคร?</div>
-            <div class="ai-input">${icon("search", 14)}<span class="typed-ai" data-text="เลขที่ 12"></span><span class="caret"></span></div>
-          </div>
-          <div class="ai-results">
-            ${[s12, s13]
-              .map(
-                (x) =>
-                  `<a class="ai-service" href="${profileUrl(x)}" data-link><img src="${studentAvatar(x)}" alt=""><div><b>${esc(x.nickname)}</b><p>${esc(x.quote)}</p><span>${CLASS.name} · <b>เลขที่ ${x.no}</b></span></div></a>`,
-              )
-              .join("")}
-          </div>
-        </div>
-        <div class="platform-copy"><h3><span class="block">หาเพื่อนเจอ</span><b class="grad-sweep">ในพริบตา</b></h3></div>
-      </div>
-      <div class="platform-row">
-        <div class="stage stage-secure">
-          <div class="rings">${[1, 2, 3, 4].map((i) => `<span style="--r:${i}"></span>`).join("")}</div>
-          <svg class="secure-dash" viewBox="0 0 400 20" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="10" x2="400" y2="10" stroke="#9fb3d9" stroke-width="2" stroke-dasharray="6 6"/><line class="dash-hi" x1="0" y1="10" x2="400" y2="10" stroke="#2483ff" stroke-width="2.5" stroke-dasharray="40 360"/></svg>
-          <img class="secure-av left" src="${studentAvatar(students[20])}" alt="">
-          <img class="secure-av right" src="${studentAvatar(students[33])}" alt="">
-          <div class="shield">${logoMark(34)}</div>
-          <div class="flags">${albums
-            .map((a) => albumCover(a))
-            .filter(Boolean)
-            .map((p) => `<img class="flag" src="${thumb(p.id)}" alt="">`)
-            .join("")}</div>
-        </div>
-        <div class="platform-copy">
-          <h3><b class="grad-sweep">เก็บไว้</b> <span>ตลอดไป</span></h3>
-          <ul class="checks"><li>${icon("check", 16)} ทุกรูปจาก Google Drive ของห้อง</li><li>${icon("check", 16)} เปิดดูได้ทุกที่ ทุกเวลา</li></ul>
-        </div>
-      </div>
-      <div class="platform-row is-reverse">
-        <div class="stage stage-orders">
-          <div class="order-list">
-            ${albums
-              .slice(0, 4)
-              .map(
-                (a) =>
-                  `<a class="order" href="/album/${a.slug}" data-link><div class="order-main"><b>${esc(a.title)}</b><span>${esc(a.en)} · ${CLASS.name}</span></div><div class="order-side"><b>${a.photos.length.toLocaleString()}</b><span class="chips"><span class="dot is-paid"></span>${a.photos.length ? `<span class="chip-s is-paid">รูป</span>` : ""}${a.videos.length ? `<span class="chip-s is-new">${a.videos.length} คลิป</span>` : ""}</span></div></a>`,
-              )
-              .join("")}
-          </div>
-          <div class="quote-card"><b>Class of ${CLASS.yearEn}</b><span>${CLASS.name} · ${CLASS.gen}</span><strong>${totals.photos.toLocaleString()}</strong><em>รูปความทรงจำ ใน ${albums.length} อัลบั้ม</em><div class="quote-doc"><i></i><i></i><i></i></div></div>
-        </div>
-        <div class="platform-copy"><h3><span class="block">ทุกโมเมนต์</span><b class="grad-sweep">เรียงไว้แล้ว</b></h3></div>
-      </div>
+      </article>
+    </div>
+    <div class="mem-messages">
+      <div class="mem-messages-head"><b>${icon("chat", 16)} ข้อความถึงเพื่อน</b><a href="/chat/public" data-link>เขียนข้อความ ${icon("arrowUpRight", 14)}</a></div>
+      ${messageCards()}
     </div>
   </section>`;
 };
 
 const footer = () => `
   <footer class="site-footer" data-theme="dark">
-    <div class="footer-inner">
-      <a class="nav-logo" href="/" data-link>${logoMark(20)}<span>${BRAND}</span></a>
-      <nav><a href="#showcase" data-scroll="#showcase">อัลบั้ม</a><a href="#classmates" data-scroll="#classmates">เพื่อน</a><a href="#platform" data-scroll="#platform">ทั้งหมด</a><a href="/backend" data-link>แก้ไขข้อมูล</a></nav>
-      <span class="muted">${CLASS.name} · ${CLASS.gen} · Class of ${CLASS.yearEn}</span>
+    <div class="footer-inner footer-grid">
+      <div class="footer-brand">
+        <a class="nav-logo" href="/" data-link>${logoMark(20)}<span>${BRAND}</span></a>
+        <p class="footer-made">Made with love and memory by <a href="${profileUrl(students[0])}" data-link>@jxxn03</a> (member 1)</p>
+        <span class="muted">${CLASS.name} · ${CLASS.gen} · Class of ${CLASS.yearEn}</span>
+      </div>
+      <div class="footer-col">
+        <b>ทุกอย่างของ ${CLASS.name}</b>
+        <a href="#showcase" data-scroll="#showcase">ไทม์ไลน์</a>
+        <button type="button" data-albums>อัลบั้มทั้งหมด</button>
+        <a href="#classmates" data-scroll="#classmates">เพื่อนทั้ง ${students.length} คน</a>
+        <a href="#memories" data-scroll="#memories">จดหมาย &amp; ความทรงจำ</a>
+      </div>
+      <div class="footer-col">
+        <b>ของเรา</b>
+        <a href="/me" data-link>โปรไฟล์ของฉัน</a>
+        <a href="/chat" data-link>แชท</a>
+        <a href="/chat/public" data-link>ข้อความถึงเพื่อน</a>
+        <button type="button" data-song-toggle>เพลงห้อง</button>
+      </div>
+      <div class="footer-col footer-stats">
+        <b>ในเว็บนี้</b>
+        <span><strong>${totals.photos.toLocaleString()}</strong> รูป</span>
+        <span><strong>${totals.videos}</strong> คลิป</span>
+        <span><strong>${albums.length}</strong> อัลบั้ม · <strong>${students.length}</strong> คน</span>
+        <a href="/backend" data-link>แก้ไขข้อมูล</a>
+      </div>
     </div>
   </footer>`;
 
@@ -525,7 +547,7 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   document.title = `${BRAND} · ${CLASS.name} ${CLASS.gen}`;
   document.body.className = "page-landing";
   const HERO = heroCards();
-  root.innerHTML = `<div class="landing-root">${nav()}<main class="landing">${hero(HERO)}${future()}${pain()}${commission()}${platform()}</main>${footer()}${albumsModal()}</div>`;
+  root.innerHTML = `<div class="landing-root">${nav()}<main class="landing">${hero(HERO)}${future()}${pain()}${memories()}</main>${footer()}${albumsModal()}</div>`;
   // listeners go on this page's own wrapper so they're dropped when another page renders
   const pageEl = root.querySelector<HTMLElement>(".landing-root")!;
   bindSongPlayers(pageEl);
@@ -719,29 +741,23 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   /* ---------- scroll-driven effects ---------- */
   const futureEl = $(".future");
   const futureInner = $(".future-inner");
-  const track = $(".showcase-track");
-  const sticky = $(".showcase-sticky");
-  const tabs = $$<HTMLButtonElement>(".showcase-tab");
-  const shells = $$(".sp-shell");
-  const chrome = $(".showcase-chrome");
-  const commissionCard = $(".commission-card");
-  let activeIdx = 0;
-
-  function setActive(i: number) {
-    if (i === activeIdx) return;
-    activeIdx = i;
-    tabs.forEach((t, j) => {
-      t.classList.toggle("is-active", j === i);
-      t.setAttribute("aria-selected", String(j === i));
-    });
-    shells.forEach((s, j) => {
-      s.classList.toggle("is-active", j === i);
-      s.classList.toggle("is-before", j < i);
-    });
-    if (isMobile())
-      tabs[i].scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
+  const tl = $(".tl");
+  const tlTrack = $(".tl-track");
+  const tlViewport = $(".tl-viewport");
+  const tlBar = $<HTMLElement>(".tl-progress i");
+  const memEl = $(".mem");
+  // desktop: the timeline is pinned and slides sideways while you scroll down
+  let tlShift = 0;
+  function sizeTimeline() {
+    if (isMobile() || reduced) {
+      tl.style.height = "";
+      tlTrack.style.transform = "";
+      tlShift = 0;
+      return;
+    }
+    tlShift = Math.max(0, tlTrack.scrollWidth - tlViewport.clientWidth);
+    tl.style.height = `${vh + tlShift}px`;
   }
-
   function applyScroll() {
     const y = scrollY;
     navEl.classList.toggle("is-scrolled", y > vh * 0.55);
@@ -750,8 +766,7 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
       const r = s.getBoundingClientRect();
       return r.top <= probe && r.bottom >= probe;
     });
-    const commissionR = commissionCard.getBoundingClientRect();
-    const overLight = [commissionR, futureInner.getBoundingClientRect()].some(
+    const overLight = [memEl.getBoundingClientRect(), futureInner.getBoundingClientRect()].some(
       (r) => r.top <= probe && r.bottom >= probe,
     );
     navEl.classList.toggle("is-dark", dark && !overLight);
@@ -778,21 +793,18 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
       }
     }
 
-    // showcase: map scroll progress to the active album
-    const tr = track.getBoundingClientRect();
-    const span = tr.height - sticky.offsetHeight;
-    const prog = clamp((-tr.top + parseFloat(getComputedStyle(sticky).top)) / Math.max(1, span));
-    if (!isMobile()) {
-      chrome.classList.toggle("is-rail-in", prog > 0.03);
-      setActive(Math.min(shells.length - 1, Math.floor(prog * shells.length * 0.999)));
+    // timeline: vertical scroll -> sideways travel
+    if (tlShift) {
+      const r = tl.getBoundingClientRect();
+      const prog = clamp(-r.top / Math.max(1, r.height - vh));
+      tlTrack.style.transform = `translate3d(${(-prog * tlShift).toFixed(1)}px, 0, 0)`;
+      tlBar.style.transform = `scaleX(${prog.toFixed(4)})`;
+      tl.classList.toggle("is-moving", prog > 0 && prog < 1);
     }
 
     const fr = futureEl.getBoundingClientRect();
     const shrink = isMobile() ? 0 : clamp((vh - fr.bottom) / (vh * 0.7));
     futureInner.style.setProperty("--shrink", shrink.toFixed(4));
-
-    const enter = clamp(1 - (commissionR.top - vh * 0.1) / (vh * 0.8));
-    commissionCard.style.setProperty("--enter", enter.toFixed(4));
   }
 
   let ticking = false;
@@ -810,36 +822,24 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   );
   on("resize", () => {
     layout();
+    sizeTimeline();
     applyScroll();
   });
-
-  // Tab click -> scroll to that album's slice of the track.
-  tabs.forEach((t) =>
-    t.addEventListener("click", () => {
-      const i = Number(t.dataset.idx);
-      if (isMobile()) return setActive(i);
-      const top =
-        track.getBoundingClientRect().top + scrollY - parseFloat(getComputedStyle(sticky).top);
-      const span = track.offsetHeight - sticky.offsetHeight;
-      window.scrollTo({ top: top + span * ((i + 0.5) / shells.length), behavior: "smooth" });
-    }),
+  // phones: the timeline is a normal sideways-scrolling row; keep the progress bar in sync
+  tlViewport.addEventListener(
+    "scroll",
+    () => {
+      if (tlShift) return;
+      const max = tlViewport.scrollWidth - tlViewport.clientWidth;
+      tlBar.style.transform = `scaleX(${max > 0 ? (tlViewport.scrollLeft / max).toFixed(4) : 0})`;
+    },
+    { passive: true },
   );
-
-  if (isMobile()) {
-    const deck = $(".showcase-deck");
-    let sx = 0;
-    deck.addEventListener("touchstart", (e) => (sx = e.touches[0].clientX), { passive: true });
-    deck.addEventListener("touchend", (e) => {
-      const dx = e.changedTouches[0].clientX - sx;
-      if (Math.abs(dx) > 40) setActive(clamp(activeIdx + (dx < 0 ? 1 : -1), 0, shells.length - 1));
-    });
-  }
 
   /* ---------- smooth anchor scroll + albums panel ---------- */
   const scrollToSel = (sel: string, smooth = true) => {
     const target = root.querySelector<HTMLElement>(sel);
     if (!target) return;
-    // the showcase track starts with a sticky offset; land on its first album
     const top = target.getBoundingClientRect().top + scrollY - (sel === "#classmates" ? 72 : 0);
     window.scrollTo({ top, behavior: smooth ? "smooth" : "auto" });
   };
@@ -960,62 +960,14 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
           later(() => o.classList.add("is-stack"), 250);
           later(() => o.classList.add("is-expanded"), 1300);
         }
-        el.querySelectorAll<HTMLElement>("[data-text]").forEach((t) => typeText(t));
-        if (el.classList.contains("connect")) runCounter(el);
       }
     },
     { threshold: 0.3 },
   );
   $$(
-    ".future-title, .pain-notes, .commission-header, .commission-visual, .platform-row, .classmates",
+    ".future-title, .pain-notes, .tl-head, .mem-head, .mem-polaroids, .mem-letter, .mem-messages, .classmates",
   ).forEach((el) => io.observe(el));
   disposers.push(() => io.disconnect());
-
-  function typeText(el: HTMLElement) {
-    // split into graphemes so Thai vowel marks and emoji are typed as whole characters
-    const full = [
-      ...new Intl.Segmenter("th", { granularity: "grapheme" }).segment(el.dataset.text ?? ""),
-    ].map((s) => s.segment);
-    const loops = el.classList.contains("typed-ai");
-    const stage = el.closest(".stage");
-    let n = 0;
-    const step = () => {
-      if (!alive) return;
-      el.textContent = full.slice(0, n).join("");
-      if (n < full.length) {
-        n++;
-        later(step, 38 + Math.random() * 40);
-        return;
-      }
-      if (!loops) return;
-      stage?.classList.add("has-results");
-      later(() => {
-        stage?.classList.remove("has-results");
-        n = 0;
-        later(step, 600);
-      }, 3600);
-    };
-    step();
-  }
-
-  function runCounter(el: HTMLElement) {
-    const total = Number(el.dataset.total ?? 100);
-    const amt = el.querySelector<HTMLElement>(".fee-amount")!;
-    const rate = el.querySelector<HTMLElement>(".fee-rate")!;
-    const bar = el.querySelector<HTMLElement>(".fee-bar span")!;
-    const t0 = performance.now();
-    const loop = (now: number) => {
-      if (!alive) return;
-      const p = clamp((now - t0 - 1600) / 2600);
-      const eased = 1 - Math.pow(1 - p, 3);
-      amt.textContent = Math.round(eased * total).toLocaleString();
-      bar.style.width = `${eased * 100}%`;
-      rate.textContent = `${Math.round(eased * 100)}%`;
-      el.classList.toggle("is-capped", p >= 1);
-      if (p < 1) requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
-  }
 
   /* ---------- draggable sticky notes ---------- */
   $$(".pain-note").forEach((note) => {
@@ -1046,8 +998,77 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
     note.addEventListener("pointercancel", end);
   });
 
+  /* ---------- the teacher's letter ---------- */
+  const letterEl = $(".mem-letter");
+  const showLetter = (l: { text: string; signed: string }) => {
+    const box = $("[data-letter-text]");
+    box.innerHTML = l.text
+      ? l.text
+          .split(/\n{2,}/)
+          .map((para) => `<p>${esc(para).replace(/\n/g, "<br>")}</p>`)
+          .join("")
+      : `<p class="mem-wait">คุณครูกำลังเขียนจดหมายถึงพวกเราอยู่… เร็ว ๆ นี้นะ</p>`;
+    if (l.signed) $("[data-letter-sign]").textContent = `— ${l.signed}`;
+    letterEl.classList.toggle("has-letter", !!l.text);
+  };
+  let letter = { text: "", signed: "" };
+  void fetch("/api/letter", { credentials: "same-origin" })
+    .then((r) => r.json())
+    .then((d: { letter?: { text: string; signed: string } }) => {
+      if (!alive || !d.letter) return;
+      letter = d.letter;
+      showLetter(letter);
+    })
+    .catch(() => {});
+  // opening the envelope when it scrolls into view
+  const letterIo = new IntersectionObserver(
+    (en) => en.some((e) => e.isIntersecting) && letterEl.classList.add("is-open"),
+    { threshold: 0.35 },
+  );
+  letterIo.observe(letterEl);
+  disposers.push(() => letterIo.disconnect());
+  // the admin can write / edit it right here
+  if (session.user && "admin" in session.user) {
+    const adminBox = $("[data-letter-admin]");
+    adminBox.hidden = false;
+    adminBox.innerHTML = `<button type="button" class="mem-edit" data-letter-edit>${icon("pen", 14)} เขียน / แก้ไขจดหมาย</button>`;
+    adminBox.addEventListener("click", async (e) => {
+      const t = e.target as Element;
+      if (t.closest("[data-letter-edit]")) {
+        adminBox.innerHTML = `<label><span>จดหมาย (เว้นบรรทัดว่างเพื่อขึ้นย่อหน้าใหม่)</span><textarea rows="10" maxlength="6000" data-l-text>${esc(letter.text)}</textarea></label>
+          <label><span>ลงชื่อ</span><input maxlength="120" data-l-sign value="${esc(letter.signed)}" placeholder="เช่น ครูประจำชั้น"></label>
+          <div class="mem-edit-row"><button type="button" class="mem-edit is-primary" data-letter-save>บันทึก</button><button type="button" class="mem-edit" data-letter-cancel>ยกเลิก</button><span data-l-msg></span></div>`;
+        adminBox.querySelector<HTMLTextAreaElement>("textarea")!.focus();
+      } else if (t.closest("[data-letter-cancel]")) {
+        adminBox.innerHTML = `<button type="button" class="mem-edit" data-letter-edit>${icon("pen", 14)} เขียน / แก้ไขจดหมาย</button>`;
+      } else if (t.closest("[data-letter-save]")) {
+        const msg = adminBox.querySelector<HTMLElement>("[data-l-msg]")!;
+        msg.textContent = "กำลังบันทึก…";
+        try {
+          const r = await fetch("/api/admin/letter", {
+            method: "PUT",
+            credentials: "same-origin",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              text: adminBox.querySelector<HTMLTextAreaElement>("[data-l-text]")!.value,
+              signed: adminBox.querySelector<HTMLInputElement>("[data-l-sign]")!.value,
+            }),
+          });
+          const d = (await r.json()) as { letter?: typeof letter; error?: string };
+          if (!r.ok || !d.letter) throw new Error(d.error ?? "บันทึกไม่สำเร็จ");
+          letter = d.letter;
+          showLetter(letter);
+          adminBox.innerHTML = `<button type="button" class="mem-edit" data-letter-edit>${icon("pen", 14)} เขียน / แก้ไขจดหมาย</button>`;
+        } catch (ex) {
+          msg.textContent = (ex as Error).message;
+        }
+      }
+    });
+  }
+
   /* ---------- go ---------- */
   layout();
+  sizeTimeline();
   if (opts.splash && !reduced && !isMobile()) runSplash();
   else finishSplash();
   applyScroll();
