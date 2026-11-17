@@ -1,0 +1,397 @@
+/* เพลงห้อง — landing section + floating mini player */
+.song-video {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #0f1115;
+}
+
+.song-video iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.song-poster {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.song-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    transform 0.6s var(--ease-out),
+    filter 0.3s;
+}
+
+.song-poster:hover img {
+  transform: scale(1.03);
+  filter: brightness(0.9);
+}
+
+.song-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.song-poster:hover .song-play {
+  transform: scale(1.1);
+}
+
+/* landing section */
+.song-section {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 140px;
+}
+
+.song-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-900);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.song-copy h2 {
+  margin: 14px 0 10px;
+  color: var(--ink);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.song-copy p {
+  color: var(--muted-2);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.song-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.song-actions .btn-outline {
+  height: 46px;
+  font-size: 15px;
+}
+
+/* floating mini player */
+.song-mini {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.song-fab {
+  order: 2;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ink-strong);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: transform 0.25s var(--ease-out);
+}
+
+.song-fab:hover {
+  transform: translateY(-2px) scale(1.04);
+}
+
+/* little equaliser while music is playing in the background */
+.song-eq {
+  position: absolute;
+  right: 6px;
+  bottom: 8px;
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.song-eq i {
+  width: 2px;
+  height: 100%;
+  border-radius: 2px;
+  background: #82bcff;
+  animation: song-eq 0.9s ease-in-out infinite;
+}
+
+.song-eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.song-eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+@keyframes song-eq {
+  50% {
+    height: 30%;
+  }
+}
+
+.song-mini[data-state="playing"] .song-eq {
+  display: flex;
+}
+
+.song-card {
+  order: 1;
+  width: min(340px, calc(100vw - 32px));
+  padding: 12px;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.06),
+    0 20px 48px rgba(0, 0, 0, 0.22);
+  transform-origin: bottom right;
+  transition:
+    opacity 0.25s,
+    transform 0.3s var(--ease-out);
+}
+
+/* closed / minimised: hidden but still rendered, so a playing video keeps playing */
+.song-mini:not([data-state="open"]) .song-card {
+  position: absolute;
+  right: 0;
+  bottom: 62px;
+  opacity: 0;
+  transform: translateY(12px) scale(0.96);
+  pointer-events: none;
+}
+
+.song-card-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.song-card-head div {
+  flex: 1;
+  min-width: 0;
+  padding-left: 4px;
+}
+
+.song-card-head b {
+  display: block;
+  color: var(--ink-900);
+  font-size: 14px;
+}
+
+.song-card-head span {
+  display: block;
+  overflow: hidden;
+  color: var(--muted-2);
+  font-size: 12px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.song-card-head button {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-900);
+  cursor: pointer;
+}
+
+.song-card .song-video {
+  border-radius: 12px;
+}
+
+.song-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding-left: 4px;
+  color: var(--muted-2);
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* keep out of the way of the photo viewer */
+html.has-viewer .song-mini {
+  display: none;
+}
+
+@media (max-width: 819px) {
+  .song-section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 24px 16px 100px;
+  }
+
+  .song-video {
+    order: -1;
+  }
+
+  /* sit above the bottom tab bar on profile pages */
+  .song-mini {
+    right: 12px;
+    bottom: 88px;
+  }
+
+  .song-fab {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* ---------- song button in every navigation bar ---------- */
+.song-nav {
+  position: relative;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.rail-item.song-nav,
+.tab-bar .tab-song {
+  background: none;
+  color: inherit;
+}
+
+.lang-pill.song-nav {
+  color: var(--ink-900);
+}
+
+html[data-song="open"] .song-nav,
+html[data-song="playing"] .song-nav {
+  color: var(--blue-500, #0569ff);
+}
+
+.lang-pill.song-nav[aria-pressed="true"] {
+  border-color: color-mix(in srgb, var(--blue-500, #0569ff) 40%, transparent);
+  background: color-mix(in srgb, var(--blue-500, #0569ff) 8%, #fff);
+}
+
+.song-nav-eq {
+  position: absolute;
+  top: 6px;
+  right: 14px;
+  display: none;
+  align-items: flex-end;
+  gap: 2px;
+  height: 9px;
+}
+
+.lang-pill .song-nav-eq {
+  top: 4px;
+  right: 6px;
+}
+
+.song-nav-eq i {
+  width: 2px;
+  height: 100%;
+  border-radius: 2px;
+  background: currentColor;
+  animation: song-eq 0.9s ease-in-out infinite;
+}
+
+.song-nav-eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+
+.song-nav-eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+
+html[data-song="playing"] .song-nav-eq,
+html[data-song="open"] .song-nav-eq {
+  display: flex;
+}
+
+/* the floating ♪ button is only a fallback for pages without a nav bar */
+html:has(.song-nav) .song-fab {
+  display: none;
+}
+
+html:has(.song-nav) .song-mini:not([data-state="open"]) .song-card {
+  bottom: 0;
+}
+
+@media (max-width: 1100px) {
+  .lang-pill.song-nav > span:not(.song-nav-eq) {
+    display: none;
+  }
+}
+
+@media (max-width: 819px) {
+  /* six items in the phone tab bar */
+  .tab-bar {
+    max-width: calc(100vw - 24px);
+  }
+
+  .tab-bar a,
+  .tab-bar .tab-song {
+    display: flex;
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 999px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .tab-bar .song-nav-eq {
+    top: 4px;
+    right: 8px;
+  }
+}
