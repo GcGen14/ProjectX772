@@ -13,7 +13,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createAvatar, getPartsForSlot } from "@humation/core";
 import { humation1 } from "@humation/assets-humation-1";
 import { readSession } from "./auth.ts";
-import { clean, getDb, getStudentRow } from "./db.ts";
+import fs from "node:fs";
+import path from "node:path";
+import { ROOT, clean, getDb, getStudentRow } from "./db.ts";
 
 type Req = IncomingMessage;
 type Res = ServerResponse;
@@ -140,11 +142,28 @@ export const defaultColors = (no: number) =>
     Object.entries(PALETTE).map(([k, arr]) => [k, arr[(no * 7 + SALT[k] * 13) % arr.length]]),
   );
 
+/** Look-alike defaults made from school photos by scripts/auto_characters.py. */
+let AUTO: Record<string, CharacterState> | null = null;
+function autoCharacter(no: number): CharacterState {
+  if (!AUTO) {
+    try {
+      const file = path.join(ROOT, "src", "data", "auto_characters.json");
+      AUTO = (
+        JSON.parse(fs.readFileSync(file, "utf8")) as { characters: Record<string, CharacterState> }
+      ).characters;
+    } catch {
+      AUTO = {};
+    }
+  }
+  return AUTO[String(no)] ?? { selections: {}, colors: {} };
+}
+
 const avatarOptions = (no: number, state: CharacterState) => {
-  const { background, ...colors } = { ...defaultColors(no), ...state.colors };
+  const auto = autoCharacter(no);
+  const { background, ...colors } = { ...defaultColors(no), ...auto.colors, ...state.colors };
   return {
     seed: `602-gen14-${no}`, // fills any slot the student didn't pick, same as their default avatar
-    selections: state.selections,
+    selections: { ...auto.selections, ...state.selections },
     colors,
     background, // a separate option in Humation, not one of the colour slots
   };

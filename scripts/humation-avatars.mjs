@@ -1,5 +1,7 @@
 // Generate a Humation avatar (https://github.com/humation-labs/humation, MIT) for every เลขที่.
-// Used for classmates who have no studio portrait.
+// Used for classmates who have no studio portrait, and as everyone's default character.
+// Looks come from src/data/auto_characters.json (scripts/auto_characters.py: hair, skin, uniform
+// from each school photo); anything missing falls back to the seeded random look.
 //
 //   node scripts/humation-avatars.mjs        -> public/photos/humation/<no>.svg
 //
@@ -23,16 +25,22 @@ const SKIN = ["#F8D9C0", "#F1C7A5", "#E8B48F", "#FBE3CF"];
 const BG = ["#EAF2FF", "#FFEFF3", "#EDF8F0", "#FFF6E5", "#F2EEFF", "#E9F7FA"];
 
 const pick = (arr, n, salt) => arr[(n * 7 + salt * 13) % arr.length];
+const autoFile = path.join(ROOT, "src", "data", "auto_characters.json");
+const AUTO = fs.existsSync(autoFile)
+  ? JSON.parse(fs.readFileSync(autoFile, "utf8")).characters
+  : {};
 
 fs.mkdirSync(OUT, { recursive: true });
 for (const { no } of students) {
   const svg = createAvatar(humation1, {
     seed: `602-gen14-${no}`,
+    selections: AUTO[no]?.selections ?? {},
     colors: {
       hair: pick(HAIR, no, 1),
       clothes: pick(CLOTHES, no, 2),
       bottom: pick(BOTTOM, no, 3),
       skin: pick(SKIN, no, 4),
+      ...AUTO[no]?.colors,
     },
     background: pick(BG, no, 5), // separate option, not a colour slot
   }).toString();
