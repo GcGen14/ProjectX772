@@ -6,12 +6,15 @@ import {
   featured,
   getAlbum,
   large,
+  photoExif,
+  photoTags,
   students,
   studentAvatar,
   thumb,
   type Album,
   type Photo,
 } from "../data.ts";
+import { myNo } from "../lib/api.ts";
 import { icon } from "../lib/icons.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
 import { mountMasonry, mountVideos, renderProfilePage, type ProfileTab } from "./profile.ts";
@@ -74,11 +77,31 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
       .forEach((v) => covers.push(thumb(v.id)));
   const caption = (p: Photo) => (p.group && a.groups.length ? `${a.title} · ${p.group}` : a.title);
 
+  // who is in how many photos of this album (for the friend filter)
+  const tagsOf = new Map(a.photos.map((p) => [p.id, photoTags(p.id).map((t) => t.student.no)]));
+  const perPerson = new Map<number, number>();
+  for (const nos of tagsOf.values())
+    for (const n of nos) perPerson.set(n, (perPerson.get(n) ?? 0) + 1);
+  const people = students
+    .filter((st) => perPerson.has(st.no))
+    .sort((x, y) => perPerson.get(y.no)! - perPerson.get(x.no)!);
+  const dated = a.photos.some((p) => photoExif(p.id).date);
+  const DENSITY_KEY = "album-cols";
+  const readCols = () => {
+    try {
+      return Number(localStorage.getItem(DENSITY_KEY)) || 0;
+    } catch {
+      return 0;
+    }
+  };
+
   const photosTab: ProfileTab = {
     key: "photos",
     label: "รูปภาพ",
     count: a.photos.length,
-    render: () => `
+    render: () => {
+      const me = myNo();
+      return `
       ${
         a.groups.length
           ? `<div class="pf-filter" role="group" aria-label="กลุ่ม"><button type="button" class="pf-chip is-on" data-group="">ทั้งหมด <span>${a.photos.length}</span></button>${a.groups
@@ -89,21 +112,120 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
               .join("")}</div>`
           : ""
       }
-      <div class="pf-portfolio"><div data-masonry></div><aside class="pf-aside"><h2>อัลบั้มอื่น</h2>${albumRows(others)}</aside></div>`,
+      <div class="al-tools">
+        <label class="al-select">${icon("calendar", 15)}<select data-sort aria-label="เรียงรูป">
+          <option value="">ลำดับในอัลบั้ม</option>
+          ${dated ? `<option value="new">ใหม่ → เก่า</option><option value="old">เก่า → ใหม่</option>` : ""}
+          <option value="people">คนในรูปเยอะสุด</option>
+        </select></label>
+        ${
+          people.length
+            ? `<label class="al-select">${icon("users", 15)}<select data-person aria-label="ดูรูปของเพื่อน">
+          <option value="">เพื่อนทุกคน</option>
+          ${me != null && perPerson.has(me) ? `<option value="${me}">รูปที่มีฉัน (${perPerson.get(me)})</option>` : ""}
+          ${people.map((st) => `<option value="${st.no}">${esc(st.nickname || `เลขที่ ${st.no}`)} (${perPerson.get(st.no)})</option>`).join("")}
+        </select></label>`
+            : ""
+        }
+        <div class="al-density" role="group" aria-label="ขนาดรูป">
+          ${[
+            [4, "เล็ก", "grid"],
+            [3, "กลาง", "image"],
+            [2, "ใหญ่", "image"],
+          ]
+            .map(
+              ([c, label, ic]) =>
+                `<button type="button" data-cols="${c}" aria-pressed="false" title="รูป${label}" aria-label="รูป${label}">${icon(String(ic), c === 2 ? 18 : c === 3 ? 15 : 13)}</button>`,
+            )
+            .join("")}
+        </div>
+        <button type="button" class="al-play" data-slideshow>${icon("play", 15)} สไลด์โชว์</button>
+      </div>
+      <p class="al-count" data-al-count></p>
+      <div class="pf-portfolio"><div data-masonry></div><aside class="pf-aside"><h2>อัลบั้มอื่น</h2>${albumRows(others)}</aside></div>`;
+    },
     mount: (panel, api) => {
       let host = panel.querySelector<HTMLElement>("[data-masonry]")!;
-      mountMasonry(host, a.photos, api, caption);
-      // group filter: swap in a fresh grid element so old click handlers go away
+      const state = { group: "", sort: "", person: 0, cols: readCols() };
+      let list: Photo[] = a.photos;
+      const time = (p: Photo) => photoExif(p.id).date ?? "";
+      const compute = () => {
+        let out = a.photos.filter(
+          (p) =>
+            (!state.group || p.group === state.group) &&
+            (!state.person || (tagsOf.get(p.id) ?? []).includes(state.person)),
+        );
+        if (state.sort === "new" || state.sort === "old") {
+          const dir = state.sort === "new" ? -1 : 1;
+          out = [...out].sort((x, y) => (time(x) < time(y) ? -dir : time(x) > time(y) ? dir : 0));
+        } else if (state.sort === "people")
+          out = [...out].sort(
+            (x, y) => (tagsOf.get(y.id)?.length ?? 0) - (tagsOf.get(x.id)?.length ?? 0),
+          );
+        return out;
+      };
+      const countEl = panel.querySelector<HTMLElement>("[data-al-count]")!;
+      const redraw = () => {
+        list = compute();
+        // swap in a fresh grid element so old click handlers go away
+        const fresh = host.cloneNode(false) as HTMLElement;
+        host.replaceWith(fresh);
+        host = fresh;
+        const who = state.person ? students.find((x) => x.no === state.person) : null;
+        countEl.textContent = `${list.length.toLocaleString()} รูป${who ? ` ที่มี ${who.nickname || `เลขที่ ${who.no}`}` : ""}${state.group ? ` · ${state.group}` : ""}`;
+        if (!list.length) {
+          fresh.innerHTML = `<p class="pf-empty">ไม่มีรูปที่ตรงกับตัวกรองนี้</p>`;
+          return;
+        }
+        mountMasonry(fresh, list, api, caption, state.cols ? { cols: state.cols } : {});
+      };
+      const markCols = () =>
+        panel
+          .querySelectorAll<HTMLElement>("[data-cols]")
+          .forEach((b) =>
+            b.setAttribute(
+              "aria-pressed",
+              String(Number(b.dataset.cols) === (state.cols || (innerWidth < 1100 ? 2 : 3))),
+            ),
+          );
+      redraw();
+      markCols();
       panel.querySelectorAll<HTMLButtonElement>("[data-group]").forEach((b) =>
         b.addEventListener("click", () => {
           panel.querySelectorAll(".pf-chip").forEach((c) => c.classList.toggle("is-on", c === b));
-          const fresh = host.cloneNode(false) as HTMLElement;
-          host.replaceWith(fresh);
-          host = fresh;
-          const g = b.dataset.group;
-          mountMasonry(fresh, g ? a.photos.filter((p) => p.group === g) : a.photos, api, caption);
+          state.group = b.dataset.group ?? "";
+          redraw();
         }),
       );
+      panel.querySelector<HTMLSelectElement>("[data-sort]")?.addEventListener("change", (e) => {
+        state.sort = (e.target as HTMLSelectElement).value;
+        redraw();
+      });
+      panel.querySelector<HTMLSelectElement>("[data-person]")?.addEventListener("change", (e) => {
+        state.person = Number((e.target as HTMLSelectElement).value) || 0;
+        redraw();
+      });
+      panel.querySelector(".al-density")!.addEventListener("click", (e) => {
+        const b = (e.target as Element).closest<HTMLElement>("[data-cols]");
+        if (!b) return;
+        state.cols = Number(b.dataset.cols);
+        try {
+          localStorage.setItem(DENSITY_KEY, String(state.cols));
+        } catch {
+          /* ignore */
+        }
+        markCols();
+        redraw();
+      });
+      const items = () =>
+        list.map((p) => ({ kind: "photo" as const, photo: p, caption: caption(p) }));
+      panel.querySelector("[data-slideshow]")!.addEventListener("click", () => {
+        if (list.length) api.openViewer(items(), 0, { slideshow: true });
+      });
+      // shared link: /album/<slug>#photo=<id>
+      const deep = decodeURIComponent(location.hash.match(/^#photo=([\w-]+)/)?.[1] ?? "");
+      const at = deep ? list.findIndex((p) => p.id === deep) : -1;
+      if (at >= 0) api.later(() => api.openViewer(items(), at), 300);
     },
   };
 
