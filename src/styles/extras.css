@@ -299,8 +299,8 @@ a.sx-chip:hover {
     ),
     linear-gradient(
       135deg,
-      color-mix(in srgb, var(--pf-accent, #0569ff) 18%, #fff),
-      color-mix(in srgb, var(--pf-accent, #0569ff) 6%, #fff)
+      color-mix(in srgb, var(--pf-accent, #0569ff) 18%, var(--pf-base, #fff)),
+      color-mix(in srgb, var(--pf-accent, #0569ff) 6%, var(--pf-base, #fff))
     );
 }
 
@@ -317,7 +317,7 @@ a.sx-chip:hover {
       color-mix(in srgb, var(--pf-accent2, var(--pf-accent)) 16%, transparent),
       transparent 70%
     ),
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-aurora {
@@ -337,7 +337,7 @@ a.sx-chip:hover {
       color-mix(in srgb, var(--pf-accent2, #db2777) 10%, transparent),
       transparent 70%
     ),
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-hearts {
@@ -357,7 +357,7 @@ a.sx-chip:hover {
         transparent 2px
       )
       17px 17px / 34px 34px,
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-checker {
@@ -369,7 +369,7 @@ a.sx-chip:hover {
         transparent 0
       )
       0 0 / 40px 40px,
-    #fff;
+    var(--pf-base, #fff);
 }
 
 @media (max-width: 700px) {

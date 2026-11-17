@@ -42,6 +42,11 @@ export type ProfileTheme = {
   bg?: string;
   font?: string;
   avatar?: string;
+  mode?: string;
+  fx?: string;
+  corner?: string;
+  ring?: string;
+  cover?: string;
   emoji?: string;
   song?: string;
   hobbies?: string;
@@ -58,8 +63,16 @@ const THEME_BG = [
   "stars",
   "checker",
 ];
-const THEME_FONTS = ["default", "mali", "playpen", "serif"];
+const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha"];
 const THEME_AVATAR = ["round", "square"];
+/** extra look settings: [key, allowed values, default (not stored)] */
+const THEME_PICKS: [keyof ProfileTheme, string[], string][] = [
+  ["mode", ["light", "dark", "auto"], "light"],
+  ["fx", ["none", "snow", "sparkle", "hearts", "petals"], "none"],
+  ["corner", ["sharp", "normal", "round"], "normal"],
+  ["ring", ["accent", "rainbow", "none"], "accent"],
+  ["cover", ["short", "normal", "tall"], "normal"],
+];
 
 /** Fields a student may change on their own profile, with max lengths. */
 export const SELF_FIELDS = {
@@ -280,6 +293,10 @@ export function cleanTheme(v: unknown): ProfileTheme {
   if (bg && bg !== "plain") out.bg = bg;
   if (font && font !== "default") out.font = font;
   if (avatar && avatar !== "round") out.avatar = avatar;
+  for (const [k, allowed, def] of THEME_PICKS) {
+    const val = pick(k, allowed);
+    if (val && val !== def) out[k] = val;
+  }
   const emoji = graphemes(clean(o.emoji, 60), 2);
   const song = clean(o.song, 80);
   const hobbies = clean(o.hobbies, 120);

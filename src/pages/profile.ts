@@ -275,6 +275,10 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
     timers.forEach(clearTimeout);
     disposers.forEach((d) => d());
   };
+  // dark profile theme: darken the whole page (rail, tab bar, menus), not just the main panel
+  const html = document.documentElement;
+  html.classList.toggle("pf-dark", main.classList.contains("th-dark"));
+  disposers.push(() => html.classList.remove("pf-dark"));
 
   if (!cfg) {
     later(() => {

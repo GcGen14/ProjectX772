@@ -18,8 +18,15 @@ export type ProfileTheme = {
     | "hearts"
     | "stars"
     | "checker";
-  font?: "default" | "mali" | "playpen" | "serif";
+  font?: "default" | "mali" | "playpen" | "serif" | "itim" | "sriracha";
   avatar?: "round" | "square";
+  /** light (default), dark, or follow the viewer's device */
+  mode?: "light" | "dark" | "auto";
+  /** floating particles over the page background */
+  fx?: "none" | "snow" | "sparkle" | "hearts" | "petals";
+  corner?: "sharp" | "normal" | "round";
+  ring?: "accent" | "rainbow" | "none";
+  cover?: "short" | "normal" | "tall";
   emoji?: string;
   song?: string;
   hobbies?: string;
@@ -54,8 +61,53 @@ export const FONTS: { key: NonNullable<ProfileTheme["font"]>; name: string }[] =
   { key: "mali", name: "ลายมือ" },
   { key: "playpen", name: "สนุก" },
   { key: "serif", name: "ทางการ" },
+  { key: "itim", name: "กลมมน" },
+  { key: "sriracha", name: "ปากกา" },
 ];
 
+type Choice<K extends keyof ProfileTheme> = { key: NonNullable<ProfileTheme[K]>; name: string }[];
+export const MODES: Choice<"mode"> = [
+  { key: "light", name: "สว่าง" },
+  { key: "dark", name: "มืด" },
+  { key: "auto", name: "ตามเครื่อง" },
+];
+export const EFFECTS: (Choice<"fx">[number] & { glyph: string })[] = [
+  { key: "none", name: "ไม่มี", glyph: "–" },
+  { key: "snow", name: "หิมะ", glyph: "❄" },
+  { key: "sparkle", name: "ประกาย", glyph: "✦" },
+  { key: "hearts", name: "หัวใจลอย", glyph: "♥" },
+  { key: "petals", name: "ซากุระ", glyph: "✿" },
+];
+export const CORNERS: Choice<"corner"> = [
+  { key: "sharp", name: "เหลี่ยม" },
+  { key: "normal", name: "ปกติ" },
+  { key: "round", name: "มน" },
+];
+export const RINGS: Choice<"ring"> = [
+  { key: "accent", name: "สีหลัก" },
+  { key: "rainbow", name: "สีรุ้ง" },
+  { key: "none", name: "ไม่มี" },
+];
+export const COVERS: Choice<"cover"> = [
+  { key: "short", name: "เตี้ย" },
+  { key: "normal", name: "ปกติ" },
+  { key: "tall", name: "สูง" },
+];
+/** Defaults are not stored, so a missing key means the first/"normal" option. */
+const DEFAULTS = {
+  mode: "light",
+  fx: "none",
+  corner: "normal",
+  ring: "accent",
+  cover: "normal",
+} as const;
+
+/** Whether the theme renders dark right now ("auto" follows the viewer's device). */
+export const isDarkTheme = (t: ProfileTheme | undefined) =>
+  t?.mode === "dark" ||
+  (t?.mode === "auto" &&
+    typeof matchMedia === "function" &&
+    matchMedia("(prefers-color-scheme: dark)").matches);
 const EMOJI_PICKS = ["✨", "🌷", "🔥", "🎧", "📚", "⚽", "🎨", "🐱", "🍀", "🌙"];
 
 export const hobbyList = (t: ProfileTheme | undefined) =>
@@ -69,6 +121,10 @@ export const hobbyList = (t: ProfileTheme | undefined) =>
 export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: string } {
   if (!t || !Object.keys(t).length) return { cls: "", style: "" };
   const cls = ["has-theme", `th-bg-${t.bg ?? "plain"}`, `th-font-${t.font ?? "default"}`];
+  if (isDarkTheme(t)) cls.push("th-dark");
+  if (t.fx && t.fx !== "none") cls.push("th-fx", `th-fx-${t.fx}`);
+  for (const k of ["corner", "ring", "cover"] as const)
+    if (t[k] && t[k] !== DEFAULTS[k]) cls.push(`th-${k}-${t[k]}`);
   const hex = (v?: string) => !!v && /^#[0-9a-f]{6}$/i.test(v);
   const style = [
     hex(t.accent) ? `--pf-accent:${t.accent}` : "",
@@ -99,8 +155,29 @@ export function themeEditorHtml(t: ProfileTheme): string {
   const isPreset = !t.accent || ACCENTS.some((a) => a.hex === t.accent);
   const opt = (attr: string, value: string, on: boolean, inner: string, label: string) =>
     `<button type="button" class="th-opt" ${attr}="${value}" role="radio" aria-checked="${on}" aria-label="${esc(label)}" title="${esc(label)}">${inner}</button>`;
+  const pick = <K extends "mode" | "fx" | "corner" | "ring" | "cover">(
+    k: K,
+    list: { key: string; name: string }[],
+    inner: (key: string, name: string) => string,
+  ) =>
+    list
+      .map((o) =>
+        opt(
+          `data-th-k="${k}" data-th-v`,
+          o.key,
+          (t[k] ?? DEFAULTS[k]) === o.key,
+          `${inner(o.key, o.name)}<span>${o.name}</span>`,
+          o.name,
+        ),
+      )
+      .join("");
   return `
   <div class="th-editor">
+    <div class="th-row"><span class="th-label">${icon("sparkle", 15)} โหมด</span>
+      <div class="th-choices" role="radiogroup" aria-label="โหมดสี">
+        ${pick("mode", MODES, (k) => `<span class="th-modeprev is-${k}"><i></i><i></i></span>`)}
+      </div>
+    </div>
     <div class="th-row"><span class="th-label">${icon("palette", 15)} สีหลัก</span>
       <div class="th-swatches" role="radiogroup" aria-label="สีหลัก">
         ${opt("data-th-accent", "", !t.accent, `<span class="th-sw th-sw-none"></span>`, "ค่าเริ่มต้น")}
@@ -141,6 +218,26 @@ export function themeEditorHtml(t: ProfileTheme): string {
         ${opt("data-th-avatar", "square", t.avatar === "square", `<span class="th-shape is-square"></span><span>สี่เหลี่ยม</span>`, "สี่เหลี่ยม")}
       </div>
     </div>
+    <div class="th-row"><span class="th-label">${icon("user", 15)} กรอบรูปโปรไฟล์</span>
+      <div class="th-choices" role="radiogroup" aria-label="กรอบรูปโปรไฟล์">
+        ${pick("ring", RINGS, (k) => `<span class="th-shape th-ringprev is-${k}"></span>`)}
+      </div>
+    </div>
+    <div class="th-row"><span class="th-label">${icon("sparkle", 15)} เอฟเฟกต์ <em>ลอยอยู่บนพื้นหลัง</em></span>
+      <div class="th-choices" role="radiogroup" aria-label="เอฟเฟกต์">
+        ${pick("fx", EFFECTS, (k) => `<span class="th-fxprev is-${k}">${EFFECTS.find((e) => e.key === k)!.glyph}</span>`)}
+      </div>
+    </div>
+    <div class="th-row"><span class="th-label">${icon("grid", 15)} มุมการ์ดและรูป</span>
+      <div class="th-choices" role="radiogroup" aria-label="มุมการ์ด">
+        ${pick("corner", CORNERS, (k) => `<span class="th-cornerprev is-${k}"></span>`)}
+      </div>
+    </div>
+    <div class="th-row"><span class="th-label">${icon("grid", 15)} ความสูงหน้าปก</span>
+      <div class="th-choices" role="radiogroup" aria-label="ความสูงหน้าปก">
+        ${pick("cover", COVERS, (k) => `<span class="th-coverprev is-${k}"><i></i></span>`)}
+      </div>
+    </div>
     <div class="th-fields">
       <label class="me-field"><span>อีโมจิข้างชื่อ</span>
         <div class="th-emoji"><input type="text" data-th-field="emoji" maxlength="16" value="${esc(t.emoji ?? "")}" placeholder="เช่น ✨">
@@ -174,7 +271,14 @@ export function bindThemeEditor(
   host.addEventListener("click", (e) => {
     const b = (e.target as Element).closest<HTMLElement>("button");
     if (!b || !host.contains(b)) return;
-    if (b.hasAttribute("data-th-accent")) {
+    if (b.dataset.thK) {
+      const k = b.dataset.thK as "mode" | "fx" | "corner" | "ring" | "cover";
+      const v = b.dataset.thV!;
+      host
+        .querySelectorAll<HTMLElement>(`[data-th-k="${k}"]`)
+        .forEach((x) => x.setAttribute("aria-checked", String(x.dataset.thV === v)));
+      commit({ [k]: v === DEFAULTS[k] ? undefined : v });
+    } else if (b.hasAttribute("data-th-accent")) {
       mark("data-th-accent", b.dataset.thAccent!);
       custom?.classList.remove("is-on");
       const picker = host.querySelector<HTMLInputElement>("[data-th-color]");

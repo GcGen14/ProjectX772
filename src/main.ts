@@ -13,6 +13,7 @@ import "./styles/theme.css";
 import "./styles/teachers.css";
 import "./styles/chat.css";
 import "./styles/extras.css";
+import "./styles/theme-more.css";
 import {
   applyAlbums,
   applyPeople,

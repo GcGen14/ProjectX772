@@ -3,9 +3,9 @@
    ========================================================= */
 .has-theme {
   --pf-accent: var(--ink-900);
-  --pf-tint: color-mix(in srgb, var(--pf-accent) 9%, #fff);
+  --pf-tint: color-mix(in srgb, var(--pf-accent) 9%, var(--pf-base, #fff));
   --pf-line: color-mix(in srgb, var(--pf-accent) 14%, transparent);
-  --pf-surface: #fff;
+  --pf-surface: var(--pf-base, #fff);
 }
 
 /* ---- backgrounds ---- */
@@ -26,21 +26,21 @@
       color-mix(in srgb, var(--pf-accent) 12%, transparent),
       transparent 70%
     ),
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-dots {
   background:
     radial-gradient(color-mix(in srgb, var(--pf-accent) 26%, transparent) 1.2px, transparent 1.6px)
       0 0 / 18px 18px,
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-grid {
   background:
     linear-gradient(var(--pf-line) 1px, transparent 1px) 0 0 / 28px 28px,
     linear-gradient(90deg, var(--pf-line) 1px, transparent 1px) 0 0 / 28px 28px,
-    #fff;
+    var(--pf-base, #fff);
 }
 
 .th-bg-stripes {
@@ -50,7 +50,7 @@
       color-mix(in srgb, var(--pf-accent) 7%, transparent) 0 14px,
       transparent 14px 28px
     ),
-    #fff;
+    var(--pf-base, #fff);
 }
 
 /* ---- fonts ---- */
@@ -75,7 +75,7 @@
 
 .pf-main.has-theme .pf-avatar {
   box-shadow:
-    0 0 0 3px #fff,
+    0 0 0 3px var(--pf-base, #fff),
     0 0 0 5px var(--pf-accent);
 }
 
