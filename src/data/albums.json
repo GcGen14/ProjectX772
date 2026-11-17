@@ -1,0 +1,75 @@
+{
+  "_help": "The original albums. They are copied into the database (data/602.sqlite) on first run; after that, add or edit albums from /backend → อัลบั้ม.",
+  "albums": [
+    {
+      "slug": "grad",
+      "title": "ถ่ายรูปรุ่น",
+      "en": "Graduation Shoot",
+      "tagline": "ชุดนักเรียนครั้งสุดท้าย 6 กลุ่ม 6 สไตล์ ยืนเรียงหน้ากระดานแบบที่ทำได้แค่ปีเดียว",
+      "about": "วันถ่ายรูปรุ่นของ ม.6/2 แบ่งเป็น 6 กลุ่ม (G1–G6) ทั้งท่าเท่ ท่าบ้า และท่าที่ช่างภาพไม่ได้ขอ เลือกกลุ่มด้านบนเพื่อดูเฉพาะรูปของกลุ่มนั้นได้",
+      "tags": [
+        { "label": "G1–G6", "icon": "users" },
+        { "label": "ชุดนักเรียน", "icon": "sparkle" },
+        { "label": "Class photo", "icon": "camera" }
+      ],
+      "folders": ["1eh1ZSj5XrCsjNvSWV0nKzJm56TsWn6kP"],
+      "showGroups": true
+    },
+    {
+      "slug": "life",
+      "title": "ชีวิต 602",
+      "en": "Daily Life",
+      "tagline": "ทุกวันธรรมดาที่ไม่ธรรมดา ห้องเรียน สนาม ทัศนศึกษา และเซลฟี่อีกเป็นร้อย",
+      "about": "รูปจากโฟลเดอร์ memoriesGCgen14 รวมทุกอย่างตั้งแต่คาบเรียน กิจกรรมกีฬาสี ทัศนศึกษา ไปจนถึงเซลฟี่ในห้อง ใครถ่ายไว้ก็มาอยู่ตรงนี้หมดแล้ว",
+      "tags": [
+        { "label": "ห้องเรียน", "icon": "book" },
+        { "label": "กิจกรรม", "icon": "heart" },
+        { "label": "Selfies", "icon": "camera" }
+      ],
+      "folders": ["1QZ30GL2LwHptgpk04jiBNAz2oxBpkW9i"],
+      "showGroups": false
+    },
+    {
+      "slug": "larb",
+      "title": "โครตลาบบ",
+      "en": "Larb Day",
+      "tagline": "วันที่ห้องเราทำลาบ ตำ หั่น ชิม แล้วก็ถ่ายรูปมากกว่าทำอาหาร",
+      "about": "กิจกรรมทำอาหารพื้นเมือง ชุดผ้าไทย เสื้อสี และจานลาบที่อร่อยที่สุด (ตามความเห็นของห้องเราเอง)",
+      "tags": [
+        { "label": "ทำอาหาร", "icon": "heart" },
+        { "label": "ชุดไทย", "icon": "palette" },
+        { "label": "Food day", "icon": "camera" }
+      ],
+      "folders": ["1uRwB3CBD6YOyHxpUb0oirAl1K1ON3N1d"],
+      "showGroups": false
+    },
+    {
+      "slug": "tep",
+      "title": "TEP ก็งี้แหวะะ",
+      "en": "TEP",
+      "tagline": "ทีม TEP กับคลิปที่ตัดต่อกันจนดึก ทั้งเวอร์ชันจริงและเวอร์ชันยำ ๆ",
+      "about": "โปรเจกต์ TEP ของห้อง มีทั้งคลิปไฟนอล คลิปเบื้องหลัง และรูปสมาชิกทีม กดที่แท็บวิดีโอเพื่อดูคลิปทั้งหมด",
+      "tags": [
+        { "label": "Project", "icon": "pen" },
+        { "label": "วิดีโอ", "icon": "video" },
+        { "label": "Team", "icon": "users" }
+      ],
+      "folders": ["1zt04yspWsNMbOWqc9bE2D4ozFjy2P_yz"],
+      "showGroups": false
+    },
+    {
+      "slug": "moments",
+      "title": "คลิปโมเม้น 602",
+      "en": "Clip Moments",
+      "tagline": "คลิปสั้นจากกล้องทุกตัวในห้อง ทั้ง DJI มือถือ และกล้องดิจิทัลรุ่นคุณป้า",
+      "about": "คลิปโมเมนต์ของห้อง 602 เกือบร้อยคลิป บางคลิปมีเสียงหัวเราะดังกว่าเสียงครู กดเล่นได้เลยจากแท็บวิดีโอ",
+      "tags": [
+        { "label": "Clips", "icon": "video" },
+        { "label": "Behind the scenes", "icon": "sparkle" },
+        { "label": "602", "icon": "home" }
+      ],
+      "folders": ["1-ZAB-6IgqGE6R9UeJ0wjrCublq-TSBCZ"],
+      "showGroups": false
+    }
+  ]
+}
