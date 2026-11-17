@@ -1,60 +1,130 @@
-import "./style.css";
-import heroImg from "./assets/hero.png";
-import typescriptLogo from "./assets/typescript.svg";
-import viteLogo from "./assets/vite.svg";
-import { setupCounter } from "./counter.ts";
+import "./styles/base.css";
+import "./styles/landing.css";
+import "./styles/profile.css";
+import "./styles/memories.css";
+import "./styles/backend.css";
+import "./styles/backend-albums.css";
+import "./styles/backend-people.css";
+import "./styles/me.css";
+import "./styles/slug.css";
+import "./styles/song.css";
+import "./styles/viewer.css";
+import "./styles/theme.css";
+import "./styles/teachers.css";
+import "./styles/chat.css";
+import "./styles/extras.css";
+import {
+  applyAlbums,
+  applyPeople,
+  applyPhotoData,
+  applyRoster,
+  applyStudentRecords,
+  applyWall,
+  studentBySlug,
+  profileUrlByNo,
+} from "./data.ts";
+import { api, refreshSession } from "./lib/api.ts";
+import { refreshChatBadge } from "./lib/chat-badge.ts";
+import { mountSongMini } from "./lib/song.ts";
+import { loadExtras, setNoindex, startFaceGuard } from "./lib/extras.ts";
+import { bindLinks, setRouteHandler, type Cleanup } from "./lib/router.ts";
+import { renderAlbum } from "./pages/album.ts";
+import { renderBackend } from "./pages/backend.ts";
+import { renderChat } from "./pages/chat.ts";
+import { renderLanding } from "./pages/landing.ts";
+import { renderMe } from "./pages/me.ts";
+import { renderStudent } from "./pages/student.ts";
+import { renderTeacher } from "./pages/teacher.ts";
 
-document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-<section id="center">
-  <div class="hero">
-    <img src="${heroImg}" class="base" width="170" height="179">
-    <img src="${typescriptLogo}" class="framework" alt="TypeScript logo"/>
-    <img src="${viteLogo}" class="vite" alt="Vite logo" />
-  </div>
-  <div>
-    <h1>Get started</h1>
-    <p>Edit <code>src/main.ts</code> and save to test <code>HMR</code></p>
-  </div>
-  <button id="counter" type="button" class="counter"></button>
-</section>
+const app = document.querySelector<HTMLDivElement>("#app")!;
+let cleanup: Cleanup | null = null;
+let firstLoad = true;
 
-<div class="ticks"></div>
+function route() {
+  cleanup?.();
+  cleanup = null;
+  setNoindex(false); // profile pages turn it back on for students who opted out
+  const path = decodeURIComponent(location.pathname);
+  const album = path.match(/^\/album\/([^/]+)\/?$/);
+  // /student/:no is the old address; send it to /member/:no
+  const oldStudent = path.match(/^\/student\/(\d+)\/?$/);
+  if (oldStudent)
+    history.replaceState(null, "", `/member/${oldStudent[1]}${location.search}${location.hash}`);
+  const student = path.match(/^\/(?:member|student)\/(\d+)\/?$/);
+  const meSlug = path.match(/^\/me\/([A-Za-z0-9._-]{1,60})\/?$/);
+  // /member/<no> still works; if that student picked an address, show that address instead
+  if (student) {
+    const canonical = profileUrlByNo(Number(student[1]));
+    if (canonical !== `/member/${student[1]}`)
+      history.replaceState(null, "", `${canonical}${location.search}${location.hash}`);
+  }
+  const chat = path.match(/^\/chat(?:\/(public|\d+))?\/?$/);
+  if (/^\/backend\/?$/.test(path)) cleanup = renderBackend(app);
+  else if (chat)
+    cleanup = renderChat(app, chat[1] === "public" ? "public" : Number(chat[1]) || null);
+  else if (/^\/me\/?$/.test(path)) cleanup = renderMe(app);
+  else if (meSlug) {
+    // /me/<address>: someone's personal profile link
+    const owner = studentBySlug(meSlug[1]);
+    cleanup = renderStudent(app, owner ? owner.no : -1);
+  } else if (album) cleanup = renderAlbum(app, album[1]);
+  else if (student) cleanup = renderStudent(app, Number(student[1]));
+  else if (/^\/teacher\/\d+\/?$/.test(path))
+    cleanup = renderTeacher(app, Number(path.split("/")[2]));
+  // Anything else shows the landing page; the splash loader plays only on a fresh page load.
+  else cleanup = renderLanding(app, { splash: firstLoad });
+  firstLoad = false;
+  if (!location.hash) window.scrollTo(0, 0);
+  void refreshChatBadge();
+}
 
-<section id="next-steps">
-  <div id="docs">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#documentation-icon"></use></svg>
-    <h2>Documentation</h2>
-    <p>Your questions, answered</p>
-    <ul>
-      <li>
-        <a href="https://vite.dev/" target="_blank">
-          <img class="logo" src="${viteLogo}" alt="" />
-          Explore Vite
-        </a>
-      </li>
-      <li>
-        <a href="https://www.typescriptlang.org" target="_blank">
-          <img class="button-icon" src="${typescriptLogo}" alt="">
-          Learn more
-        </a>
-      </li>
-    </ul>
-  </div>
-  <div id="social">
-    <svg class="icon" role="presentation" aria-hidden="true"><use href="/icons.svg#social-icon"></use></svg>
-    <h2>Connect with us</h2>
-    <p>Join the Vite community</p>
-    <ul>
-      <li><a href="https://github.com/vitejs/vite" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#github-icon"></use></svg>GitHub</a></li>
-      <li><a href="https://chat.vite.dev/" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#discord-icon"></use></svg>Discord</a></li>
-      <li><a href="https://x.com/vite_js" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#x-icon"></use></svg>X.com</a></li>
-      <li><a href="https://bsky.app/profile/vite.dev" target="_blank"><svg class="button-icon" role="presentation" aria-hidden="true"><use href="/icons.svg#bluesky-icon"></use></svg>Bluesky</a></li>
-    </ul>
-  </div>
-</section>
+/** Pull live profiles + login state from the database server (if one is running). */
+async function loadLiveData() {
+  const timeout = new Promise((r) => setTimeout(r, 2500));
+  const live = Promise.all([
+    // albums (incl. Drive folders added in /backend) + face tags, then people/photo data on top
+    api
+      .albums()
+      .then((r) => applyAlbums(r.albums))
+      .catch(() => {}),
+    api
+      .people()
+      .then(applyPeople)
+      .catch(() => {}),
+  ])
+    .then(() =>
+      Promise.all([
+        api
+          .students()
+          .then((r) => applyStudentRecords(r.students))
+          .catch(() => {}), // no server: keep the bundled students.json
+        api
+          .roster()
+          .then(applyRoster)
+          .catch(() => {}), // who owns which photo + teachers
+        refreshSession(),
+      ]),
+    )
+    .then(() =>
+      // captions + tag corrections, and approved public messages (need the student list) (after students so memories rebuild on fresh records)
+      Promise.all([
+        api
+          .photos()
+          .then(applyPhotoData)
+          .catch(() => {}),
+        api
+          .wall()
+          .then((r) => applyWall(r.posts))
+          .catch(() => {}),
+      ]),
+    )
+    .then(() => loadExtras()); // socials, privacy + characters (needs students and face tags)
+  await Promise.race([live, timeout]);
+}
 
-<div class="ticks"></div>
-<section id="spacer"></section>
-`;
-
-setupCounter(document.querySelector<HTMLButtonElement>("#counter")!);
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+setRouteHandler(route);
+bindLinks();
+mountSongMini(); // เพลงห้อง: floating player that keeps playing across pages
+startFaceGuard(); // swaps faces for characters for students who chose to hide theirs
+void loadLiveData().then(route);
