@@ -134,4 +134,11 @@ setRouteHandler(route);
 bindLinks();
 mountSongMini(); // เพลงห้อง: floating player that keeps playing across pages
 startFaceGuard(); // swaps faces for characters for students who chose to hide theirs
-void loadLiveData().then(route);
+void loadLiveData().then(() => {
+  route();
+  // fade out the boot screen from index.html; the landing splash picks up from the same spot
+  const boot = document.getElementById("boot");
+  if (!boot) return;
+  boot.classList.add("is-out");
+  setTimeout(() => boot.remove(), 600);
+});
