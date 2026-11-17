@@ -698,10 +698,85 @@ a.pf-svc-card {
   }
 }
 
-/* desktop: the word starts right after "ความทรงจำของ" (slot is sized to the widest word) */
-@media (min-width: 820px) {
-  .hand-word {
-    left: 0;
+/* ---- hero: hand-written word (slot glides to each word, word is written, underline follows) ---- */
+.hand-slot {
+  transition: width 0.55s var(--ease-out);
+}
+
+.hand-word {
+  left: 0;
+  translate: 0 -46%;
+}
+
+.hand-slot.is-draw .hand-word {
+  animation: hand-write 1s cubic-bezier(0.6, 0.05, 0.3, 1) forwards;
+}
+
+.hand-slot.is-erase .hand-word {
+  animation: hand-erase 0.45s ease-in forwards;
+}
+
+@keyframes hand-write {
+  from {
+    clip-path: inset(-30% 100% -30% 0);
+    translate: 0 -38%;
+  }
+  to {
+    clip-path: inset(-30% -5% -30% 0);
     translate: 0 -46%;
+  }
+}
+
+.hand-line {
+  position: absolute;
+  bottom: -0.06em;
+  left: -3%;
+  width: 106%;
+  height: 0.3em;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.hand-line path {
+  fill: none;
+  stroke: url(#hand-ink);
+  stroke-width: clamp(3px, 0.085em, 6px);
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.hand-slot.is-draw .hand-line path {
+  animation: hand-underline 0.6s 0.75s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.hand-slot.is-erase .hand-line path {
+  stroke-dashoffset: 0;
+  animation: hand-underline-out 0.4s ease-in forwards;
+}
+
+@keyframes hand-underline {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hand-underline-out {
+  to {
+    stroke-dashoffset: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hand-slot {
+    transition: none;
+  }
+
+  .hand-slot.is-draw .hand-word,
+  .hand-slot.is-draw .hand-line path {
+    animation: none;
+    clip-path: none;
+    stroke-dashoffset: 0;
   }
 }
