@@ -17,6 +17,7 @@ import "./styles/theme-more.css";
 import "./styles/me-editor.css";
 import "./styles/album-viewer.css";
 import "./styles/timeline.css";
+import "./styles/album-page.css";
 import {
   applyAlbums,
   applyPeople,
