@@ -1,0 +1,293 @@
+:root {
+  --font-family-body:
+    "Google Sans Flex", "Google Sans", Inter, "Noto Sans Thai", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --ink: #2b313b;
+  --ink-strong: #131922;
+  --ink-900: #171717;
+  --muted: #8d9197;
+  --muted-2: #6b7078;
+  --line: #e4e8ef;
+  --surface: #f5f6f7;
+  --surface-2: #eff2f7;
+  --dark: #131922;
+  --blue: #0569ff;
+  --grad: linear-gradient(90deg, #82bcff, #2483ff, #ff66f4, #ff3029, #fe7b02);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: #fff;
+}
+
+html.is-loading {
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-body);
+  color: var(--ink);
+  background: #fff;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+
+.icon {
+  flex: none;
+  display: block;
+}
+
+.star {
+  display: inline-block;
+  vertical-align: -2px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+}
+
+/* ---------- shared UI ---------- */
+.nav-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+  color: var(--ink-strong);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-900);
+  background: #fff;
+  white-space: nowrap;
+}
+
+.btn-outline {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 24px;
+  border: 1px solid #d4d4d4;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-strong);
+  font-size: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.btn-outline:hover {
+  border-color: #a3a3a3;
+}
+
+/* Animated "comet" CTA: a rainbow band orbiting a dark pill. */
+@property --cta-fill {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0.2;
+}
+
+.cta {
+  position: relative;
+  display: inline-flex;
+  min-height: 48px;
+  border-radius: 999px;
+  padding: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: transform 0.6s cubic-bezier(0.44, 0, 0.56, 1);
+  --cta-fill: 0.2;
+}
+
+.cta:hover {
+  transform: scale(1.04);
+  --cta-fill: 1;
+}
+
+.cta:active {
+  transform: scale(1.0088);
+}
+
+.cta.is-block {
+  display: flex;
+  width: 100%;
+}
+
+.cta-band {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-clip: content-box, border-box;
+  -webkit-mask-composite: xor;
+  mask-image: linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  mask-clip: content-box, border-box;
+  mask-composite: exclude;
+}
+
+.cta-comet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  animation: cta-orbit 3.333s linear infinite;
+  transition: --cta-fill 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.cta-glow,
+.cta-core {
+  position: absolute;
+  inset: 0;
+  background-image: conic-gradient(from 0deg, #82bcff, #2483ff, #ff66f4, #ff3029, #fe7b02, #82bcff);
+  -webkit-mask-image: conic-gradient(
+    from 0deg,
+    #000 0deg,
+    #000 calc(var(--cta-fill) * var(--cta-fill) * 360deg),
+    transparent calc(var(--cta-fill) * 360deg)
+  );
+  mask-image: conic-gradient(
+    from 0deg,
+    #000 0deg,
+    #000 calc(var(--cta-fill) * var(--cta-fill) * 360deg),
+    transparent calc(var(--cta-fill) * 360deg)
+  );
+}
+
+.cta-glow {
+  filter: blur(13px);
+}
+
+.cta-core {
+  opacity: 0.45;
+}
+
+.cta-face {
+  position: relative;
+  z-index: 1;
+  flex: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 24px;
+  border-radius: 999px;
+  background: var(--ink-strong);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+@keyframes cta-orbit {
+  to {
+    rotate: 360deg;
+  }
+}
+
+/* Online status dot sitting on avatars */
+.online-dot {
+  position: absolute;
+  right: 4%;
+  bottom: 4%;
+  width: 26%;
+  height: 26%;
+}
+
+/* Skeleton shimmer used while pages load */
+.skeleton {
+  background: linear-gradient(90deg, #f0f1f3 0%, #f7f8f9 40%, #f0f1f3 80%) 0 0 / 300% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -150% 0;
+  }
+}
+
+/* Top progress bar shown on route changes */
+.route-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0;
+  z-index: 1000;
+  background: var(--grad);
+  transition:
+    width 0.4s var(--ease-out),
+    opacity 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
