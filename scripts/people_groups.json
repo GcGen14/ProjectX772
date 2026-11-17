@@ -1,0 +1,275 @@
+{
+  "_help": "Portrait sets from the 602 Drive folder, in folder order (first 3 images skipped). Each set is one student. Edit 'from'/'to' (file names, inclusive) if a set is wrong, then run: python scripts/faces.py match",
+  "groups": [
+    {
+      "set": 1,
+      "from": "GA107569.jpg",
+      "to": "GA107577.jpg",
+      "count": 9
+    },
+    {
+      "set": 2,
+      "from": "GA107578.jpg",
+      "to": "GA107585.jpg",
+      "count": 8
+    },
+    {
+      "set": 3,
+      "from": "GA107586.jpg",
+      "to": "GA107596.jpg",
+      "count": 11
+    },
+    {
+      "set": 4,
+      "from": "GA107597.jpg",
+      "to": "GA107604.jpg",
+      "count": 8
+    },
+    {
+      "set": 5,
+      "from": "GA107605.jpg",
+      "to": "GA107612.jpg",
+      "count": 7
+    },
+    {
+      "set": 6,
+      "from": "GA107613.jpg",
+      "to": "GA107623.jpg",
+      "count": 10
+    },
+    {
+      "set": 7,
+      "from": "GA107624.jpg",
+      "to": "GA107631.jpg",
+      "count": 8
+    },
+    {
+      "set": 8,
+      "from": "GA107632.jpg",
+      "to": "GA107639.jpg",
+      "count": 8
+    },
+    {
+      "set": 9,
+      "from": "GA107640.jpg",
+      "to": "GA107647.jpg",
+      "count": 8
+    },
+    {
+      "set": 10,
+      "from": "GA107648.jpg",
+      "to": "GA107655.jpg",
+      "count": 8
+    },
+    {
+      "set": 11,
+      "from": "GA107656.jpg",
+      "to": "GA107661.jpg",
+      "count": 5
+    },
+    {
+      "set": 12,
+      "from": "GA107662.jpg",
+      "to": "GA107669.jpg",
+      "count": 8
+    },
+    {
+      "set": 13,
+      "from": "GA107670.jpg",
+      "to": "GA107677.jpg",
+      "count": 8
+    },
+    {
+      "set": 14,
+      "from": "GA107678.jpg",
+      "to": "GA107686.jpg",
+      "count": 8
+    },
+    {
+      "set": 15,
+      "from": "GA107687.jpg",
+      "to": "GA107694.jpg",
+      "count": 8
+    },
+    {
+      "set": 16,
+      "from": "GA107695.jpg",
+      "to": "GA107702.jpg",
+      "count": 8
+    },
+    {
+      "set": 17,
+      "from": "GA107703.jpg",
+      "to": "GA107710.jpg",
+      "count": 8
+    },
+    {
+      "set": 18,
+      "from": "GA107711.jpg",
+      "to": "GA107720.jpg",
+      "count": 10
+    },
+    {
+      "set": 19,
+      "from": "GA107721.jpg",
+      "to": "GA107728.jpg",
+      "count": 8
+    },
+    {
+      "set": 20,
+      "from": "GA107729.jpg",
+      "to": "GA107736.jpg",
+      "count": 8
+    },
+    {
+      "set": 21,
+      "from": "GA107737.jpg",
+      "to": "GA107744.jpg",
+      "count": 8
+    },
+    {
+      "set": 22,
+      "from": "GA107745.jpg",
+      "to": "GA107749.jpg",
+      "count": 5
+    },
+    {
+      "set": 23,
+      "from": "GA107750.jpg",
+      "to": "GA107760.jpg",
+      "count": 11
+    },
+    {
+      "set": 24,
+      "from": "GA107761.jpg",
+      "to": "GA107768.jpg",
+      "count": 8
+    },
+    {
+      "set": 25,
+      "from": "GA107769.jpg",
+      "to": "GA107774.jpg",
+      "count": 6
+    },
+    {
+      "set": 26,
+      "from": "GA107775.jpg",
+      "to": "GA107782.jpg",
+      "count": 7
+    },
+    {
+      "set": 27,
+      "from": "GA107783.jpg",
+      "to": "GA107784.jpg",
+      "count": 2
+    },
+    {
+      "set": 28,
+      "from": "GA107785.jpg",
+      "to": "GA107788.jpg",
+      "count": 4
+    },
+    {
+      "set": 29,
+      "from": "GA107789.jpg",
+      "to": "GA107800.jpg",
+      "count": 12
+    },
+    {
+      "set": 30,
+      "from": "GA107801.jpg",
+      "to": "GA107810.jpg",
+      "count": 10
+    },
+    {
+      "set": 31,
+      "from": "GA107811.jpg",
+      "to": "GA107825.jpg",
+      "count": 13
+    },
+    {
+      "set": 32,
+      "from": "GA107826.jpg",
+      "to": "GA107843.jpg",
+      "count": 15
+    },
+    {
+      "set": 33,
+      "from": "GA107845.jpg",
+      "to": "GA107850.jpg",
+      "count": 6
+    },
+    {
+      "set": 34,
+      "from": "GA107851.jpg",
+      "to": "GA107858.jpg",
+      "count": 8
+    },
+    {
+      "set": 35,
+      "from": "GA107859.jpg",
+      "to": "GA107870.jpg",
+      "count": 11
+    },
+    {
+      "set": 36,
+      "from": "GA107871.jpg",
+      "to": "GA107883.jpg",
+      "count": 12
+    },
+    {
+      "set": 37,
+      "from": "GA107884.jpg",
+      "to": "GA107902.jpg",
+      "count": 14
+    },
+    {
+      "set": 38,
+      "from": "GA107903.jpg",
+      "to": "GA107916.jpg",
+      "count": 13
+    },
+    {
+      "set": 39,
+      "from": "GA107917.jpg",
+      "to": "GA107930.jpg",
+      "count": 12
+    },
+    {
+      "set": 40,
+      "from": "GA107931.jpg",
+      "to": "GA107949.jpg",
+      "count": 19
+    },
+    {
+      "set": 41,
+      "from": "GA107950.jpg",
+      "to": "GA107966.jpg",
+      "count": 17
+    },
+    {
+      "set": 42,
+      "from": "GA107967.jpg",
+      "to": "GA107978.jpg",
+      "count": 12
+    },
+    {
+      "set": 43,
+      "from": "GA107979.jpg",
+      "to": "GA107992.jpg",
+      "count": 14
+    },
+    {
+      "set": 44,
+      "from": "GA107993.jpg",
+      "to": "GA108000.jpg",
+      "count": 8
+    },
+    {
+      "set": 45,
+      "from": "GA108001.jpg",
+      "to": "GA108006.jpg",
+      "count": 6
+    }
+  ]
+}
