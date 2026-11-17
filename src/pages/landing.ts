@@ -749,7 +749,8 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   // desktop: the timeline is pinned and slides sideways while you scroll down
   let tlShift = 0;
   function sizeTimeline() {
-    if (isMobile() || reduced) {
+    // phones and very short screens (phone landscape): a normal swipeable row instead
+    if (isMobile() || reduced || innerHeight < 540) {
       tl.style.height = "";
       tlTrack.style.transform = "";
       tlShift = 0;
@@ -962,7 +963,10 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
         }
       }
     },
-    { threshold: 0.3 },
+    // Reveal once the element's top is 15% above the bottom of the screen. (A ratio threshold
+    // like 0.3 never fires for sections taller than ~3 screens, e.g. the 49 friends on a phone,
+    // which then stayed invisible.)
+    { threshold: 0, rootMargin: "0px 0px -15% 0px" },
   );
   $$(
     ".future-title, .pain-notes, .tl-head, .mem-head, .mem-polaroids, .mem-letter, .mem-messages, .classmates",
@@ -1023,7 +1027,7 @@ export function renderLanding(root: HTMLElement, opts: { splash: boolean }): Cle
   // opening the envelope when it scrolls into view
   const letterIo = new IntersectionObserver(
     (en) => en.some((e) => e.isIntersecting) && letterEl.classList.add("is-open"),
-    { threshold: 0.35 },
+    { threshold: 0, rootMargin: "0px 0px -25% 0px" },
   );
   letterIo.observe(letterEl);
   disposers.push(() => letterIo.disconnect());

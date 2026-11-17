@@ -1,0 +1,271 @@
+/* Small-screen fixes across the whole site (loaded last). Breakpoints:
+   1100 small laptop · 819 tablet / phone landscape · 640 large phone · 480 phone · 360 small phone */
+
+/* ---------- landing ---------- */
+@media (max-width: 819px) {
+  .mates-grid {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+}
+
+@media (max-width: 819px) {
+  /* polaroids: a tidy grid instead of the scattered desktop collage (3 across on tablets) */
+  .mem-polaroids {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px 12px;
+    height: auto;
+    padding: 4px 2px 8px;
+  }
+
+  .mem-polaroids .mem-polaroid {
+    position: relative;
+    top: auto;
+    left: auto;
+    width: auto;
+    padding: 6px 6px 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .mem-polaroids {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mem-polaroids .mem-polaroid:nth-child(5) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 62%;
+  }
+
+  .mem-cap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding: 6px 2px 8px;
+  }
+
+  .mem-cap b {
+    font-size: 13.5px;
+    line-height: 1.35;
+  }
+
+  .mem-cap small {
+    font-size: 11px;
+  }
+
+  .mem-letter {
+    padding-bottom: 54px;
+  }
+
+  .mem-envelope {
+    height: 120px;
+  }
+
+  .mem-text {
+    font-size: 15.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* top bar: brand + four icon buttons must fit a 360px screen */
+  .site-nav .nav-logo {
+    gap: 6px;
+    padding: 0 6px 0 10px;
+    font-size: 15px;
+  }
+
+  .nav-actions {
+    gap: 4px;
+  }
+
+  .site-nav .lang-pill {
+    width: 36px;
+    height: 36px;
+  }
+
+  .site-nav .nav-cta,
+  .site-nav.is-scrolled .nav-cta {
+    display: none;
+  }
+}
+
+@media (max-width: 350px) {
+  .site-nav .nav-logo span {
+    display: none;
+  }
+}
+
+/* ---------- profile pages (students, teachers) ---------- */
+.pf-tab {
+  flex: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .pf-tabs {
+    gap: 20px;
+  }
+
+  .pf-tab {
+    font-size: 15px;
+  }
+}
+
+/* ---------- album page: one swipeable toolbar row on phones ---------- */
+@media (max-width: 640px) {
+  .al-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .al-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .al-tabs,
+  .al-controls {
+    flex: none;
+    flex-wrap: nowrap;
+  }
+
+  .al-tabs button {
+    padding: 0 12px;
+  }
+
+  .al-day h3 {
+    top: 58px;
+  }
+
+  .al-actions .al-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* ---------- backend: tab row scrolls instead of widening the page ---------- */
+.adm-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.adm-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.adm-tabs > * {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ---------- photo viewer on phones ---------- */
+@media (max-width: 819px) {
+  /* the details panel grows with its content (it used to stop at 40vh and spill out) */
+  .vw {
+    grid-template-rows: 62vh max-content;
+    grid-template-rows: 62dvh max-content;
+  }
+
+  .vw-side {
+    min-height: 38dvh;
+  }
+
+  .vw-media {
+    padding-bottom: 104px;
+  }
+
+  /* one row of icon buttons between the prev / next arrows */
+  .vw-bar {
+    bottom: 10px;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .vw-bar .vw-chip {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+    font-size: 0;
+  }
+
+  .vw-strip {
+    right: 10px;
+    bottom: 54px;
+    left: 10px;
+  }
+}
+
+@media (max-width: 380px) {
+  .vw-bar [data-full] {
+    display: none;
+  }
+}
+
+/* ---------- short screens (phone landscape, small laptops): keep the pinned timeline in view ---------- */
+@media (min-width: 820px) and (max-height: 700px) {
+  .tl-sticky {
+    padding-top: 56px;
+  }
+
+  .tl-head h2 {
+    margin: 8px 0 4px;
+    font-size: 26px;
+  }
+
+  .tl-head p {
+    display: none;
+  }
+
+  .tl-track {
+    padding-top: 20px;
+  }
+
+  .tl-track::before {
+    top: calc(20px + var(--when) + 10px + 7px);
+  }
+
+  .tl-photos {
+    height: 140px;
+  }
+
+  .tl-grad {
+    height: 206px;
+  }
+}
+
+/* ---------- never scroll sideways because one element is too wide ---------- */
+/* (clip, not hidden: hidden would turn <body> into a scroll container and break sticky parts) */
+body {
+  overflow-x: clip;
+}
+
+/* very short screens: the timeline is a swipeable row like on phones (see sizeTimeline) */
+@media (max-height: 539px) {
+  .tl {
+    height: auto !important;
+  }
+
+  .tl-sticky {
+    position: static;
+    height: auto;
+    padding: 64px 0 32px;
+  }
+
+  .tl-viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .tl-track {
+    transform: none !important;
+  }
+
+  .tl-stop {
+    scroll-snap-align: start;
+  }
+}
