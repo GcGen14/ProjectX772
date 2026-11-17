@@ -180,6 +180,8 @@ export type StudentRecord = {
   group: string;
   portraitSet: number | null;
   photoNote: string;
+  /** school student ID (เลขประจำตัวนักเรียน) */
+  studentId?: string;
   /** id of the student's chosen cover photo (one of their portraits or memories) */
   coverPhoto?: string;
   /** how the student decorated their profile page (see src/lib/theme.ts) */

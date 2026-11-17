@@ -46,6 +46,7 @@ type PsKey =
   | "dream"
   | "ig"
   | "birthday"
+  | "studentId"
   | "photoNote";
 type Opts = {
   root: HTMLElement;
@@ -480,6 +481,7 @@ export function createPeopleTools(o: Opts) {
     { key: "ig", label: "Instagram", ph: "ไม่ต้องใส่ @", max: 30 },
     { key: "dream", label: "ความฝัน / คณะ", max: 120 },
     { key: "quote", label: "คำคม / ข้อความ", area: true, max: 300 },
+    { key: "studentId", label: "รหัสนักเรียน (ID)", ph: "เช่น 40160", max: 10 },
     { key: "photoNote", label: "หมายเหตุ (เห็นเฉพาะผู้ดูแล)", max: 200 },
   ];
 
