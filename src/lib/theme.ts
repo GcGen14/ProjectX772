@@ -33,7 +33,7 @@ export type ProfileTheme = {
   ring?: "accent" | "rainbow" | "none";
   cover?: "short" | "normal" | "tall";
   /** signature theme only its owner can use (src/lib/signature.ts; enforced by the server) */
-  sig?: "homura" | "ender" | "cp" | "pudding";
+  sig?: "homura" | "ender" | "cp" | "pudding" | "gamedev";
   /** owner-uploaded picture used by a signature theme (an upload id, "up-…") */
   art?: string;
   /** the owner switched their (default-on) signature theme off */
@@ -143,7 +143,8 @@ export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: s
   const cls = ["has-theme", `th-bg-${t.bg ?? "plain"}`, `th-font-${t.font ?? "default"}`];
   if (isDarkTheme(t)) cls.push("th-dark");
   if (t.fx && t.fx !== "none") cls.push("th-fx", `th-fx-${t.fx}`);
-  if (t.sig && /^(homura|ender|cp|pudding)$/.test(t.sig)) cls.push("th-sig", `th-sig-${t.sig}`);
+  if (t.sig && /^(homura|ender|cp|pudding|gamedev)$/.test(t.sig))
+    cls.push("th-sig", `th-sig-${t.sig}`);
   for (const k of ["corner", "ring", "cover"] as const)
     if (t[k] && t[k] !== DEFAULTS[k]) cls.push(`th-${k}-${t[k]}`);
   const hex = (v?: string) => !!v && /^#[0-9a-f]{6}$/i.test(v);
