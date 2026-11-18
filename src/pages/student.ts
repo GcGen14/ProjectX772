@@ -56,7 +56,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     : "";
   const shownCovers = picked ? [picked, ...autoCovers.filter((c) => c !== picked)] : autoCovers;
   const isMe = myNo() === s.no;
-  const theme = effectiveTheme(s.no, s.theme);
+  const theme = effectiveTheme(s.no, s.theme, s.avatar);
   // privacy choices from /me
   const privacy = extrasOf(s.no).privacy;
   const hidePics = !!privacy.hidePhotos;
@@ -188,12 +188,6 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
       ...(socials ? [{ icon: "globe", html: socials }] : []),
     ],
     stack: { avatars: mates.slice(0, 3).map(studentAvatar), more: mates.length - 3 },
-    stats: [
-      { value: String(s.no), label: "เลขที่" },
-      { value: hidePics ? "–" : String(s.memories.length), label: "รูปที่มีเรา" },
-      { value: hidePics || privacy.hideFace ? "–" : String(s.portraits.length), label: "รูปเดี่ยว" },
-    ],
-    follow: ["เป็นเพื่อนกัน", "เพื่อนกันแล้ว"],
     covers,
     tags: [
       s.studentId
