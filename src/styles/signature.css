@@ -1122,3 +1122,359 @@
     height: 60px;
   }
 }
+
+/* ================= GAME DEV (#5) ================= */
+.has-theme.th-sig-gamedev {
+  background:
+    linear-gradient(rgba(124, 58, 237, 0.05) 1px, transparent 1px) 0 0 / 16px 16px,
+    linear-gradient(90deg, rgba(124, 58, 237, 0.05) 1px, transparent 1px) 0 0 / 16px 16px,
+    #fff;
+}
+
+.th-sig-gamedev .pf-info h1 {
+  color: #6d28d9;
+}
+
+/* stepped pixel frame + LV tag on the picture */
+.th-sig-gamedev .pf-avatar-box::before {
+  inset: -6px;
+  border-radius: 0;
+  background: #7c3aed;
+  clip-path: polygon(
+    0 12%,
+    6% 12%,
+    6% 6%,
+    12% 6%,
+    12% 0,
+    88% 0,
+    88% 6%,
+    94% 6%,
+    94% 12%,
+    100% 12%,
+    100% 88%,
+    94% 88%,
+    94% 94%,
+    88% 94%,
+    88% 100%,
+    12% 100%,
+    12% 94%,
+    6% 94%,
+    6% 88%,
+    0 88%
+  );
+  animation: none;
+}
+
+.th-sig-gamedev .pf-avatar {
+  border-radius: 10px;
+}
+
+.th-sig-gamedev .pf-avatar-box::after {
+  position: absolute;
+  right: -10px;
+  bottom: -8px;
+  z-index: 2;
+  padding: 3px 5px;
+  border: 2px solid #fff;
+  background: #22c55e;
+  color: #fff;
+  content: "LV18";
+  font:
+    8px/1 "Press Start 2P",
+    monospace;
+}
+
+.sig-cover-gamedev {
+  font-family: "Press Start 2P", ui-monospace, monospace;
+  image-rendering: pixelated;
+}
+
+.sig-hud-hp {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: grid;
+  gap: 4px;
+  padding: 7px 8px;
+  border: 2px solid #fff;
+  background: rgba(17, 24, 39, 0.72);
+}
+
+.sig-hearts {
+  display: flex;
+  gap: 3px;
+}
+
+.sig-hearts svg {
+  width: 14px;
+}
+
+.sig-hud-hp i {
+  display: block;
+  width: 90px;
+  height: 6px;
+  border: 1px solid #fff;
+  background: #1f2937;
+}
+
+.sig-hud-hp i b {
+  display: block;
+  height: 100%;
+}
+
+.sig-hud-hp .hp b {
+  width: 80%;
+  background: #22c55e;
+  animation: sig-hp 6s steps(10) infinite;
+}
+
+.sig-hud-hp .mp b {
+  width: 55%;
+  background: #3b82f6;
+}
+
+@keyframes sig-hp {
+  40% {
+    width: 45%;
+    background: #f59e0b;
+  }
+  60% {
+    width: 100%;
+    background: #22c55e;
+  }
+}
+
+.sig-hud-score {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 7px 9px;
+  border: 2px solid #fff;
+  background: rgba(17, 24, 39, 0.72);
+  color: #e5e7eb;
+  font-size: 9px;
+}
+
+.sig-hud-score b {
+  color: #facc15;
+  font-weight: 400;
+}
+
+.sig-dialog {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 58%;
+  padding: 9px 12px;
+  border: 3px double #fff;
+  background: rgba(30, 27, 75, 0.88);
+  color: #fff;
+  font-family: "Press Start 2P", "Itim", monospace;
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.sig-dialog span {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: sig-dialog 7s steps(24, end) infinite;
+}
+
+.sig-dialog em {
+  color: #facc15;
+  font-style: normal;
+  animation: sig-blink 0.8s steps(2) infinite;
+}
+
+@keyframes sig-dialog {
+  0% {
+    max-width: 0;
+  }
+  40%,
+  100% {
+    max-width: 30ch;
+  }
+}
+
+.sig-gizmo {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  width: 54px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.45));
+}
+
+.sig-banner-gamedev {
+  position: relative;
+  border: 2px solid #ddd6fe;
+  background: #faf5ff;
+  color: #3b0764;
+}
+
+.sig-pad {
+  font-size: 20px;
+}
+
+.sig-xp {
+  display: grid;
+  flex: 1;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 10px;
+  min-width: 140px;
+}
+
+.sig-xp > b {
+  color: #6d28d9;
+  font:
+    10px "Press Start 2P",
+    monospace;
+}
+
+.sig-xp small {
+  color: #6b21a8;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sig-xp i {
+  display: block;
+  grid-column: 1 / -1;
+  height: 8px;
+  border: 2px solid #6d28d9;
+  background: #ede9fe;
+}
+
+.sig-xp i b {
+  display: block;
+  width: 68%;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, #22c55e 0 6px, #16a34a 6px 8px);
+  animation: sig-xp 5s steps(12) infinite;
+}
+
+@keyframes sig-xp {
+  from {
+    width: 20%;
+  }
+  to {
+    width: 96%;
+  }
+}
+
+.sig-banner-gamedev button {
+  padding: 7px 10px;
+  border: 0;
+  background: #7c3aed;
+  box-shadow:
+    0 4px 0 #4c1d95,
+    0 0 0 2px #fff inset;
+  color: #fff;
+  font:
+    9px "Press Start 2P",
+    monospace;
+  cursor: pointer;
+}
+
+.sig-banner-gamedev button:active {
+  box-shadow:
+    0 1px 0 #4c1d95,
+    0 0 0 2px #fff inset;
+  transform: translateY(3px);
+}
+
+.sig-1up {
+  position: absolute;
+  top: -6px;
+  right: 12px;
+  color: #16a34a;
+  font:
+    10px "Press Start 2P",
+    monospace;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sig-banner-gamedev.is-1up .sig-1up {
+  animation: sig-1up 1s ease-out;
+}
+
+@keyframes sig-1up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-34px);
+  }
+}
+
+/* pixel coins drifting up */
+.sig-coin {
+  position: absolute;
+  bottom: -30px;
+  left: var(--x);
+  width: 14px;
+  height: 16px;
+  background: #facc15;
+  box-shadow:
+    inset -3px 0 0 #ca8a04,
+    inset 3px 0 0 #fde68a;
+  clip-path: polygon(
+    25% 0,
+    75% 0,
+    75% 12%,
+    100% 12%,
+    100% 88%,
+    75% 88%,
+    75% 100%,
+    25% 100%,
+    25% 88%,
+    0 88%,
+    0 12%,
+    25% 12%
+  );
+  opacity: 0.6;
+  animation:
+    sig-rise var(--t) linear var(--d) infinite,
+    sig-coin-spin 1.2s steps(4) infinite;
+}
+
+@keyframes sig-coin-spin {
+  50% {
+    scale: 0.3 1;
+  }
+}
+
+.sig-card-gamedev i:nth-child(1) {
+  background: #7c3aed;
+}
+
+.sig-card-gamedev i:nth-child(2) {
+  background: #22c55e;
+}
+
+.sig-card-gamedev i:nth-child(3) {
+  background: #facc15;
+}
+
+@media (max-width: 640px) {
+  .sig-hud-hp i {
+    width: 64px;
+  }
+
+  .sig-dialog {
+    max-width: 66%;
+    font-size: 7.5px;
+  }
+
+  .sig-gizmo {
+    width: 40px;
+  }
+}

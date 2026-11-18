@@ -424,6 +424,7 @@ export const SIGNATURE_OWNERS: Record<string, number> = {
   ender: 26,
   cp: 15,
   pudding: 7,
+  gamedev: 5,
 };
 
 /** Drop a signature theme / picture that doesn't belong to this student. */

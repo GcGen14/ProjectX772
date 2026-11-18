@@ -3,13 +3,14 @@
 //   ender   (#26) a 3D printer that prints the cover layer by layer, G-code ticker, LCD status
 //   cp      (#15) C++ editor over the cover, Accepted verdicts, a rating graph
 //   pudding (#7)  caramel drips, a jiggly pudding, sweetness meter
+//   gamedev (#5)  game HUD on the cover, pixel frame, XP bar and a PLAY button
 // The server only keeps `theme.sig` for the owner (server/db.ts SIGNATURE_OWNERS).
 // All artwork here is original SVG / CSS (no copyrighted character images are bundled; the
 // owner can upload their own picture as `theme.art`).
 import { esc } from "./router.ts";
 import type { ProfileTheme } from "./theme.ts";
 
-export type SigKey = "homura" | "ender" | "cp" | "pudding";
+export type SigKey = "homura" | "ender" | "cp" | "pudding" | "gamedev";
 export type Signature = {
   key: SigKey;
   owner: number;
@@ -69,6 +70,14 @@ export const SIGNATURES: Signature[] = [
       corner: "round",
     },
   },
+  {
+    key: "gamedev",
+    owner: 5,
+    name: "Game Developer",
+    tagline: "HUD เกมบนหน้าปก กรอบพิกเซล แถบ XP และปุ่ม PLAY ที่กดเล่นได้",
+    // keeps the site's normal light look; only the decorations are themed
+    preset: { accent: "#7c3aed", accent2: "#22c55e", bg: "plain", ring: "none" },
+  },
 ];
 
 export const signatureOf = (no: number) => SIGNATURES.find((s) => s.owner === no);
@@ -123,6 +132,9 @@ function clockFace() {
     <path class="sig-gem" d="M0 -9 L7 0 L0 9 L-7 0 Z"/>
   </svg>`;
 }
+
+/** 7x6 pixel heart */
+const pixelHeart = `<svg viewBox="0 0 7 6" shape-rendering="crispEdges"><path d="M1 0h2v1h1V0h2v1h1v2H6v1H5v1H4v1H3V5H2V4H1V3H0V1h1z" fill="#ef4444"/><path d="M1 1h1v1H1z" fill="#fff"/></svg>`;
 
 const feather = `<svg viewBox="0 0 24 60"><path d="M12 2c8 10 10 26 2 44l-2 12-2-12C2 28 4 12 12 2z" fill="currentColor"/><path d="M12 6v52" stroke="rgba(255,255,255,.25)" stroke-width="1"/></svg>`;
 
@@ -216,6 +228,13 @@ function coverHtml(sig: SigKey, theme: ProfileTheme) {
         </div>
         <div class="sig-verdict"><b>✓ Accepted</b><span>46 ms · 3.2 MB</span></div>
       </div>`;
+    case "gamedev":
+      return `<div class="sig-cover sig-cover-gamedev" aria-hidden="true">
+        <div class="sig-hud-hp"><span class="sig-hearts">${pixelHeart}${pixelHeart}${pixelHeart}</span><i class="hp"><b></b></i><i class="mp"><b></b></i></div>
+        <div class="sig-hud-score">SCORE <b>000602</b></div>
+        <div class="sig-dialog"><span>วาที joined the party!</span><em>▼</em></div>
+        <svg class="sig-gizmo" viewBox="0 0 60 60"><path d="M30 30V6" stroke="#22c55e" stroke-width="3"/><path d="M24 10l6-8 6 8z" fill="#22c55e"/><path d="M30 30h24" stroke="#ef4444" stroke-width="3"/><path d="M50 24l8 6-8 6z" fill="#ef4444"/><path d="M30 30 14 46" stroke="#3b82f6" stroke-width="3"/><path d="M10 42l-2 10 10-2z" fill="#3b82f6"/><rect x="26" y="26" width="8" height="8" fill="#facc15"/></svg>
+      </div>`;
     case "pudding":
       return `<div class="sig-cover sig-cover-pudding">
         <svg class="sig-drip" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0H400V18Q390 22 384 18T368 34Q360 50 352 34T340 20Q330 16 320 22T300 44Q292 58 284 42T270 20Q258 14 248 22T230 30Q220 34 212 24T190 18Q178 20 172 36Q166 52 158 36T140 18Q128 14 118 26T100 48Q92 60 84 44T70 20Q60 14 50 22T30 36Q22 46 14 30T0 18Z" fill="url(#sig-caramel)"/><defs><linearGradient id="sig-caramel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#78350f"/><stop offset="1" stop-color="#b45309"/></linearGradient></defs></svg>
@@ -232,6 +251,8 @@ function bannerHtml(sig: SigKey) {
       return `<div class="sig-banner sig-banner-ender"><span class="sig-spool" aria-hidden="true"></span><span class="sig-gcode" aria-label="G-code"><span>${GCODE.map((g) => `<code>${esc(g)}</code>`).join("")}<code>${esc(GCODE[0])}</code></span></span></div>`;
     case "cp":
       return `<div class="sig-banner sig-banner-cp">${ratingGraph()}<span><b>C++</b> · Competitive Programmer<small>solve() → Accepted ✓</small></span></div>`;
+    case "gamedev":
+      return `<div class="sig-banner sig-banner-gamedev"><span class="sig-pad" aria-hidden="true">🎮</span><span class="sig-xp"><b>LV 18</b><small>Game Developer</small><i><b></b></i></span><button type="button" data-sig-play>▶ PLAY</button><span class="sig-1up" aria-hidden="true">+1 UP</span></div>`;
     case "pudding":
       return `<div class="sig-banner sig-banner-pudding"><span>🍮 ความหวานวันนี้</span><span class="sig-meter" aria-hidden="true"><i></i></span><b>100%</b></div>`;
   }
@@ -240,6 +261,8 @@ function bannerHtml(sig: SigKey) {
 function layerHtml(sig: SigKey) {
   if (sig === "homura")
     return `<div class="sig-layer sig-layer-homura" aria-hidden="true">${Array.from({ length: 9 }, (_, i) => `<span class="sig-feather" style="--x:${(i * 11 + 5) % 96}%;--d:${(i * 1.7) % 9}s;--t:${9 + (i % 4) * 2}s;--s:${0.7 + (i % 3) * 0.25}">${feather}</span>`).join("")}</div>`;
+  if (sig === "gamedev")
+    return `<div class="sig-layer sig-layer-gamedev" aria-hidden="true">${Array.from({ length: 6 }, (_, i) => `<span class="sig-coin" style="--x:${(i * 17 + 8) % 92}%;--d:${(i * 1.9) % 10}s;--t:${12 + (i % 3) * 3}s"></span>`).join("")}</div>`;
   if (sig === "pudding")
     return `<div class="sig-layer sig-layer-pudding" aria-hidden="true">${Array.from({ length: 7 }, (_, i) => `<span class="sig-float" style="--x:${(i * 14 + 6) % 94}%;--d:${(i * 1.3) % 8}s;--t:${11 + (i % 3) * 3}s">${["🍮", "🍒", "🥄", "✨"][i % 4]}</span>`).join("")}</div>`;
   return "";
@@ -261,6 +284,13 @@ export function mountSignature(main: HTMLElement, theme: ProfileTheme | undefine
     if (t.closest("[data-sig-timestop]") && !main.classList.contains("sig-stopped")) {
       main.classList.add("sig-stopped");
       timers.push(window.setTimeout(() => main.classList.remove("sig-stopped"), 3600));
+    }
+    const play = t.closest<HTMLElement>("[data-sig-play]");
+    if (play) {
+      const banner = play.closest<HTMLElement>(".sig-banner")!;
+      banner.classList.remove("is-1up");
+      void banner.offsetWidth;
+      banner.classList.add("is-1up");
     }
     const p = t.closest<HTMLElement>("[data-sig-jiggle]");
     if (p) {
