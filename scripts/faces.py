@@ -131,6 +131,11 @@ def list_folder(fid):
     return out
 
 
+def is_image(d):
+    """JPEG or PNG bytes (Drive serves PNG uploads as PNG; OpenCV and Pillow read either)."""
+    return bool(d) and (d[:2] == b"\xff\xd8" or d[:8] == b"\x89PNG\r\n\x1a\n")
+
+
 def download(ids, folder, size):
     os.makedirs(folder, exist_ok=True)
 
@@ -145,7 +150,7 @@ def download(ids, folder, size):
         if os.path.exists(p) and os.path.getsize(p) > 1000:
             return p
         d = fetch(f"https://drive.google.com/thumbnail?id={fid}&sz={size}")
-        if d and d[:2] == b"\xff\xd8":
+        if is_image(d):
             open(p, "wb").write(d)
             return p
         return None
@@ -261,7 +266,7 @@ def scan_photo(F, pid, path):
     hp = os.path.join(CACHE, "class_hi", pid + ".jpg")
     if not os.path.exists(hp):
         d = fetch(f"https://drive.google.com/thumbnail?id={pid}&sz=w{HIRES_SIZE}")
-        if not (d and d[:2] == b"\xff\xd8"):
+        if not is_image(d):
             return found
         os.makedirs(os.path.dirname(hp), exist_ok=True)
         open(hp, "wb").write(d)
@@ -380,7 +385,7 @@ def cmd_school():
     def one(job):
         no, sid = job
         d = fetch(SCHOOL_URL.format(urllib.parse.quote(sid)))
-        if not d or not (d[:8] == b"\x89PNG\r\n\x1a\n" or d[:2] == b"\xff\xd8"):
+        if not is_image(d):
             return no, sid, "no photo on the school site"
         try:
             im = Image.open(io.BytesIO(d))
