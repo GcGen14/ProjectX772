@@ -15,6 +15,8 @@ import { humation1 } from "@humation/assets-humation-1";
 import { readSession } from "./auth.ts";
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { ROOT, clean, getDb, getStudentRow } from "./db.ts";
 
 type Req = IncomingMessage;
@@ -333,11 +335,58 @@ function saveLetter(body: Record<string, unknown>): Letter {
   return getLetter();
 }
 
+/** Pipe one album video from Google Drive, passing Range through so the browser can stream it. */
+async function streamClip(req: Req, res: Res, id: string) {
+  // only videos that are part of the class albums (not an open proxy)
+  let known = false;
+  try {
+    known = !!getDb().prepare("SELECT 1 FROM album_media WHERE id = ? AND kind = 'video'").get(id);
+  } catch {
+    known = false;
+  }
+  if (!known) {
+    res.statusCode = 404;
+    return res.end();
+  }
+  const ctrl = new AbortController();
+  res.on("close", () => ctrl.abort()); // the preview closed: stop downloading from Drive
+  try {
+    const range = req.headers.range;
+    const up = await fetch(
+      `https://drive.usercontent.google.com/download?id=${encodeURIComponent(id)}&export=download&confirm=t`,
+      { headers: range ? { range: String(range) } : {}, redirect: "follow", signal: ctrl.signal },
+    );
+    const type = up.headers.get("content-type") ?? "";
+    if (!up.ok || !type.startsWith("video/") || !up.body) {
+      res.statusCode = 502;
+      return res.end();
+    }
+    res.statusCode = up.status; // 200, or 206 for a range
+    for (const h of ["content-type", "content-length", "content-range", "accept-ranges"]) {
+      const v = up.headers.get(h);
+      if (v) res.setHeader(h, v);
+    }
+    res.setHeader("cache-control", "public, max-age=3600");
+    // pipeline handles the abort when the preview closes mid-stream (a bare .pipe would crash the server)
+    await pipeline(Readable.fromWeb(up.body as Parameters<typeof Readable.fromWeb>[0]), res).catch(
+      () => {},
+    );
+  } catch {
+    if (res.writableEnded || res.destroyed) return;
+    if (!res.headersSent) res.statusCode = 502;
+    res.end();
+  }
+}
+
 export function createExtrasApi() {
   return (req: Req, res: Res, next: Next) => {
     const url = new URL(req.url ?? "/", "http://x");
     const p = url.pathname;
     const m = req.method;
+    // hover previews: a class video streamed through this site (browsers can't play Drive's
+    // download URL directly from another site)
+    const clip = p.match(/^\/media\/clip\/([\w-]{20,80})$/);
+    if (clip && m === "GET") return void streamClip(req, res, clip[1]);
     const char = p.match(/^\/media\/characters\/(\d{1,3})\.svg$/);
     if (char && m === "GET") {
       ensure();
