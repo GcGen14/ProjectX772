@@ -1,0 +1,247 @@
+/* Badges + leader crown (src/lib/badges.ts) and their /backend editors (src/pages/backend-badges.ts) */
+
+/* ---------- chips ---------- */
+.bdg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.bdg {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--bdg) 32%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bdg) 11%, transparent);
+  color: var(--bdg);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bdg i {
+  font-style: normal;
+}
+
+.th-dark .bdg {
+  color: color-mix(in srgb, var(--bdg) 55%, #fff);
+}
+
+.pf-roles {
+  margin-top: 8px;
+}
+
+.me-preview-badges {
+  justify-content: center;
+  padding: 0 18px;
+}
+
+/* ---------- crown on the profile picture ---------- */
+.pf-avatar-box,
+.me-preview-face {
+  position: relative;
+  display: block;
+  flex: none;
+  align-self: flex-start;
+  line-height: 0;
+}
+
+.pf-crown {
+  position: absolute;
+  top: -20px;
+  left: -12px;
+  width: 44px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.22));
+  transform: rotate(-22deg);
+  pointer-events: none;
+}
+
+.me-preview-face {
+  align-self: center;
+  margin-top: -44px;
+}
+
+.me-preview-face .me-preview-avatar {
+  margin-top: 0;
+}
+
+@media (max-width: 760px) {
+  .pf-avatar-box .pf-crown {
+    top: -16px;
+    left: -10px;
+    width: 36px;
+  }
+}
+
+/* ---------- /me: the admin-made preset ---------- */
+.me2-preset.is-special .me2-preset-prev {
+  box-shadow: 0 0 0 2px #facc15;
+}
+
+.me2-pp-special {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #18181b;
+  color: #fde047;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* ---------- /backend editors ---------- */
+.adm-modal-card.bd {
+  width: min(760px, 100%);
+}
+
+.bd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 20px;
+  overflow-y: auto;
+}
+
+.bd-prev {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 26px 18px 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  text-align: center;
+}
+
+.bd-prev .bdg-row {
+  justify-content: center;
+}
+
+.bd-face {
+  position: relative;
+  line-height: 0;
+}
+
+.bd-face img {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.bd-crown {
+  position: absolute;
+  top: -18px;
+  left: -12px;
+  width: 40px;
+  transform: rotate(-22deg);
+}
+
+.bd-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+}
+
+.bd-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bd-pick:hover {
+  background: var(--surface);
+}
+
+.bd-pick[aria-pressed="true"] {
+  border-color: var(--ink-strong);
+  background: var(--surface);
+}
+
+.bd-pick small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.bc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bc-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.bc-emoji,
+.bc-name {
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink-900);
+  font: inherit;
+}
+
+.bc-emoji {
+  width: 52px;
+  text-align: center;
+}
+
+.bc-name {
+  flex: 1 1 150px;
+  min-width: 0;
+}
+
+.bc-color {
+  width: 40px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.bc-crown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-900);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.bc-prev {
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.bc-add {
+  align-self: flex-start;
+}
+
+.sp-name {
+  margin-bottom: 16px;
+}

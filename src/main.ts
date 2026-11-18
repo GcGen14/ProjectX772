@@ -15,6 +15,7 @@ import "./styles/chat.css";
 import "./styles/extras.css";
 import "./styles/theme-more.css";
 import "./styles/theme-hobby.css";
+import "./styles/badges.css";
 import "./styles/me-editor.css";
 import "./styles/album-viewer.css";
 import "./styles/timeline.css";
@@ -37,6 +38,7 @@ import { loadExtras, setNoindex, startFaceGuard } from "./lib/extras.ts";
 import { bindLinks, setRouteHandler, type Cleanup } from "./lib/router.ts";
 import { renderAlbum } from "./pages/album.ts";
 import { renderBackend } from "./pages/backend.ts";
+import { applyBadges } from "./lib/badges.ts";
 import { renderChat } from "./pages/chat.ts";
 import { renderLanding } from "./pages/landing.ts";
 import { renderMe } from "./pages/me.ts";
@@ -98,6 +100,10 @@ async function loadLiveData() {
       .people()
       .then(applyPeople)
       .catch(() => {}),
+    api
+      .badges()
+      .then((r) => applyBadges(r.badges))
+      .catch(() => {}), // no server: keep the built-in badge list
   ])
     .then(() =>
       Promise.all([

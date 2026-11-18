@@ -20,7 +20,7 @@ type Row = StudentRecord & {
   account: { claimed: boolean; code: string | null; lastLogin: string | null };
 };
 type Field = {
-  key: Exclude<keyof StudentRecord, "theme">;
+  key: Exclude<keyof StudentRecord, "theme" | "badges" | "specialTheme">;
   label: string;
   kind?: "area" | "group" | "set";
   width?: number;

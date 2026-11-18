@@ -27,6 +27,7 @@ import {
   type Teacher,
 } from "../data.ts";
 import { api } from "../lib/api.ts";
+import { createBadgeTools } from "./backend-badges.ts";
 import { icon } from "../lib/icons.ts";
 import { esc } from "../lib/router.ts";
 import {
@@ -217,6 +218,19 @@ export function createPeopleTools(o: Opts) {
     else closeModal();
   };
   window.addEventListener("keydown", onKey);
+  const badgeTools = createBadgeTools({
+    modal,
+    showModal,
+    enterSub: () => {
+      pm = null;
+      pick = null;
+      styleOn = true;
+    },
+    rows: o.rows,
+    label: who,
+    profileHref: o.profileHref,
+    setStatus,
+  });
   const keepScroll = (sel: string, fn: () => void) => {
     const tops = [...modal.querySelectorAll<HTMLElement>(sel)].map((el) => el.scrollTop);
     fn();
@@ -533,6 +547,8 @@ export function createPeopleTools(o: Opts) {
             <button class="ps-act" type="button" data-pick="${r.no}">${icon("grid", 16)}<span><b>ชุดรูปเดี่ยว</b><small>${r.portraitSet ? `ชุดที่ ${r.portraitSet}` : "ไม่มีรูป"} · สลับทั้งชุดกับคนอื่น</small></span></button>
             <button class="ps-act" type="button" data-nb-open="${r.no}">${icon("users", 16)}<span><b>เปลี่ยนเลขที่</b><small>ตอนนี้เลขที่ ${r.no} · ย้าย / สลับกับคนอื่น</small></span></button>
             <button class="ps-act" type="button" data-style="s${r.no}">${icon("palette", 16)}<span><b>ตกแต่งหน้าโปรไฟล์</b><small>${r.theme && Object.keys(r.theme).length ? "ตกแต่งแล้ว" : "สี พื้นหลัง ฟอนต์ อีโมจิ เพลงโปรด"}</small></span></button>
+            <button class="ps-act" type="button" data-bd-open="${r.no}">${icon("sparkle", 16)}<span><b>ป้ายและมงกุฎ</b><small>${badgeTools.summary(r).badges}</small></span></button>
+            <button class="ps-act" type="button" data-sp-open="${r.no}">${icon("brush", 16)}<span><b>ธีมพิเศษ</b><small>${badgeTools.summary(r).special}</small></span></button>
           </div>
           <div class="ps-acc">
             <span>${icon("lock", 15)} บัญชี</span>
@@ -1087,6 +1103,16 @@ export function createPeopleTools(o: Opts) {
     const pickBtn = t.closest<HTMLElement>("[data-pick]");
     if (pickBtn) {
       openPicker(Number(pickBtn.dataset.pick));
+      return true;
+    }
+    const bdOpen = t.closest<HTMLElement>("[data-bd-open]");
+    if (bdOpen) {
+      badgeTools.openBadges(Number(bdOpen.dataset.bdOpen));
+      return true;
+    }
+    const spOpen = t.closest<HTMLElement>("[data-sp-open]");
+    if (spOpen) {
+      badgeTools.openSpecial(Number(spOpen.dataset.spOpen));
       return true;
     }
     const styleBtn = t.closest<HTMLElement>("[data-style]");

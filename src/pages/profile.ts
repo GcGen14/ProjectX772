@@ -17,6 +17,7 @@ import { myNo } from "../lib/api.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { icon, logoMark } from "../lib/icons.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
+import { badgeRow, crownSvg, hasCrown } from "../lib/badges.ts";
 import { applyTheme, type ProfileTheme } from "../lib/theme.ts";
 import { songNavButton } from "../lib/song.ts";
 import { createViewer, type MediaItem } from "../lib/viewer.ts";
@@ -50,6 +51,8 @@ export type ProfileConfig = {
   nameBadge?: string;
   /** colours / background / font the student picked for their page */
   theme?: ProfileTheme;
+  /** badge ids given in /backend (หัวหน้าห้อง gets a crown on the picture) */
+  badges?: string[];
   handle: string;
   handleNote: string;
   bio: string;
@@ -230,9 +233,15 @@ function header(cfg: ProfileConfig, tab: string) {
   </div>
   <section class="pf-head">
     <div class="pf-info">
-      <img class="pf-avatar${cfg.avatarShape === "square" ? " is-square" : ""}" src="${cfg.avatar}" alt="">
+      ${(() => {
+        const img = `<img class="pf-avatar${cfg.avatarShape === "square" ? " is-square" : ""}" src="${cfg.avatar}" alt="">`;
+        return hasCrown(cfg.badges)
+          ? `<span class="pf-avatar-box">${img}${crownSvg()}</span>`
+          : img;
+      })()}
       <div class="pf-info-text">
         <h1>${esc(cfg.name)}${cfg.nameBadge ? ` <span class="pf-emoji" aria-hidden="true">${esc(cfg.nameBadge)}</span>` : ""}</h1>
+        ${badgeRow(cfg.badges, "pf-roles")}
         <div class="pf-handle">${esc(cfg.handle)} <span class="pf-dot">•</span> <span class="pf-followers">${cfg.handleNote}</span></div>
         <p class="pf-bio">${esc(cfg.bio)}</p>
         ${cfg.lines.map((l) => `<div class="pf-line">${icon(l.icon, 16)}<span>${l.html}</span></div>`).join("")}

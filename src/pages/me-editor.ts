@@ -16,6 +16,7 @@ import {
   type StudentRecord,
 } from "../data.ts";
 import { ApiError, api } from "../lib/api.ts";
+import { badgeRow, crownSvg, hasCrown } from "../lib/badges.ts";
 import { icon } from "../lib/icons.ts";
 import { esc } from "../lib/router.ts";
 import {
@@ -215,19 +216,28 @@ export function renderEditor(
           : `<input name="${key}" type="text" maxlength="${LIMITS[key]}" value="${esc(String(draft[key] ?? ""))}" placeholder="${esc(ph)}">`
       }
     </label>`;
-  const presetCard = (p: (typeof PRESETS)[number], i: number) => {
+  // a look the admin designed just for this student comes first
+  const presets: { name: string; theme: ProfileTheme; special?: boolean }[] = rec.specialTheme
+    ? [{ ...rec.specialTheme, special: true }, ...PRESETS]
+    : PRESETS;
+  const presetCard = (p: (typeof presets)[number], i: number) => {
     const a = themeAttrs(Object.keys(p.theme).length ? p.theme : { bg: "plain" });
-    return `<button type="button" class="me2-preset" data-preset="${i}" aria-pressed="false">
-      <span class="me2-preset-prev ${a.cls}" style="${a.style}"><i class="me2-pp-cover"></i><i class="me2-pp-av"></i><i class="me2-pp-line"></i><i class="me2-pp-line is-short"></i></span>
-      <span class="me2-preset-name">${p.name}</span></button>`;
+    return `<button type="button" class="me2-preset${p.special ? " is-special" : ""}" data-preset="${i}" aria-pressed="false">
+      <span class="me2-preset-prev ${a.cls}" style="${a.style}"><i class="me2-pp-cover"></i><i class="me2-pp-av"></i><i class="me2-pp-line"></i><i class="me2-pp-line is-short"></i>${p.special ? `<b class="me2-pp-special">✦ ทำให้คุณ</b>` : ""}</span>
+      <span class="me2-preset-name">${esc(p.name)}</span></button>`;
   };
 
   view.innerHTML = `
     <div class="me-layout me2">
       <aside class="me-card me-preview" aria-label="ตัวอย่างโปรไฟล์">
         <div class="me-preview-cover"><img alt="" data-prev-cover></div>
-        <img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>
+        ${
+          hasCrown(rec.badges)
+            ? `<span class="me-preview-face"><img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>${crownSvg()}</span>`
+            : `<img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>`
+        }
         <h2><span data-prev="nickname"></span> <span data-prev="emoji" aria-hidden="true"></span></h2>
+        ${badgeRow(rec.badges, "me-preview-badges")}
         <p class="me-preview-handle">@602.${String(no).padStart(2, "0")} · เลขที่ ${no}</p>
         <p class="me-preview-quote" data-prev="quote"></p>
         <p class="me-preview-line">${icon("sparkle", 14)}<span data-prev="dream"></span></p>
@@ -278,7 +288,7 @@ export function renderEditor(
           <section class="me-section me2-first">
             <h2>${icon("sparkle", 18)} ธีมสำเร็จรูป</h2>
             <p class="me-help small">แตะครั้งเดียวเปลี่ยนทั้งหน้า แล้วค่อยปรับต่อด้านล่างได้</p>
-            <div class="me2-presets">${PRESETS.map(presetCard).join("")}</div>
+            <div class="me2-presets">${presets.map(presetCard).join("")}</div>
           </section>
           <section class="me-section">
             <h2>${icon("brush", 18)} ปรับเอง</h2>
@@ -398,7 +408,7 @@ export function renderEditor(
       .forEach((b) =>
         b.setAttribute(
           "aria-pressed",
-          String(sameLook(PRESETS[Number(b.dataset.preset)].theme, draft.theme ?? {})),
+          String(sameLook(presets[Number(b.dataset.preset)].theme, draft.theme ?? {})),
         ),
       );
   };
@@ -542,7 +552,7 @@ export function renderEditor(
     const keep = Object.fromEntries(
       PERSONAL.map((k) => [k, draft.theme?.[k]]).filter(([, v]) => v),
     );
-    draft.theme = { ...PRESETS[Number(b.dataset.preset)].theme, ...keep };
+    draft.theme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
     mountThemeEditor();
     setDirty(true);
     refreshPreview();
