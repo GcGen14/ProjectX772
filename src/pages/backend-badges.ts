@@ -9,9 +9,13 @@ import {
   badgeChip,
   badgeRow,
   badgesOf,
-  crownSvg,
-  hasCrown,
+  decoOf,
+  decorateAvatar,
+  DECOS,
+  LOOKS,
   type Badge,
+  type Deco,
+  type Look,
 } from "../lib/badges.ts";
 import { icon } from "../lib/icons.ts";
 import { esc } from "../lib/router.ts";
@@ -51,7 +55,7 @@ export function createBadgeTools(h: Hooks) {
     const mine = new Set(r.badges ?? []);
     const preview = () => {
       $("[data-bd-prev]").innerHTML = `
-        <span class="bd-face">${hasCrown([...mine]) ? crownSvg("bd-crown") : ""}<img src="${studentAvatar(r)}" alt=""></span>
+        ${decorateAvatar(`<img src="${studentAvatar(r)}" alt="">`, [...mine], "bd-face")}
         <b>${esc(r.nickname || h.label(r))}</b>
         ${badgeRow([...mine]) || `<span class="muted">ยังไม่มีป้าย</span>`}`;
     };
@@ -62,7 +66,7 @@ export function createBadgeTools(h: Hooks) {
         <div class="bd-grid">${badgeCatalog()
           .map(
             (b) =>
-              `<button type="button" class="bd-pick" data-bd-id="${esc(b.id)}" aria-pressed="${mine.has(b.id)}">${badgeChip(b)}${b.crown ? `<small>${icon("sparkle", 12)} มงกุฎบนรูป</small>` : ""}</button>`,
+              `<button type="button" class="bd-pick" data-bd-id="${esc(b.id)}" aria-pressed="${mine.has(b.id)}">${badgeChip(b)}${decoOf(b) ? `<small>${icon("sparkle", 12)} ${esc(DECOS.find((d) => d.key === decoOf(b))?.name ?? "")}บนรูป</small>` : ""}</button>`,
           )
           .join("")}</div>
       </div>
@@ -103,7 +107,8 @@ export function createBadgeTools(h: Hooks) {
         <input class="bc-emoji" data-bc-k="emoji" maxlength="8" value="${esc(b.emoji)}" aria-label="อีโมจิ" placeholder="✨">
         <input class="bc-name" data-bc-k="name" maxlength="30" value="${esc(b.name)}" aria-label="ชื่อป้าย" placeholder="ชื่อป้าย">
         <input class="bc-color" type="color" data-bc-k="color" value="${esc(b.color)}" aria-label="สี">
-        <label class="bc-crown"><input type="checkbox" data-bc-k="crown"${b.crown ? " checked" : ""}> มงกุฎ</label>
+        <select class="bc-deco" data-bc-k="deco" aria-label="ของตกแต่งบนรูปโปรไฟล์"><option value="">ไม่มีของบนรูป</option>${DECOS.map((d) => `<option value="${d.key}"${decoOf(b) === d.key ? " selected" : ""}>${esc(d.name)}</option>`).join("")}</select>
+        <select class="bc-look" data-bc-k="look" aria-label="สไตล์ป้าย">${LOOKS.map((l) => `<option value="${l.key}"${(b.look ?? "chip") === l.key ? " selected" : ""}>${esc(l.name)}</option>`).join("")}</select>
         <span class="bc-prev">${badgeChip(b)}</span>
         <button class="adm-x" type="button" data-bc-del="${i}" aria-label="ลบป้ายนี้">${icon("close", 16)}</button>
       </div>`;
@@ -130,8 +135,11 @@ export function createBadgeTools(h: Hooks) {
       const i = Number(el.closest<HTMLElement>("[data-bc]")?.dataset.bc);
       const k = el.dataset.bcK as keyof Badge | undefined;
       if (!k || !list[i]) return;
-      if (k === "crown") list[i].crown = el.checked || undefined;
-      else list[i][k] = el.value;
+      if (k === "deco") {
+        list[i].deco = (el.value || undefined) as Deco | undefined;
+        delete list[i].crown; // replaced by the decoration choice
+      } else if (k === "look") list[i].look = el.value === "chip" ? undefined : (el.value as Look);
+      else (list[i] as Record<string, unknown>)[k] = el.value;
       el.closest("[data-bc]")!.querySelector(".bc-prev")!.innerHTML = badgeChip(list[i]);
       msg.textContent = "ยังไม่ได้บันทึก";
     });

@@ -46,18 +46,29 @@ export type Badge = {
   name: string;
   emoji: string;
   color: string;
-  /** also puts a crown on the holder's profile picture */
+  /** also puts a crown on the holder's profile picture (older field; see deco) */
   crown?: boolean;
+  /** decoration on the holder's profile picture (src/lib/badges.ts DECOS) */
+  deco?: string;
+  /** chip style (src/lib/badges.ts LOOKS) */
+  look?: string;
 };
+const BADGE_DECOS = ["crown", "crown-silver", "tiara", "halo", "laurel", "code", "stars", "flame"];
+const BADGE_LOOKS = ["shine", "holo", "solid"];
 export const DEFAULT_BADGES: Badge[] = [
-  { id: "leader", name: "หัวหน้าห้อง", emoji: "👑", color: "#ca8a04", crown: true },
-  { id: "vice", name: "รองหัวหน้าห้อง", emoji: "🎖️", color: "#ea580c" },
-  { id: "dev", name: "Web Developer", emoji: "💻", color: "#0569ff" },
-  { id: "beta", name: "Beta Tester", emoji: "🧪", color: "#7c3aed" },
+  { id: "leader", name: "หัวหน้าห้อง", emoji: "👑", color: "#ca8a04", deco: "crown", look: "shine" },
+  { id: "vice", name: "รองหัวหน้าห้อง", emoji: "🎖️", color: "#ea580c", deco: "crown-silver" },
+  { id: "dev", name: "Web Developer", emoji: "💻", color: "#0569ff", deco: "code", look: "holo" },
+  { id: "beta", name: "Beta Tester", emoji: "🧪", color: "#7c3aed", look: "shine" },
   { id: "designer", name: "ดีไซเนอร์", emoji: "🎨", color: "#db2777" },
   { id: "photo", name: "ช่างภาพ", emoji: "📸", color: "#0d9488" },
   { id: "treasurer", name: "เหรัญญิก", emoji: "💰", color: "#16a34a" },
   { id: "secretary", name: "เลขานุการ", emoji: "📝", color: "#475569" },
+  { id: "mvp", name: "MVP ของห้อง", emoji: "⭐", color: "#f59e0b", deco: "stars", look: "holo" },
+  { id: "party", name: "สายปาร์ตี้", emoji: "🔥", color: "#ef4444", deco: "flame", look: "solid" },
+  { id: "angel", name: "นางฟ้าประจำห้อง", emoji: "😇", color: "#0ea5e9", deco: "halo" },
+  { id: "princess", name: "เจ้าหญิง", emoji: "👸", color: "#ec4899", deco: "tiara" },
+  { id: "scholar", name: "เด็กเรียน", emoji: "📚", color: "#65a30d", deco: "laurel" },
 ];
 
 /**
@@ -357,7 +368,12 @@ function cleanBadges(v: unknown): Badge[] {
       name,
       emoji: graphemes(clean(o.emoji, 40), 1),
       color: color.toLowerCase(),
-      ...(o.crown === true ? { crown: true } : {}),
+      ...(typeof o.deco === "string" && BADGE_DECOS.includes(o.deco)
+        ? { deco: o.deco }
+        : o.crown === true
+          ? { crown: true }
+          : {}),
+      ...(typeof o.look === "string" && BADGE_LOOKS.includes(o.look) ? { look: o.look } : {}),
     });
   }
   return out;

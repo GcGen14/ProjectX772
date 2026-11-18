@@ -17,7 +17,7 @@ import { myNo } from "../lib/api.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { icon, logoMark } from "../lib/icons.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
-import { badgeRow, crownSvg, hasCrown } from "../lib/badges.ts";
+import { badgeRow, decorateAvatar } from "../lib/badges.ts";
 import { applyTheme, type ProfileTheme } from "../lib/theme.ts";
 import { songNavButton } from "../lib/song.ts";
 import { createViewer, type MediaItem } from "../lib/viewer.ts";
@@ -235,9 +235,7 @@ function header(cfg: ProfileConfig, tab: string) {
     <div class="pf-info">
       ${(() => {
         const img = `<img class="pf-avatar${cfg.avatarShape === "square" ? " is-square" : ""}" src="${cfg.avatar}" alt="">`;
-        return hasCrown(cfg.badges)
-          ? `<span class="pf-avatar-box">${img}${crownSvg()}</span>`
-          : img;
+        return decorateAvatar(img, cfg.badges, "pf-avatar-box");
       })()}
       <div class="pf-info-text">
         <h1>${esc(cfg.name)}${cfg.nameBadge ? ` <span class="pf-emoji" aria-hidden="true">${esc(cfg.nameBadge)}</span>` : ""}</h1>

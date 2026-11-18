@@ -20,6 +20,7 @@ import "./styles/me-editor.css";
 import "./styles/album-viewer.css";
 import "./styles/timeline.css";
 import "./styles/album-page.css";
+import "./styles/badge-decos.css";
 import "./styles/responsive.css";
 import {
   applyAlbums,

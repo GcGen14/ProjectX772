@@ -16,7 +16,7 @@ import {
   type StudentRecord,
 } from "../data.ts";
 import { ApiError, api } from "../lib/api.ts";
-import { badgeRow, crownSvg, hasCrown } from "../lib/badges.ts";
+import { badgeRow, decorateAvatar } from "../lib/badges.ts";
 import { icon } from "../lib/icons.ts";
 import { esc } from "../lib/router.ts";
 import {
@@ -231,11 +231,7 @@ export function renderEditor(
     <div class="me-layout me2">
       <aside class="me-card me-preview" aria-label="ตัวอย่างโปรไฟล์">
         <div class="me-preview-cover"><img alt="" data-prev-cover></div>
-        ${
-          hasCrown(rec.badges)
-            ? `<span class="me-preview-face"><img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>${crownSvg()}</span>`
-            : `<img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>`
-        }
+        ${decorateAvatar(`<img class="me-preview-avatar" src="${studentAvatar(s)}" alt="" data-prev-avatar>`, rec.badges, "me-preview-face")}
         <h2><span data-prev="nickname"></span> <span data-prev="emoji" aria-hidden="true"></span></h2>
         ${badgeRow(rec.badges, "me-preview-badges")}
         <p class="me-preview-handle">@602.${String(no).padStart(2, "0")} · เลขที่ ${no}</p>
