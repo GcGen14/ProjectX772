@@ -1,0 +1,286 @@
+/* Badge chips (4 looks) + profile-picture decorations (src/lib/badges.ts decoSvg).
+   Decorations are sized in % of the picture box, so they fit every avatar size on the site. */
+
+/* ---------- chips ---------- */
+.bdg {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 11px 0 3px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--bdg) 38%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bdg) 11%, #fff);
+  color: color-mix(in srgb, var(--bdg) 72%, #000);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.bdg i {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--bdg) 25%, transparent);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.bdg > span {
+  position: relative;
+  z-index: 1;
+}
+
+/* shine: a light sweep every few seconds */
+.bdg-look-shine::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgba(255, 255, 255, 0.75) 50%,
+      transparent 65%
+    )
+    -150% 0 / 60% 100% no-repeat;
+  content: "";
+  animation: bdg-shine 3.2s ease-in-out infinite;
+}
+
+@keyframes bdg-shine {
+  60%,
+  100% {
+    background-position: 250% 0;
+  }
+}
+
+/* holo: rainbow foil border + soft shifting tint */
+.bdg-look-holo {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--bdg) 10%, #fff),
+        color-mix(in srgb, var(--bdg) 10%, #fff)
+      )
+      padding-box,
+    conic-gradient(from var(--bdg-a, 0deg), #82bcff, #c084fc, #f472b6, #fde047, #4ade80, #82bcff)
+      border-box;
+  animation: bdg-holo 4s linear infinite;
+}
+
+@property --bdg-a {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes bdg-holo {
+  to {
+    --bdg-a: 360deg;
+  }
+}
+
+/* solid: filled with the badge colour */
+.bdg-look-solid {
+  border-color: transparent;
+  background: var(--bdg);
+  color: #fff;
+}
+
+.bdg-look-solid i {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* dark profile themes */
+.th-dark .bdg:not(.bdg-look-solid) {
+  background: color-mix(in srgb, var(--bdg) 20%, var(--pf-base, #111318));
+  color: color-mix(in srgb, var(--bdg) 42%, #fff);
+}
+
+.th-dark .bdg-look-holo {
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--bdg) 20%, var(--pf-base, #111318)),
+        color-mix(in srgb, var(--bdg) 20%, var(--pf-base, #111318))
+      )
+      padding-box,
+    conic-gradient(from var(--bdg-a, 0deg), #82bcff, #c084fc, #f472b6, #fde047, #4ade80, #82bcff)
+      border-box;
+}
+
+/* ---------- picture box ---------- */
+.bdg-face {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.bdg-deco {
+  position: absolute;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* top pieces */
+.bdg-deco-crown,
+.bdg-deco-crown-silver {
+  top: -26%;
+  left: -14%;
+  width: 52%;
+  transform: rotate(-22deg);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+}
+
+.bdg-deco-tiara {
+  top: -16%;
+  left: 18%;
+  width: 64%;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.bdg-deco-halo {
+  top: -22%;
+  left: 14%;
+  width: 72%;
+  filter: drop-shadow(0 0 4px rgba(253, 224, 71, 0.9));
+  animation: bdg-float 2.6s ease-in-out infinite;
+}
+
+@keyframes bdg-float {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* ring pieces */
+.bdg-deco-laurel {
+  inset: -12%;
+  width: 124%;
+  height: 124%;
+}
+
+.bdg-deco-code {
+  inset: -13%;
+  width: 126%;
+  height: 126%;
+}
+
+.bdg-code-ring {
+  width: 100%;
+  height: 100%;
+  animation: bdg-spin 18s linear infinite;
+}
+
+.bdg-code-ring text {
+  fill: #0891b2;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 7.4px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.th-dark .bdg-code-ring text {
+  fill: #67e8f9;
+}
+
+.bdg-code-tag {
+  position: absolute;
+  right: 2%;
+  bottom: 4%;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: #0f172a;
+  box-shadow: 0 0 0 2px #fff;
+  color: #22d3ee;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+@keyframes bdg-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bdg-deco-stars {
+  inset: -14%;
+}
+
+.bdg-star {
+  position: absolute;
+  width: 26%;
+  filter: drop-shadow(0 0 3px rgba(250, 204, 21, 0.8));
+  animation: bdg-twinkle 1.8s ease-in-out infinite;
+}
+
+.bdg-star.s0 {
+  top: 0;
+  right: 4%;
+}
+
+.bdg-star.s1 {
+  top: 44%;
+  left: -4%;
+  width: 18%;
+  animation-delay: -0.6s;
+}
+
+.bdg-star.s2 {
+  right: -2%;
+  bottom: 10%;
+  width: 16%;
+  animation-delay: -1.2s;
+}
+
+@keyframes bdg-twinkle {
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7) rotate(25deg);
+  }
+}
+
+.bdg-deco-flame {
+  bottom: -14%;
+  left: -6%;
+  width: 112%;
+  z-index: 0;
+}
+
+.bdg-face.has-deco > img {
+  position: relative;
+  z-index: 1;
+}
+
+.bdg-flames {
+  transform-origin: 50% 100%;
+  animation: bdg-flicker 0.7s ease-in-out infinite alternate;
+}
+
+@keyframes bdg-flicker {
+  to {
+    transform: scaleY(0.82) skewX(3deg);
+  }
+}
+
+/* the old crown class is no longer drawn by the site; keep backend thumbnails tidy */
+.bd-face .bdg-deco-code .bdg-code-tag {
+  font-size: 8px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bdg-look-shine::after,
+  .bdg-look-holo,
+  .bdg-code-ring,
+  .bdg-star,
+  .bdg-flames,
+  .bdg-deco-halo {
+    animation: none;
+  }
+}

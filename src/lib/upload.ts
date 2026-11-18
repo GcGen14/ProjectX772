@@ -21,16 +21,49 @@ async function send<T>(method: string, url: string, body?: unknown): Promise<T> 
 
 /** Decode + shrink to max 1600px. */
 export async function loadImage(file: File) {
-  if (!file.type.startsWith("image/")) throw new Error("เลือกไฟล์รูปภาพนะ");
+  // some phone galleries hand over files without a type; trust the extension then
+  const looksImage =
+    file.type.startsWith("image/") || /\.(jpe?g|png|webp|gif|heic|heif|avif|bmp)$/i.test(file.name);
+  if (!looksImage) throw new Error("เลือกไฟล์รูปภาพนะ");
   if (file.size > 25_000_000) throw new Error("ไฟล์ใหญ่เกิน 25MB");
-  const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+  const src = await decode(file);
+  const scale = Math.min(1, 1600 / Math.max(src.width, src.height));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bmp.width * scale);
-  canvas.height = Math.round(bmp.height * scale);
-  canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-  bmp.close();
+  canvas.width = Math.max(1, Math.round(src.width * scale));
+  canvas.height = Math.max(1, Math.round(src.height * scale));
+  canvas.getContext("2d")!.drawImage(src.image, 0, 0, canvas.width, canvas.height);
+  src.done();
   return canvas;
+}
+
+/**
+ * Decode a photo with its camera rotation applied. createImageBitmap(file, options) is missing or
+ * throws on older iPhone Safari, so fall back to an <img> (browsers rotate those by EXIF already).
+ */
+async function decode(
+  file: File,
+): Promise<{ image: CanvasImageSource; width: number; height: number; done: () => void }> {
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    return { image: bmp, width: bmp.width, height: bmp.height, done: () => bmp.close() };
+  } catch {
+    const url = URL.createObjectURL(file);
+    try {
+      const img = new Image();
+      img.decoding = "async";
+      img.src = url;
+      await img.decode();
+      return {
+        image: img,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        done: () => URL.revokeObjectURL(url),
+      };
+    } catch {
+      URL.revokeObjectURL(url);
+      throw new Error("เปิดรูปนี้ไม่ได้ ลองเลือกรูปแบบ JPG หรือ PNG ดูนะ");
+    }
+  }
 }
 
 /** Square crop → 240px JPEG. Without a box, guess where a face usually is (upper middle). */

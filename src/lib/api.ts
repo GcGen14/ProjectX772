@@ -31,6 +31,8 @@ export type AdminAlbum = Omit<AlbumData, "photos" | "videos"> & {
 type People = {
   sets: { set: number; portraits: { id: string; w: number; h: number }[]; photos: string[] }[];
   tags?: Record<string, number[][]>;
+  students?: { no: number; photos: string[] }[];
+  studentTags?: Record<string, number[][]>;
 };
 
 export type PhotoData = { info: Record<string, PhotoInfo>; tags: TagFix[] };

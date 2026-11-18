@@ -609,3 +609,26 @@ html:not([data-song-audible]) .song-nav-eq i,
   height: 35%;
   animation-play-state: paused;
 }
+
+/* phones that ignored our play request: show where to tap (the overlay lets taps through) */
+.song-mini.needs-tap .song-card-video .song-video::after {
+  position: absolute;
+  inset: auto 10px 10px;
+  z-index: 2;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(19, 25, 34, 0.82);
+  color: #fff;
+  content: "แตะที่วิดีโอเพื่อเริ่มเล่นเพลง ▶";
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  pointer-events: none;
+  animation: song-tap-hint 1.4s ease-in-out infinite;
+}
+
+@keyframes song-tap-hint {
+  50% {
+    transform: translateY(-3px);
+  }
+}
