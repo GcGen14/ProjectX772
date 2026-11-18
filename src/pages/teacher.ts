@@ -116,12 +116,6 @@ export function renderTeacher(root: HTMLElement, id: number): Cleanup {
       avatars: students.slice(0, 3).map((s) => studentAvatar(s)),
       more: students.length - 3,
     },
-    stats: [
-      { value: String(students.length), label: "นักเรียน" },
-      { value: String(photos.length), label: "รูป" },
-      { value: String(albums.length), label: "อัลบั้ม" },
-    ],
-    follow: ["ขอบคุณครับ/ค่ะ", "ขอบคุณแล้ว"],
     covers,
     tags: [
       { label: CLASS.name, icon: "home" },

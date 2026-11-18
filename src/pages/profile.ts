@@ -59,8 +59,6 @@ export type ProfileConfig = {
   bio: string;
   lines: { icon: string; html: string }[];
   stack: { avatars: string[]; more: number };
-  stats: { value: string; label: string }[];
-  follow: [string, string];
   covers: string[];
   tags: { label: string; icon: string }[];
   moreTags?: string[];
@@ -248,8 +246,6 @@ function header(cfg: ProfileConfig, tab: string) {
           ${cfg.stack.avatars.map((a) => `<img class="pf-friend" src="${a}" alt="">`).join("")}
           <span class="pf-client more">+${cfg.stack.more}</span>
         </button>
-        <div class="pf-stats">${cfg.stats.map((s) => `<div><b>${s.value}</b><span>${esc(s.label)}</span></div>`).join("")}</div>
-        <button class="pf-follow" type="button" data-follow aria-pressed="false">${icon("heart", 18)}<span>${esc(cfg.follow[0])}</span></button>
       </div>
     </div>
     <div class="pf-cover-col">
@@ -433,19 +429,10 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
       }, 1800);
     }
 
-    let liked = false;
     function onClick(e: MouseEvent) {
       const t = e.target as Element;
       const tabBtn = t.closest<HTMLElement>("[data-tab]");
       if (tabBtn) return setTab(tabBtn.dataset.tab!);
-      const follow = t.closest<HTMLElement>("[data-follow]");
-      if (follow) {
-        liked = !liked;
-        follow.classList.toggle("is-following", liked);
-        follow.setAttribute("aria-pressed", String(liked));
-        follow.innerHTML = `${icon(liked ? "check" : "heart", 18)}<span>${esc(c.follow[liked ? 1 : 0])}</span>`;
-        return;
-      }
       if (t.closest(".vw")) return; // the viewer handles its own clicks
       if (t.closest("[data-clients]")) return openModal();
       if (t.closest("[data-m-close]")) return closeModal();
