@@ -10,8 +10,8 @@ export type Badge = {
   color: string;
   /** (old) also puts a crown on the holder's profile picture; now `deco: "crown"` */
   crown?: boolean;
-  /** decoration on the holder's profile picture */
-  deco?: Deco;
+  /** decoration on the holder's profile picture ("none" = deliberately none) */
+  deco?: Deco | "none";
   /** chip style */
   look?: Look;
 };
@@ -78,7 +78,8 @@ export const LOOKS: { key: Look; name: string }[] = [
   { key: "solid", name: "สีเต็ม" },
 ];
 /** older badges only had `crown: true` */
-export const decoOf = (b: Badge): Deco | undefined => b.deco ?? (b.crown ? "crown" : undefined);
+export const decoOf = (b: Badge): Deco | undefined =>
+  b.deco === "none" ? undefined : (b.deco ?? (b.crown ? "crown" : undefined));
 
 export function avatarDecos(ids: string[] | undefined): Deco[] {
   const own = badgesOf(ids)

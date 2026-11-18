@@ -360,18 +360,18 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
 
   /* ---------- justified rows ---------- */
   const groupsHost = $("[data-groups]")!;
+  const peopleNames = (nos: number[]) => {
+    const names = nos
+      .map((n) => students.find((s) => s.no === n)?.nickname)
+      .filter(Boolean) as string[];
+    return names.length > 6
+      ? `${names.slice(0, 6).join(", ")} +${names.length - 6}`
+      : names.join(", ");
+  };
   const tileHtml = (p: Photo, i: number, w: number, h: number) => {
     const nos = tagsOf.get(p.id) ?? [];
-    const cap = photoInfo(p.id)?.caption;
-    const day = dayKey(p);
-    return `<button class="al-tile" type="button" data-view="${i}" style="width:${w.toFixed(1)}px;height:${h.toFixed(1)}px" aria-label="เปิดรูป ${i + 1}${nos.length ? ` · ${nos.length} คน` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async"><span class="al-tile-info">${cap ? `<span class="al-tile-cap">${esc(cap)}</span>` : day && state.view !== "day" ? `<span>${shortDay(day)}</span>` : "<span></span>"}${
-      nos.length
-        ? `<span class="pf-tile-people">${nos
-            .slice(0, 3)
-            .map((n) => `<img src="${studentAvatar(students.find((s) => s.no === n)!)}" alt="">`)
-            .join("")}${nos.length > 3 ? `<b>+${nos.length - 3}</b>` : ""}</span>`
-        : ""
-    }</span></button>`;
+    const cap = photoInfo(p.id)?.caption || (dayKey(p) ? longDay(dayKey(p)) : "");
+    return `<button class="al-tile" type="button" data-view="${i}" data-hp="photo" data-hp-src="${large(p)}" data-hp-ratio="${p.w}/${p.h}" data-hp-cap="${esc(cap)}" data-hp-people="${esc(peopleNames(nos))}" style="width:${w.toFixed(1)}px;height:${h.toFixed(1)}px" aria-label="เปิดรูป ${i + 1}${nos.length ? ` · ${nos.length} คน` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async"></button>`;
   };
   function rowsHtml(photos: Photo[], offset: number, width: number) {
     const target = SIZES[state.size] * (innerWidth < 640 ? 0.62 : 1);

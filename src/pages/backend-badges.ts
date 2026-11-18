@@ -136,9 +136,9 @@ export function createBadgeTools(h: Hooks) {
       const k = el.dataset.bcK as keyof Badge | undefined;
       if (!k || !list[i]) return;
       if (k === "deco") {
-        list[i].deco = (el.value || undefined) as Deco | undefined;
+        list[i].deco = (el.value || "none") as Deco | "none"; // stored explicitly
         delete list[i].crown; // replaced by the decoration choice
-      } else if (k === "look") list[i].look = el.value === "chip" ? undefined : (el.value as Look);
+      } else if (k === "look") list[i].look = el.value as Look; // "chip" too, so it is kept
       else (list[i] as Record<string, unknown>)[k] = el.value;
       el.closest("[data-bc]")!.querySelector(".bc-prev")!.innerHTML = badgeChip(list[i]);
       msg.textContent = "ยังไม่ได้บันทึก";

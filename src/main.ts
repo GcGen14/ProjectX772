@@ -22,6 +22,7 @@ import "./styles/timeline.css";
 import "./styles/album-page.css";
 import "./styles/badge-decos.css";
 import "./styles/signature.css";
+import "./styles/hover-preview.css";
 import "./styles/responsive.css";
 import {
   applyAlbums,
@@ -41,6 +42,7 @@ import { bindLinks, setRouteHandler, type Cleanup } from "./lib/router.ts";
 import { renderAlbum } from "./pages/album.ts";
 import { renderBackend } from "./pages/backend.ts";
 import { applyBadges } from "./lib/badges.ts";
+import { initHoverPreview } from "./lib/hover-preview.ts";
 import { renderChat } from "./pages/chat.ts";
 import { renderLanding } from "./pages/landing.ts";
 import { renderMe } from "./pages/me.ts";
@@ -142,6 +144,7 @@ setRouteHandler(route);
 bindLinks();
 mountSongMini(); // เพลงห้อง: floating player that keeps playing across pages
 startFaceGuard(); // swaps faces for characters for students who chose to hide theirs
+initHoverPreview(); // bigger photo / playing clip when the mouse rests on a tile
 void loadLiveData().then(() => {
   route();
   // fade out the boot screen from index.html; the landing splash picks up from the same spot
