@@ -74,12 +74,18 @@ export function ensureAlbumTables() {
       PRIMARY KEY (album, id)
     );
   `);
-  const n = (d.prepare("SELECT COUNT(*) AS c FROM albums").get() as { c: number }).c;
-  if (n === 0) seedBuiltin();
+  seedBuiltin();
 }
 
+/**
+ * Copies the built-in albums into the database: all of them on first run, later only ones newly
+ * added to albums.json (built-in albums can't be deleted, so a missing slug is always a new one).
+ */
 function seedBuiltin() {
   const d = getDb();
+  const have = new Set(
+    (d.prepare("SELECT slug FROM albums").all() as { slug: string }[]).map((r) => r.slug),
+  );
   const meta = JSON.parse(
     fs.readFileSync(path.join(ROOT, "src", "data", "albums.json"), "utf8"),
   ) as {
@@ -94,14 +100,17 @@ function seedBuiltin() {
     albums: Record<string, { photos: Raw[]; videos: Raw[] }>;
   };
   const insA = d.prepare(
-    `INSERT INTO albums (slug, title, en, tagline, about, tags, folders, show_groups, builtin, sort, synced_at, created_at)
+    `INSERT OR IGNORE INTO albums (slug, title, en, tagline, about, tags, folders, show_groups, builtin, sort, synced_at, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)`,
   );
   const insM = d.prepare(
     `INSERT OR IGNORE INTO album_media (album, id, name, kind, w, h, grp, has_thumb, large, base, sort)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'photos', ?)`,
   );
+  const added = meta.albums.filter((a) => !have.has(a.slug));
+  if (!added.length) return;
   meta.albums.forEach((a, i) => {
+    if (have.has(a.slug)) return;
     insA.run(
       a.slug,
       a.title,
@@ -144,7 +153,7 @@ function seedBuiltin() {
         k++,
       );
   });
-  console.log(`[albums] imported ${meta.albums.length} built-in albums`);
+  console.log(`[albums] imported built-in albums: ${added.map((a) => a.slug).join(", ")}`);
 }
 
 const toAlbum = (r: Raw): AlbumRow => ({
@@ -513,6 +522,8 @@ export function startFaces(): Job {
     });
   void (async () => {
     try {
+      job.message = "กำลังโหลดรูปนักเรียนจากเว็บโรงเรียน…";
+      await run(["refs"]); // downloads only new / changed school photos, then embeds them
       await run(["class"]);
       job.message = "กำลังจับคู่ใบหน้ากับเพื่อนในห้อง…";
       await run(["match"]);

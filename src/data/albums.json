@@ -70,6 +70,20 @@
       ],
       "folders": ["1-ZAB-6IgqGE6R9UeJ0wjrCublq-TSBCZ"],
       "showGroups": false
+    },
+    {
+      "slug": "bucket",
+      "title": "รูปจากเพื่อน ๆ",
+      "en": "Photo Bucket",
+      "tagline": "รูปที่ทุกคนส่งเข้ามาในอัลบั้ม LINE ทั้งรูปตัวเอง และรูปกับผองเพื่อน",
+      "about": "รวมรูปที่เพื่อน ๆ 602 ส่งมาให้ในอัลบั้ม LINE \"ส่งรูปตัวเองมา และ ผองเพื่อนมา\" เกือบพันรูป ทั้งรูปเดี่ยว รูปกลุ่ม และรูปที่ไม่มีใครยอมรับว่าเป็นคนถ่าย",
+      "tags": [
+        { "label": "จากเพื่อน ๆ", "icon": "heart" },
+        { "label": "LINE album", "icon": "camera" },
+        { "label": "602", "icon": "home" }
+      ],
+      "folders": [],
+      "showGroups": false
     }
   ]
 }

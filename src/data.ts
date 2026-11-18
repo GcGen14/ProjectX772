@@ -50,11 +50,15 @@ export const large = (p: Photo) =>
   p.local ?? (p.large ? `/${MEDIA_BASE.get(p.id) ?? "photos"}/large/${p.id}.jpg` : thumb(p.id));
 /** Grid image for any photo (class photo thumb or local portrait). */
 export const photoSrc = (p: Photo) => p.local ?? thumb(p.id);
-/** Full-resolution image streamed from Google Drive. */
-export const driveFull = (id: string) => `https://lh3.googleusercontent.com/d/${id}=w2000`;
+/** Photos added from this computer (scripts/import_local_album.py) are not on Google Drive. */
+const isLocal = (id: string) => id.startsWith("lb-");
+/** Full-resolution image streamed from Google Drive (local photos: their 1280px copy). */
+export const driveFull = (id: string) =>
+  isLocal(id) ? `/photos/large/${id}.jpg` : `https://lh3.googleusercontent.com/d/${id}=w2000`;
 /** Embeddable Google Drive video player. */
 export const driveVideo = (id: string) => `https://drive.google.com/file/d/${id}/preview`;
-export const driveFile = (id: string) => `https://drive.google.com/file/d/${id}/view`;
+export const driveFile = (id: string) =>
+  isLocal(id) ? `/photos/large/${id}.jpg` : `https://drive.google.com/file/d/${id}/view`;
 export const driveFolder = (id: string) => `https://drive.google.com/drive/folders/${id}`;
 
 /* ------------------------------ albums ------------------------------ */
@@ -225,6 +229,13 @@ const PHOTO_META = photoMetaDb as unknown as Record<string, ExifMeta>;
 /** automatic tags from face matching: { photoId: [[set, x, y, w, h], ...] } */
 let AUTO_TAGS = ((peopleDb as unknown as { tags?: Record<string, number[][]> }).tags ??
   {}) as Record<string, number[][]>;
+/** students without a portrait set, matched by their school photo: same shape, keyed by เลขที่ */
+type PeopleSolo = { no: number; photos: string[] };
+let SOLO_TAGS = ((peopleDb as unknown as { studentTags?: Record<string, number[][]> })
+  .studentTags ?? {}) as Record<string, number[][]>;
+let SOLO = new Map(
+  ((peopleDb as unknown as { students?: PeopleSolo[] }).students ?? []).map((s) => [s.no, s]),
+);
 let PHOTO_INFO: Record<string, PhotoInfo> = {};
 let TAG_FIXES: TagFix[] = [];
 
@@ -358,7 +369,7 @@ function buildStudent(r: StudentRecord): Student {
 
 /** Face-matched photos, minus the ones the student untagged, plus the ones they tagged by hand. */
 function memoryIds(no: number, set: PeopleSet | undefined): string[] {
-  const auto = set?.photos ?? [];
+  const auto = set?.photos ?? SOLO.get(no)?.photos ?? [];
   const removed = new Set(
     TAG_FIXES.filter((t) => t.no === no && t.action === "remove").map((t) => t.photo),
   );
@@ -457,6 +468,11 @@ export function photoTags(photoId: string): PhotoTag[] {
     if (!s || removed.has(s.no)) continue;
     out.push({ student: s, box: t.length === 5 ? [t[1], t[2], t[3], t[4]] : null, manual: false });
   }
+  for (const t of SOLO_TAGS[photoId] ?? []) {
+    const s = students.find((x) => x.no === t[0]);
+    if (!s || removed.has(s.no) || out.some((o) => o.student.no === s.no)) continue;
+    out.push({ student: s, box: t.length === 5 ? [t[1], t[2], t[3], t[4]] : null, manual: false });
+  }
   for (const f of fixes) {
     if (f.action !== "add" || out.some((o) => o.student.no === f.no)) continue;
     const s = students.find((x) => x.no === f.no);
@@ -473,9 +489,16 @@ export function applyPhotoData(d: { info: Record<string, PhotoInfo>; tags: TagFi
 }
 
 /** Refresh portraits + face tags from the server (people.json changes when faces.py runs again). */
-export function applyPeople(p: { sets: PeopleSet[]; tags?: Record<string, number[][]> }) {
+export function applyPeople(p: {
+  sets: PeopleSet[];
+  tags?: Record<string, number[][]>;
+  students?: PeopleSolo[];
+  studentTags?: Record<string, number[][]>;
+}) {
   SETS = new Map(p.sets.map((x) => [x.set, x]));
   AUTO_TAGS = p.tags ?? {};
+  SOLO = new Map((p.students ?? []).map((x) => [x.no, x]));
+  SOLO_TAGS = p.studentTags ?? {};
   applyStudentRecords(students.map((s) => s.raw));
 }
 
