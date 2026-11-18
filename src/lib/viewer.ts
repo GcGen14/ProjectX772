@@ -230,14 +230,40 @@ export function createViewer(host: HTMLElement, later: (fn: () => void, ms: numb
     },
     { passive: false },
   );
-  // drag to pan when zoomed, swipe left/right to change photo when not
+  // drag to pan when zoomed, swipe left/right to change photo when not,
+  // and on touch screens: pinch with two fingers, double-tap to zoom in / out
   let down: { x: number; y: number; px: number; py: number; id: number } | null = null;
+  const touches = new Map<number, { x: number; y: number }>();
+  let pinch: { dist: number; zoom: number } | null = null;
+  let lastTap = { t: 0, x: 0, y: 0 };
+  const spread = () => {
+    const [a, b] = [...touches.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y) || 1;
+  };
+  const middle = () => {
+    const [a, b] = [...touches.values()];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+  };
   stage.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "touch") {
+      touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (touches.size === 2 && stage.querySelector(".vw-photo")) {
+        pinch = { dist: spread(), zoom };
+        down = null; // a pinch is not a swipe
+        dragged = true;
+        return;
+      }
+    }
     if (e.button !== 0) return;
     down = { x: e.clientX, y: e.clientY, px: panX, py: panY, id: e.pointerId };
     dragged = false;
   });
   stage.addEventListener("pointermove", (e) => {
+    if (touches.has(e.pointerId)) touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && touches.size === 2) {
+      setZoom(pinch.zoom * (spread() / pinch.dist), middle());
+      return;
+    }
     if (!down || e.pointerId !== down.id) return;
     const dx = e.clientX - down.x;
     const dy = e.clientY - down.y;
@@ -248,13 +274,34 @@ export function createViewer(host: HTMLElement, later: (fn: () => void, ms: numb
       applyZoom();
     }
   });
+  const lift = (e: PointerEvent) => {
+    touches.delete(e.pointerId);
+    if (pinch && touches.size < 2) {
+      pinch = null;
+      if (zoom < 1.05) setZoom(1);
+    }
+  };
+  stage.addEventListener("pointercancel", (e) => {
+    lift(e);
+    down = null;
+  });
   stage.addEventListener("pointerup", (e) => {
-    if (!down) return;
+    const wasPinch = !!pinch;
+    lift(e);
+    if (wasPinch || !down) return;
     const dx = e.clientX - down.x;
     const dy = e.clientY - down.y;
     if (zoom === 1 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
       stopSlides();
       show(vi + (dx < 0 ? 1 : -1));
+    } else if (e.pointerType === "touch" && !dragged && stage.querySelector(".vw-photo")) {
+      // double tap (touch screens don't fire dblclick reliably, iOS not at all)
+      const now = performance.now();
+      if (now - lastTap.t < 320 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40) {
+        setZoom(zoom > 1 ? 1 : 2.5, { x: e.clientX, y: e.clientY });
+        lastTap.t = 0;
+        dragged = true; // swallow the click so the viewer doesn't close
+      } else lastTap = { t: now, x: e.clientX, y: e.clientY };
     }
     down = null;
   });
