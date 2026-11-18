@@ -269,3 +269,105 @@ body {
     scroll-snap-align: start;
   }
 }
+
+/* ---------- small phones (≤ 400px): profile stats + bottom tab bar ---------- */
+@media (max-width: 480px) {
+  /* the stats box was 240px + a 64px avatar column and pushed 320px phones to 336px wide */
+  .pf-stats {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .pf-stats div {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .tab-bar {
+    gap: 0;
+    width: calc(100vw - 16px);
+    max-width: none;
+    padding: 5px;
+  }
+
+  .tab-bar a,
+  .tab-bar .tab-song {
+    padding: 6px 2px;
+    font-size: 10px;
+  }
+}
+
+/* ---------- /me: the save bar sits above the bottom tab bar on phones ---------- */
+@media (max-width: 819px) {
+  .me2-savebar {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    border-radius: 18px;
+    box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* ---------- song player on short screens (phone landscape): video beside the controls ---------- */
+@media (max-height: 520px) {
+  .song-mini {
+    right: 10px;
+    bottom: 10px;
+  }
+
+  .song-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    column-gap: 14px;
+    width: min(620px, calc(100vw - 20px));
+    max-height: calc(100dvh - 20px);
+    overflow-y: auto;
+  }
+
+  .song-card-head {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .song-card-video {
+    grid-column: 1;
+    grid-row: 1 / 4;
+    align-self: center;
+  }
+
+  .song-progress {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 4px;
+  }
+
+  .song-controls {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: start;
+  }
+
+  html:has(.song-nav) .song-mini:not([data-state="open"]) .song-card {
+    bottom: 0;
+  }
+}
+
+/* the photo area handles its own gestures (pinch / double-tap zoom, swipe) */
+.vw-stage,
+.vw.is-zoomed .vw-stage {
+  touch-action: none;
+}
+
+/* ---------- /me: the editor column must be allowed to shrink ---------- */
+/* (a 1fr grid track takes its children's min-content width; the 7 editor tabs alone are ~700px,
+   so on phones the whole page was laid out 712px wide and shown zoomed out) */
+.me-layout > * {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .me-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
