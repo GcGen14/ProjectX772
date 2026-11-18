@@ -318,21 +318,6 @@
   }
 }
 
-.vw.is-playing .vw-photo > img {
-  animation: vw-kenburns 4.2s ease-out both;
-}
-
-@keyframes vw-kenburns {
-  from {
-    opacity: 0.4;
-    transform: scale(1.02);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
 /* ---------- viewer: details panel ---------- */
 .vw-details {
   display: grid;

@@ -82,7 +82,7 @@ const nameOf = (no: number | null) =>
 export function createViewer(host: HTMLElement, later: (fn: () => void, ms: number) => void) {
   host.insertAdjacentHTML(
     "beforeend",
-    `<div class="vw" hidden role="dialog" aria-modal="true" aria-label="ดูรูป">
+    `<div class="vw no-side" hidden role="dialog" aria-modal="true" aria-label="ดูรูป">
       <div class="vw-media" data-media>
         <button class="vw-btn vw-close" type="button" data-vw-close aria-label="ปิด">${icon("close", 22)}</button>
         <button class="vw-btn vw-nav prev" type="button" data-vw-step="-1" aria-label="ก่อนหน้า">${icon("chevronLeft", 26)}</button>
@@ -93,7 +93,7 @@ export function createViewer(host: HTMLElement, later: (fn: () => void, ms: numb
           <button class="vw-chip" type="button" data-tagtoggle aria-pressed="false" title="แสดง/ซ่อนแท็ก (T)">${icon("users", 14)} แท็ก</button>
           <button class="vw-chip" type="button" data-zoom aria-pressed="false" title="ซูม (Z) · ดับเบิลคลิกที่รูปก็ได้">${icon("search", 14)} ซูม</button>
           <button class="vw-chip" type="button" data-slides aria-pressed="false" title="สไลด์โชว์ (Space)">${icon("play", 14)} <span>สไลด์โชว์</span></button>
-          <button class="vw-chip vw-chip-icon" type="button" data-sidetoggle aria-pressed="true" title="แสดง/ซ่อนรายละเอียด (I)" aria-label="แสดง/ซ่อนรายละเอียด">${icon("book", 14)}</button>
+          <button class="vw-chip vw-chip-icon" type="button" data-sidetoggle aria-pressed="false" title="แสดง/ซ่อนรายละเอียด (I)" aria-label="แสดง/ซ่อนรายละเอียด">${icon("book", 14)}</button>
           <button class="vw-chip vw-chip-icon" type="button" data-full title="เต็มจอ (F)" aria-label="เต็มจอ">${icon("arrowUpRight", 14)}</button>
         </div>
         <div class="vw-slide-progress" aria-hidden="true"><i></i></div>
