@@ -31,8 +31,34 @@ export type StudentRow = {
   avatar: string;
   /** personal profile address: /me/<slug> ("" = not set) */
   slug: string;
+  /** ids from the badge catalog (getBadges), given out in /backend */
+  badges: string[];
+  /** a one-off look the admin designed for this student; shown to them as a preset on /me */
+  specialTheme: SpecialTheme | null;
   updatedAt: string;
 };
+
+export type SpecialTheme = { name: string; theme: ProfileTheme };
+
+/** A badge shown on profiles (หัวหน้าห้อง, Beta tester, ...). The catalog lives in settings.badges. */
+export type Badge = {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+  /** also puts a crown on the holder's profile picture */
+  crown?: boolean;
+};
+export const DEFAULT_BADGES: Badge[] = [
+  { id: "leader", name: "หัวหน้าห้อง", emoji: "👑", color: "#ca8a04", crown: true },
+  { id: "vice", name: "รองหัวหน้าห้อง", emoji: "🎖️", color: "#ea580c" },
+  { id: "dev", name: "Web Developer", emoji: "💻", color: "#0569ff" },
+  { id: "beta", name: "Beta Tester", emoji: "🧪", color: "#7c3aed" },
+  { id: "designer", name: "ดีไซเนอร์", emoji: "🎨", color: "#db2777" },
+  { id: "photo", name: "ช่างภาพ", emoji: "📸", color: "#0d9488" },
+  { id: "treasurer", name: "เหรัญญิก", emoji: "💰", color: "#16a34a" },
+  { id: "secretary", name: "เลขานุการ", emoji: "📝", color: "#475569" },
+];
 
 /**
  * How a student decorated their own profile page (stored as JSON in students.theme).
@@ -99,7 +125,13 @@ export const SELF_FIELDS = {
 /** Allowed values for the "group" field (empty = not chosen). */
 export const GROUPS = ["SII", "ERA", "DAG"] as const;
 /** Extra fields only the admin may change. */
-export const ADMIN_FIELDS = { ...SELF_FIELDS, photoNote: 120, studentId: 10 } as const;
+export const ADMIN_FIELDS = {
+  ...SELF_FIELDS,
+  photoNote: 120,
+  studentId: 10,
+  badges: 0, // ids, validated against the catalog
+  specialTheme: 0, // { name, theme }, validated by cleanSpecial()
+} as const;
 
 const COLS: Record<string, string> = {
   nickname: "nickname",
@@ -188,6 +220,10 @@ function migrate(d: DatabaseSync) {
   if (!cols.has("avatar"))
     d.exec("ALTER TABLE students ADD COLUMN avatar TEXT NOT NULL DEFAULT ''");
   if (!cols.has("slug")) d.exec("ALTER TABLE students ADD COLUMN slug TEXT NOT NULL DEFAULT ''");
+  if (!cols.has("badges"))
+    d.exec("ALTER TABLE students ADD COLUMN badges TEXT NOT NULL DEFAULT '[]'");
+  if (!cols.has("special_theme"))
+    d.exec("ALTER TABLE students ADD COLUMN special_theme TEXT NOT NULL DEFAULT '{}'");
   if (!cols.has("student_id")) {
     d.exec("ALTER TABLE students ADD COLUMN student_id TEXT NOT NULL DEFAULT ''");
     // fill school IDs from the seed file once
@@ -278,8 +314,70 @@ const toStudent = (r: Raw): StudentRow => ({
   theme: parseTheme(r.theme),
   avatar: typeof r.avatar === "string" ? r.avatar : "",
   slug: typeof r.slug === "string" ? r.slug : "",
+  badges: parseJson(r.badges, (v) =>
+    Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [],
+  ),
+  specialTheme: parseJson(r.special_theme, cleanSpecial),
   updatedAt: String(r.updated_at),
 });
+
+function parseJson<T>(v: unknown, fn: (x: unknown) => T): T {
+  try {
+    return fn(JSON.parse(typeof v === "string" && v ? v : "null"));
+  } catch {
+    return fn(null);
+  }
+}
+
+/** { name, theme } with a non-empty theme, or null. */
+export function cleanSpecial(v: unknown): SpecialTheme | null {
+  const o = v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  const theme = cleanTheme(o.theme);
+  if (!Object.keys(theme).length) return null;
+  return { name: clean(o.name, 30) || "ธีมพิเศษ", theme };
+}
+
+/* ---------------- badge catalog ---------------- */
+const BADGE_ID = /^[a-z0-9-]{1,24}$/;
+function cleanBadges(v: unknown): Badge[] {
+  const out: Badge[] = [];
+  const seen = new Set<string>();
+  for (const x of Array.isArray(v) ? v.slice(0, 40) : []) {
+    if (!x || typeof x !== "object") continue;
+    const o = x as Record<string, unknown>;
+    const name = clean(o.name, 30);
+    if (!name) continue;
+    let id = typeof o.id === "string" && BADGE_ID.test(o.id) ? o.id : "";
+    while (!id || seen.has(id)) id = `b-${Math.random().toString(36).slice(2, 8)}`;
+    seen.add(id);
+    const color =
+      typeof o.color === "string" && /^#[0-9a-f]{6}$/i.test(o.color) ? o.color : "#475569";
+    out.push({
+      id,
+      name,
+      emoji: graphemes(clean(o.emoji, 40), 1),
+      color: color.toLowerCase(),
+      ...(o.crown === true ? { crown: true } : {}),
+    });
+  }
+  return out;
+}
+export function getBadges(): Badge[] {
+  const r = getDb().prepare("SELECT value FROM settings WHERE key = 'badges'").get() as
+    | { value: string }
+    | undefined;
+  return r ? parseJson(r.value, cleanBadges) : DEFAULT_BADGES;
+}
+/** Replace the whole catalog (admin). Badges removed here simply stop showing on profiles. */
+export function saveBadges(v: unknown): Badge[] {
+  const list = cleanBadges(v);
+  getDb()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES ('badges', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    )
+    .run(JSON.stringify(list));
+  return list;
+}
 
 function parseTheme(v: unknown): ProfileTheme {
   try {
@@ -429,6 +527,22 @@ export function updateStudent(
     if (key === "theme") {
       sets.push("theme = ?");
       vals.push(JSON.stringify(cleanTheme(patch.theme)));
+      continue;
+    }
+    if (key === "badges") {
+      const known = new Set(getBadges().map((b) => b.id));
+      const ids = Array.isArray(patch.badges) ? patch.badges : [];
+      sets.push("badges = ?");
+      vals.push(
+        JSON.stringify(
+          [...new Set(ids.filter((x): x is string => known.has(x as string)))].slice(0, 12),
+        ),
+      );
+      continue;
+    }
+    if (key === "specialTheme") {
+      sets.push("special_theme = ?");
+      vals.push(JSON.stringify(cleanSpecial(patch.specialTheme) ?? {}));
       continue;
     }
     if (key === "slug") {

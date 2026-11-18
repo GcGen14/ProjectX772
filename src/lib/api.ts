@@ -8,6 +8,7 @@ import type {
   Teacher,
   WallPost,
 } from "../data.ts";
+import type { Badge } from "./badges.ts";
 import type { WrappedKey } from "./e2e.ts";
 
 export type Job = {
@@ -92,6 +93,9 @@ export const api = {
     call<Roster & { uploaded: string }>("POST", "/api/admin/upload", body),
   adminDeleteUpload: (id: string) => call<Roster>("DELETE", `/api/admin/upload/${id}`, {}),
   students: () => call<{ students: StudentRecord[] }>("GET", "/api/students"),
+  badges: () => call<{ badges: Badge[] }>("GET", "/api/badges"),
+  adminSaveBadges: (badges: Badge[]) =>
+    call<{ badges: Badge[] }>("PUT", "/api/admin/badges", { badges }),
   me: () => call<Me>("GET", "/api/me"),
   login: (no: number, password: string) =>
     call<{ ok: true; needsPassword: boolean }>("POST", "/api/login", { no, password }),

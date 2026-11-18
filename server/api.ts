@@ -2,6 +2,8 @@
 // and by the standalone production server (server/index.ts).
 //
 //   GET  /api/students                public profiles
+//   GET  /api/badges                  badge catalog (หัวหน้าห้อง, Beta tester, ...)
+//   PUT  /api/admin/badges            { badges }  replace the catalog
 //   GET  /api/me                      who is logged in (+ own profile)
 //   POST /api/login                   { no, password }   (password = own password or one-time code)
 //   POST /api/logout
@@ -34,8 +36,10 @@ import {
   clean,
   cleanSlug,
   studentBySlug,
+  getBadges,
   getDb,
   getStudentRow,
+  saveBadges,
   listPhotoData,
   listStudents,
   savePhotoInfo,
@@ -105,7 +109,12 @@ const ip = (req: Req) =>
   String(req.headers["x-forwarded-for"] ?? req.socket.remoteAddress ?? "?")
     .split(",")[0]
     .trim();
-const publicStudent = (s: ReturnType<typeof listStudents>[number]) => s;
+// the admin-made special theme is only for its owner (/api/me) and the admin
+const publicStudent = (s: ReturnType<typeof listStudents>[number]) => {
+  const out: Partial<typeof s> = { ...s };
+  delete out.specialTheme;
+  return out;
+};
 
 let ready = false;
 export function createApi() {
@@ -165,6 +174,7 @@ async function handle(req: Req, res: Res, path: string) {
 
   if (path === "/api/students" && m === "GET")
     return send(res, 200, { students: listStudents().map(publicStudent) });
+  if (path === "/api/badges" && m === "GET") return send(res, 200, { badges: getBadges() });
 
   /* ---------------- albums ---------------- */
   if (path === "/api/albums" && m === "GET") return send(res, 200, { albums: listAlbums(false) });
@@ -329,6 +339,10 @@ async function handle(req: Req, res: Res, path: string) {
         cover: photos.find((p) => p.large) ?? photos[0] ?? null,
       }));
       return send(res, 200, { albums, jobs: jobStatus() });
+    }
+    if (path === "/api/admin/badges" && m === "PUT") {
+      const body = await readJson(req);
+      return send(res, 200, { badges: saveBadges(body.badges) });
     }
     if (path === "/api/admin/jobs" && m === "GET") return send(res, 200, { jobs: jobStatus() });
     if (path === "/api/admin/faces" && m === "POST") return send(res, 200, { job: startFaces() });

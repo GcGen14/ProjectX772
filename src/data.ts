@@ -190,6 +190,10 @@ export type StudentRecord = {
   avatar?: string;
   /** personal profile address: /me/<slug> ("" / missing = not set) */
   slug?: string;
+  /** badge ids (see src/lib/badges.ts), given out in /backend */
+  badges?: string[];
+  /** a look the admin designed just for this student (only sent to them + the admin) */
+  specialTheme?: { name: string; theme: ProfileTheme } | null;
   updatedAt?: string;
 };
 
