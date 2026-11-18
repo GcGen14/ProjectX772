@@ -476,3 +476,60 @@ html.pf-dark .pf-modal-card {
 .th-coverprev.is-tall i {
   height: 26px;
 }
+
+/* ---------- dark mode: readable text ---------- */
+/* The light design hard-codes some dark greys (#3d4249, #4b5058) and uses the accent colour for
+   text; on a dark page those dropped to ~2:1 contrast. Text gets the theme's light inks and a
+   lightened accent instead (backgrounds / borders keep the real accent). */
+.has-theme.th-dark,
+html.pf-dark {
+  --pf-accent-text: color-mix(in srgb, var(--pf-accent, #8ab4ff) 52%, #fff);
+}
+
+html.pf-dark .rail-item {
+  color: var(--muted-2);
+}
+
+html.pf-dark .rail-item:hover {
+  color: var(--ink-900);
+}
+
+.th-dark .pf-bio,
+.th-dark .pf-line,
+.th-dark .pf-line b,
+.th-dark .pf-about p,
+.th-dark .pf-review p,
+.th-dark .me-preview-quote,
+.th-dark .me-preview-line {
+  color: var(--ink);
+}
+
+.th-dark .pf-note,
+.th-dark .pf-handle,
+.th-dark .pf-ph,
+.th-dark .me-preview-handle,
+.th-dark .muted {
+  color: var(--muted-2);
+}
+
+.th-dark .pf-line .icon,
+.th-dark .pf-tag .icon,
+.th-dark .pf-about-card .icon,
+.th-dark .pf-line a,
+.th-dark .pf-about-card a,
+.th-dark .pf-tab-count,
+.th-dark .sx-val,
+.th-dark .sx-chip .icon,
+.th-dark .me-preview-line .icon {
+  color: var(--pf-accent-text);
+}
+
+.th-dark .pf-note a,
+.th-dark .pf-panel a:not([class]) {
+  color: #9cc3ff;
+}
+
+.pf-main.has-theme.th-dark .pf-tab-count {
+  background: color-mix(in srgb, var(--pf-accent) 24%, var(--pf-base));
+  color: var(--pf-accent-text);
+}
