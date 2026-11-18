@@ -16,6 +16,7 @@ import {
 } from "../data.ts";
 import { icon } from "../lib/icons.ts";
 import { api, myNo } from "../lib/api.ts";
+import { effectiveTheme } from "../lib/signature.ts";
 import { hobbyList } from "../lib/theme.ts";
 import { extrasOf, setNoindex, socialLinksHtml } from "../lib/extras.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
@@ -55,7 +56,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     : "";
   const shownCovers = picked ? [picked, ...autoCovers.filter((c) => c !== picked)] : autoCovers;
   const isMe = myNo() === s.no;
-  const theme = s.theme ?? {};
+  const theme = effectiveTheme(s.no, s.theme);
   // privacy choices from /me
   const privacy = extrasOf(s.no).privacy;
   const hidePics = !!privacy.hidePhotos;
@@ -172,7 +173,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     avatarShape: theme.avatar === "square" ? "square" : "round",
     name: s.nickname,
     nameBadge: theme.emoji,
-    theme: s.theme,
+    theme,
     badges: s.badges,
     handle: `@602.${String(s.no).padStart(2, "0")}`,
     handleNote: `<b>เลขที่ ${s.no}</b>${s.studentId ? ` · ID ${esc(s.studentId)}` : ` ${CLASS.name}`}`,

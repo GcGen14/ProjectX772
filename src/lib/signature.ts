@@ -85,6 +85,17 @@ export const SIGNATURES: Signature[] = [
 ];
 
 export const signatureOf = (no: number) => SIGNATURES.find((s) => s.owner === no);
+
+/**
+ * The theme a profile actually shows: owners get their signature theme by default (it was made
+ * for them), unless they switched it off in /me (`sigOff`).
+ */
+export function effectiveTheme(no: number, theme: ProfileTheme | undefined): ProfileTheme {
+  const t = theme ?? {};
+  const sig = signatureOf(no);
+  if (!sig || t.sig || t.sigOff) return t;
+  return { ...t, ...sig.preset, sig: sig.key };
+}
 export const getSignature = (key: string | undefined) => SIGNATURES.find((s) => s.key === key);
 export const artSrc = (id: string | undefined) =>
   id && /^up-[\w-]{6,40}$/.test(id) ? `/uploads/${id}.jpg` : "";

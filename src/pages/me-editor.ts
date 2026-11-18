@@ -28,7 +28,7 @@ import {
 } from "../lib/theme.ts";
 import { cropSquare, deleteMine, loadImage, toBody, uploadMine } from "../lib/upload.ts";
 import { bindExtrasEditor, extrasSectionHtml } from "./me-extras.ts";
-import { artSrc, signatureCard, signatureOf } from "../lib/signature.ts";
+import { artSrc, effectiveTheme, signatureCard, signatureOf } from "../lib/signature.ts";
 
 const LIMITS = {
   nickname: 40,
@@ -201,7 +201,8 @@ export function renderEditor(
   const s = getStudent(rec.no)!;
   const no = s.no;
   const sig = signatureOf(no);
-  const draft: StudentRecord = { ...rec, theme: { ...rec.theme } };
+  // owners see their signature theme switched on unless they turned it off
+  const draft: StudentRecord = { ...rec, theme: effectiveTheme(rec.no, { ...rec.theme }) };
   let tab: TabKey = "info";
   try {
     const t = sessionStorage.getItem(TAB_KEY) as TabKey | null;
@@ -586,10 +587,14 @@ export function renderEditor(
     paintSig();
     toggle.addEventListener("click", () => {
       if (draft.theme?.sig === sig.key) {
-        const t = { ...draft.theme };
+        const t = { ...draft.theme, sigOff: true };
         delete t.sig;
         draft.theme = t;
-      } else draft.theme = { ...draft.theme, ...sig.preset, sig: sig.key };
+      } else {
+        const t = { ...draft.theme, ...sig.preset, sig: sig.key };
+        delete t.sigOff;
+        draft.theme = t;
+      }
       mountThemeEditor();
       setDirty(true);
       refreshPreview();
@@ -637,7 +642,10 @@ export function renderEditor(
     const keep = Object.fromEntries(
       PERSONAL.map((k) => [k, draft.theme?.[k]]).filter(([, v]) => v),
     );
-    draft.theme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
+    const picked: ProfileTheme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
+    // picking another look means the owner chose to switch their signature theme off
+    if (sig && !picked.sig) picked.sigOff = true;
+    draft.theme = picked;
     mountThemeEditor();
     setDirty(true);
     refreshPreview();

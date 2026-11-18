@@ -93,6 +93,8 @@ export type ProfileTheme = {
   sig?: string;
   /** upload id of the owner's picture for a signature theme */
   art?: string;
+  /** owner switched their default-on signature theme off */
+  sigOff?: boolean;
 };
 const THEME_BG = [
   "plain",
@@ -114,7 +116,7 @@ const THEME_BG = [
 const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha", "mono"];
 const THEME_AVATAR = ["round", "square"];
 /** extra look settings: [key, allowed values, default (not stored)] */
-const THEME_PICKS: [keyof ProfileTheme, string[], string][] = [
+const THEME_PICKS: ["mode" | "fx" | "corner" | "ring" | "cover", string[], string][] = [
   ["mode", ["light", "dark", "auto"], "light"],
   ["fx", ["none", "snow", "sparkle", "hearts", "petals", "gems", "cubes", "bubbles"], "none"],
   ["corner", ["sharp", "normal", "round"], "normal"],
@@ -451,6 +453,7 @@ export function cleanTheme(v: unknown): ProfileTheme {
     out.accent2 = o.accent2.toLowerCase();
   if (typeof o.sig === "string" && o.sig in SIGNATURE_OWNERS) out.sig = o.sig;
   if (typeof o.art === "string" && /^up-[\w-]{6,40}$/.test(o.art)) out.art = o.art;
+  if (o.sigOff === true) out.sigOff = true;
   const bg = pick("bg", THEME_BG);
   const font = pick("font", THEME_FONTS);
   const avatar = pick("avatar", THEME_AVATAR);
