@@ -149,6 +149,17 @@ function setState(state: "closed" | "open" | "playing") {
 }
 
 /** Is audio actually running right now (equaliser + play/pause button)? */
+/**
+ * Phones (iPhone especially) only start sound from a tap inside the YouTube frame itself, so a
+ * play request from our own button can be ignored. If nothing starts, point at the video.
+ */
+function expectPlayback() {
+  window.setTimeout(() => {
+    const st = player?.getPlayerState?.();
+    if (mini && player && st !== 1 && st !== 3) mini.classList.add("needs-tap");
+  }, 1600);
+}
+
 function setAudible(on: boolean) {
   if (!mini) return;
   mini.classList.toggle("is-audible", on);
@@ -222,7 +233,9 @@ export function mountSongMini() {
     if (t.closest("[data-song-play]")) return void startMini();
     if (t.closest("[data-sc-play]")) {
       if (!player) return void startMini();
-      return player.getPlayerState() === 1 ? player.pauseVideo() : player.playVideo();
+      if (player.getPlayerState() === 1) return player.pauseVideo();
+      player.playVideo();
+      return expectPlayback();
     }
     if (t.closest("[data-sc-back]") && player)
       player.seekTo(Math.max(0, player.getCurrentTime() - 10), true);
@@ -261,9 +274,13 @@ async function startMini() {
             Number(mini?.querySelector<HTMLInputElement>("[data-sc-vol]")?.value ?? 80),
           );
           e.target.playVideo();
+          expectPlayback();
         },
-        // 1 = playing, 2 = paused, 0 = ended
-        onStateChange: (e) => setAudible(e.data === 1),
+        // 1 = playing, 2 = paused, 0 = ended, 3 = buffering
+        onStateChange: (e) => {
+          setAudible(e.data === 1);
+          if (e.data === 1 || e.data === 3) mini?.classList.remove("needs-tap");
+        },
       },
     });
     clearInterval(ticker);
