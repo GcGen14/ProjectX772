@@ -59,6 +59,7 @@ import {
   listAlbums,
   serveMedia,
   startFaces,
+  FACES_HOME,
   startSync,
   updateAlbum,
 } from "./albums.ts";
@@ -409,12 +410,15 @@ async function handle(req: Req, res: Res, path: string) {
   throw new HttpError(404, "ไม่พบ");
 }
 
-/* people.json (face matching output) is read from disk so re-running faces.py shows up without a rebuild */
-let peopleCache: { mtime: number; data: unknown } | null = null;
+/* people.json (face matching output) is read from disk so re-running faces.py shows up without a rebuild.
+   On the server the face job writes data/faces/people.json (kept across deploys); it wins over the
+   bundled src/data/people.json. */
+let peopleCache: { file: string; mtime: number; data: unknown } | null = null;
 function readPeople(): unknown {
-  const file = path.join(ROOT, "src", "data", "people.json");
+  const own = path.join(FACES_HOME, "people.json");
+  const file = fs.existsSync(own) ? own : path.join(ROOT, "src", "data", "people.json");
   const mtime = fs.statSync(file).mtimeMs;
-  if (!peopleCache || peopleCache.mtime !== mtime)
-    peopleCache = { mtime, data: JSON.parse(fs.readFileSync(file, "utf8")) };
+  if (!peopleCache || peopleCache.file !== file || peopleCache.mtime !== mtime)
+    peopleCache = { file, mtime, data: JSON.parse(fs.readFileSync(file, "utf8")) };
   return peopleCache.data;
 }

@@ -9,6 +9,8 @@ import { fetchPreview, folderTitle, imageSize, listFolder, type DriveItem } from
 import { ROOT, getDb } from "./db.ts";
 
 const MEDIA_DIR = path.join(ROOT, "data", "media");
+/** Face matching on the server (see startFaces); its people.json wins over the bundled one. */
+export const FACES_HOME = path.join(ROOT, "data", "faces");
 const LARGE_PER_ALBUM = 14;
 const MAX_ITEMS_PER_SYNC = 5000;
 
@@ -489,17 +491,31 @@ export function startFaces(): Job {
     startedAt: new Date().toISOString(),
   };
   jobs.set("faces", job);
-  const models = path.join(ROOT, "scripts", "models", "face_recognition_sface_2021dec.onnx");
-  if (!fs.existsSync(models)) {
+  // dev: scripts/ (models in scripts/models). Server: the script ships in server/faces/ and its
+  // models, cache, Python venv and output live in data/faces/ (the only folder a deploy keeps).
+  const home = FACES_HOME;
+  const script = [
+    path.join(ROOT, "scripts", "faces.py"),
+    path.join(ROOT, "server", "faces", "faces.py"),
+  ].find((f) => fs.existsSync(f));
+  const models = fs.existsSync(path.join(home, "models"))
+    ? path.join(home, "models")
+    : path.join(ROOT, "scripts", "models");
+  if (!script || !fs.existsSync(path.join(models, "face_recognition_sface_2021dec.onnx"))) {
     job.state = "error";
     job.message = "ไม่พบไฟล์โมเดลใบหน้าใน scripts/models (ใช้ได้เฉพาะเครื่องที่ตั้งค่าไว้)";
     return job;
   }
-  const python = process.env.PYTHON ?? (process.platform === "win32" ? "python" : "python3");
+  const venv = path.join(home, "venv", "bin", "python");
+  const python =
+    process.env.PYTHON ??
+    (fs.existsSync(venv) ? venv : process.platform === "win32" ? "python" : "python3");
+  const env = models.startsWith(home) ? { ...process.env, FACES_HOME: home } : process.env;
   const run = (args: string[]) =>
     new Promise<void>((resolve, reject) => {
-      const p = spawn(python, ["-I", "-u", path.join(ROOT, "scripts", "faces.py"), ...args], {
+      const p = spawn(python, ["-I", "-u", script, ...args], {
         cwd: ROOT,
+        env,
         windowsHide: true,
       });
       let err = "";
