@@ -32,6 +32,12 @@ export type ProfileTheme = {
   corner?: "sharp" | "normal" | "round";
   ring?: "accent" | "rainbow" | "none";
   cover?: "short" | "normal" | "tall";
+  /** signature theme only its owner can use (src/lib/signature.ts; enforced by the server) */
+  sig?: "homura" | "ender" | "cp" | "pudding";
+  /** owner-uploaded picture used by a signature theme (an upload id, "up-…") */
+  art?: string;
+  /** the owner switched their (default-on) signature theme off */
+  sigOff?: boolean;
   emoji?: string;
   song?: string;
   hobbies?: string;
@@ -137,6 +143,7 @@ export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: s
   const cls = ["has-theme", `th-bg-${t.bg ?? "plain"}`, `th-font-${t.font ?? "default"}`];
   if (isDarkTheme(t)) cls.push("th-dark");
   if (t.fx && t.fx !== "none") cls.push("th-fx", `th-fx-${t.fx}`);
+  if (t.sig && /^(homura|ender|cp|pudding)$/.test(t.sig)) cls.push("th-sig", `th-sig-${t.sig}`);
   for (const k of ["corner", "ring", "cover"] as const)
     if (t[k] && t[k] !== DEFAULTS[k]) cls.push(`th-${k}-${t[k]}`);
   const hex = (v?: string) => !!v && /^#[0-9a-f]{6}$/i.test(v);
@@ -151,9 +158,9 @@ export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: s
 
 /** Put the theme on an element, replacing whatever theme it had before. */
 export function applyTheme(el: HTMLElement, t: ProfileTheme | undefined) {
-  el.classList.forEach((c) => {
-    if (c === "has-theme" || c.startsWith("th-")) el.classList.remove(c);
-  });
+  // collect first: removing while iterating a live classList skips every other class
+  const old = [...el.classList].filter((c) => c === "has-theme" || c.startsWith("th-"));
+  el.classList.remove(...old);
   el.style.removeProperty("--pf-accent");
   el.style.removeProperty("--pf-accent2");
   const { cls, style } = themeAttrs(t);

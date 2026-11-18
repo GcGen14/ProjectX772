@@ -28,6 +28,7 @@ import {
 } from "../lib/theme.ts";
 import { cropSquare, deleteMine, loadImage, toBody, uploadMine } from "../lib/upload.ts";
 import { bindExtrasEditor, extrasSectionHtml } from "./me-extras.ts";
+import { artSrc, effectiveTheme, signatureCard, signatureOf } from "../lib/signature.ts";
 
 const LIMITS = {
   nickname: 40,
@@ -178,7 +179,7 @@ export const PRESETS: { name: string; theme: ProfileTheme }[] = [
     },
   },
 ];
-const PERSONAL = ["emoji", "song", "hobbies", "avatar"] as const;
+const PERSONAL = ["emoji", "song", "hobbies", "avatar", "art"] as const;
 
 const sameLook = (a: ProfileTheme, b: ProfileTheme) => {
   const strip = (t: ProfileTheme) =>
@@ -199,7 +200,9 @@ export function renderEditor(
 ) {
   const s = getStudent(rec.no)!;
   const no = s.no;
-  const draft: StudentRecord = { ...rec, theme: { ...rec.theme } };
+  const sig = signatureOf(no);
+  // owners see their signature theme switched on unless they turned it off
+  const draft: StudentRecord = { ...rec, theme: effectiveTheme(rec.no, { ...rec.theme }) };
   let tab: TabKey = "info";
   try {
     const t = sessionStorage.getItem(TAB_KEY) as TabKey | null;
@@ -281,7 +284,30 @@ export function renderEditor(
         </div>
 
         <div class="me2-panel" data-panel="theme" role="tabpanel">
-          <section class="me-section me2-first">
+          ${
+            sig
+              ? `<section class="me-section me2-first me2-sig">
+            <h2>${icon("sparkle", 18)} ธีมเฉพาะคุณ <em>มีคนเดียวในห้อง</em></h2>
+            <div class="me2-sig-card">
+              ${signatureCard(sig)}
+              <div class="me2-sig-text"><b>${esc(sig.name)}</b><p>${esc(sig.tagline)}</p></div>
+              <button type="button" class="me-btn me-small" data-sig-toggle></button>
+            </div>
+            ${
+              sig.art
+                ? `<div class="me2-sig-art">
+              <span class="me2-sig-art-img" data-sig-art-box></span>
+              <div><b>รูปบนหน้าปก</b><p class="me-help small">อัปโหลดรูปที่ชอบ (เช่นรูปตัวละคร) จะแสดงแทนรูปปกพร้อมนาฬิกาเวทมนตร์</p>
+              <div class="me-row"><button type="button" class="btn-outline me-small" data-sig-art-up>${icon("camera", 14)} อัปโหลดรูป</button><button type="button" class="btn-outline me-small" data-sig-art-del>เอารูปออก</button></div>
+              <p class="me2-up-status" data-sig-status role="status"></p></div>
+              <input type="file" accept="image/*" hidden data-sig-file>
+            </div>`
+                : ""
+            }
+          </section>`
+              : ""
+          }
+          <section class="me-section${sig ? "" : " me2-first"}">
             <h2>${icon("sparkle", 18)} ธีมสำเร็จรูป</h2>
             <p class="me-help small">แตะครั้งเดียวเปลี่ยนทั้งหน้า แล้วค่อยปรับต่อด้านล่างได้</p>
             <div class="me2-presets">${presets.map(presetCard).join("")}</div>
@@ -542,13 +568,84 @@ export function renderEditor(
     });
   };
   mountThemeEditor();
+
+  /* ---------- signature theme (only for its owner; the server checks too) ---------- */
+  if (sig) {
+    const toggle = $<HTMLButtonElement>("[data-sig-toggle]");
+    const paintSig = () => {
+      const on = draft.theme?.sig === sig.key;
+      toggle.textContent = on ? "ปิดธีมนี้" : "ใช้ธีมนี้";
+      toggle.setAttribute("aria-pressed", String(on));
+      toggle.classList.toggle("is-on", on);
+      const box = view.querySelector<HTMLElement>("[data-sig-art-box]");
+      if (box) {
+        const src = artSrc(draft.theme?.art);
+        box.innerHTML = src ? `<img src="${src}" alt="">` : icon("image", 22);
+        view.querySelector<HTMLElement>("[data-sig-art-del]")!.hidden = !src;
+      }
+    };
+    paintSig();
+    toggle.addEventListener("click", () => {
+      if (draft.theme?.sig === sig.key) {
+        const t = { ...draft.theme, sigOff: true };
+        delete t.sig;
+        draft.theme = t;
+      } else {
+        const t = { ...draft.theme, ...sig.preset, sig: sig.key };
+        delete t.sigOff;
+        draft.theme = t;
+      }
+      mountThemeEditor();
+      setDirty(true);
+      refreshPreview();
+      paintSig();
+    });
+    const file = view.querySelector<HTMLInputElement>("[data-sig-file]");
+    const status = view.querySelector<HTMLElement>("[data-sig-status]");
+    view.querySelector("[data-sig-art-up]")?.addEventListener("click", () => {
+      file!.value = "";
+      file!.click();
+    });
+    view.querySelector("[data-sig-art-del]")?.addEventListener("click", () => {
+      const t = { ...draft.theme };
+      delete t.art;
+      draft.theme = t;
+      mountThemeEditor();
+      setDirty(true);
+      paintSig();
+    });
+    file?.addEventListener("change", async () => {
+      const f = file.files?.[0];
+      if (!f) return;
+      try {
+        status!.textContent = "กำลังอัปโหลด…";
+        const id = await uploadMine(toBody(await loadImage(f)));
+        draft.theme = {
+          ...draft.theme,
+          art: id,
+          ...(draft.theme?.sig ? {} : { ...sig.preset, sig: sig.key }),
+        };
+        mountThemeEditor();
+        setDirty(true);
+        refreshPreview();
+        paintSig();
+        status!.textContent = "อัปโหลดแล้ว ✓ อย่าลืมกดบันทึกด้านล่าง";
+      } catch (ex) {
+        status!.textContent = (ex as Error).message;
+      }
+    });
+  }
+
   view.querySelector(".me2-presets")!.addEventListener("click", (e) => {
     const b = (e.target as Element).closest<HTMLElement>("[data-preset]");
     if (!b) return;
     const keep = Object.fromEntries(
       PERSONAL.map((k) => [k, draft.theme?.[k]]).filter(([, v]) => v),
     );
-    draft.theme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
+    const picked: ProfileTheme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
+    // picking another look means the owner chose to switch their signature theme off
+    if (sig && !picked.sig) picked.sigOff = true;
+    draft.theme = picked;
     mountThemeEditor();
     setDirty(true);
     refreshPreview();

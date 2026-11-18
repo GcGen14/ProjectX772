@@ -21,6 +21,7 @@ import "./styles/album-viewer.css";
 import "./styles/timeline.css";
 import "./styles/album-page.css";
 import "./styles/badge-decos.css";
+import "./styles/signature.css";
 import "./styles/responsive.css";
 import {
   applyAlbums,

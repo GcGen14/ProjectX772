@@ -18,6 +18,7 @@ import { chatBadge } from "../lib/chat-badge.ts";
 import { icon, logoMark } from "../lib/icons.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
 import { badgeRow, decorateAvatar } from "../lib/badges.ts";
+import { mountSignature } from "../lib/signature.ts";
 import { applyTheme, type ProfileTheme } from "../lib/theme.ts";
 import { songNavButton } from "../lib/song.ts";
 import { createViewer, type MediaItem } from "../lib/viewer.ts";
@@ -343,6 +344,7 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
     let tab = q && keys.includes(q) ? q : keys[0];
     main.innerHTML = header(c, tab);
     main.classList.add("is-mounted");
+    disposers.push(mountSignature(main, c.theme));
     root.querySelector(".pf-app")!.insertAdjacentHTML("beforeend", classmatesModal());
 
     const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s)!;
@@ -389,7 +391,7 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
     }
 
     // cover slideshow
-    const covers = [...root.querySelectorAll<HTMLImageElement>(".pf-cover img")];
+    const covers = [...root.querySelectorAll<HTMLImageElement>(".pf-cover > img")];
     let ci = 0;
     if (covers.length > 1) {
       const id = window.setInterval(() => {

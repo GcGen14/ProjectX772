@@ -1,0 +1,1121 @@
+/* Signature themes (src/lib/signature.ts): homura · ender · cp · pudding */
+
+/* ================= shared ================= */
+.pf-main.th-sig {
+  isolation: isolate;
+}
+
+.sig-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.sig-cover button {
+  pointer-events: auto;
+}
+
+.sig-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+/* page-wide effect layer: pinned to the screen, above the page, never catches taps */
+.sig-layer {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: block;
+  height: calc(100dvh - 12px);
+  margin-bottom: calc(12px - 100dvh);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.th-sig .pf-avatar-box {
+  isolation: isolate;
+}
+
+.th-sig .pf-avatar-box > img {
+  position: relative;
+  z-index: 1;
+}
+
+.th-sig .pf-avatar-box::before {
+  position: absolute;
+  inset: -6px;
+  z-index: 0;
+  border-radius: 50%;
+  content: "";
+  animation: sig-spin 7s linear infinite;
+}
+
+.th-sig .pf-avatar.is-square + *,
+.th-sig .pf-avatar-box:has(.is-square)::before {
+  border-radius: 28px;
+}
+
+@keyframes sig-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ================= HOMURA (#1) ================= */
+.has-theme.th-sig-homura {
+  --pf-base: #120d1e;
+  --surface: #1d1630;
+  --surface-2: #261d3d;
+  --line: #2f2549;
+  --ink: #ece7fb;
+  --ink-900: #f5f3ff;
+  --muted-2: #b9b0d6;
+  background:
+    repeating-linear-gradient(45deg, rgba(167, 139, 250, 0.045) 0 1px, transparent 1px 30px),
+    repeating-linear-gradient(-45deg, rgba(167, 139, 250, 0.045) 0 1px, transparent 1px 30px),
+    radial-gradient(900px 560px at 88% -12%, rgba(167, 139, 250, 0.3), transparent 62%),
+    radial-gradient(700px 520px at -12% 34%, rgba(240, 171, 252, 0.12), transparent 62%),
+    linear-gradient(#0e0a18, #130e20);
+}
+
+.th-sig-homura .pf-info h1 {
+  background: linear-gradient(100deg, #f5f3ff, #c4b5fd 45%, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 0.01em;
+}
+
+.th-sig-homura .pf-avatar-box::before {
+  background: conic-gradient(from 0deg, #a78bfa, #1e1033 25%, #f0abfc 50%, #1e1033 75%, #a78bfa);
+  box-shadow: 0 0 18px rgba(167, 139, 250, 0.55);
+}
+
+/* soul gem under the picture */
+.th-sig-homura .pf-avatar-box::after {
+  position: absolute;
+  bottom: -7px;
+  left: calc(50% - 8px);
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, #e9d5ff, #a855f7 45%, #581c87);
+  box-shadow:
+    0 0 0 2px #120d1e,
+    0 0 12px rgba(168, 85, 247, 0.9);
+  content: "";
+  transform: rotate(45deg);
+  animation: sig-gem 2.4s ease-in-out infinite;
+}
+
+@keyframes sig-gem {
+  50% {
+    box-shadow:
+      0 0 0 2px #120d1e,
+      0 0 22px rgba(240, 171, 252, 1);
+  }
+}
+
+.sig-cover-homura .sig-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sig-cover-homura .sig-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 82% 22%, transparent 26%, rgba(18, 13, 30, 0.7) 82%),
+    linear-gradient(transparent 55%, rgba(18, 13, 30, 0.65));
+}
+
+.sig-clock {
+  position: absolute;
+  top: -14%;
+  right: -7%;
+  width: 56%;
+  filter: drop-shadow(0 0 10px rgba(167, 139, 250, 0.45));
+}
+
+.sig-clock .ring {
+  fill: none;
+  stroke: #c4b5fd;
+  stroke-width: 1.8;
+  opacity: 0.85;
+}
+
+.sig-clock .ring.thin {
+  stroke-width: 0.8;
+  opacity: 0.5;
+}
+
+.sig-clock .ticks line {
+  stroke: #ddd6fe;
+  stroke-width: 1;
+  opacity: 0.75;
+}
+
+.sig-clock .nums text {
+  fill: #ede9fe;
+  font:
+    600 10.5px Georgia,
+    "Times New Roman",
+    serif;
+  text-anchor: middle;
+}
+
+.sig-clock .hand path {
+  fill: #f5f3ff;
+}
+
+.sig-clock .hand.hour {
+  animation: sig-spin 90s linear infinite;
+}
+
+.sig-clock .hand.min {
+  animation: sig-spin 9s linear infinite;
+}
+
+.sig-clock .sig-gem {
+  fill: #a855f7;
+  stroke: #f5f3ff;
+  stroke-width: 1;
+}
+
+.sig-clock .sig-gear {
+  fill: none;
+  stroke: #c4b5fd;
+  stroke-width: 1.4;
+  opacity: 0.6;
+}
+
+.sig-clock .sig-gear.g1 {
+  animation: sig-spin 14s linear infinite;
+}
+
+.sig-clock .sig-gear.g2 {
+  animation: sig-spin 9s linear infinite reverse;
+}
+
+.sig-cover-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 6px 12px;
+  border: 1px solid rgba(196, 181, 253, 0.45);
+  border-radius: 999px;
+  background: rgba(18, 13, 30, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: #ede9fe;
+  font:
+    italic 600 13px Georgia,
+    serif;
+  letter-spacing: 0.08em;
+}
+
+.sig-banner-homura {
+  border: 1px solid rgba(196, 181, 253, 0.35);
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.2), rgba(240, 171, 252, 0.07));
+  color: #ede9fe;
+  font-style: italic;
+}
+
+.sig-gem-icon {
+  flex: none;
+  width: 14px;
+  fill: #a855f7;
+  filter: drop-shadow(0 0 5px rgba(168, 85, 247, 0.9));
+}
+
+.sig-banner-homura button {
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid rgba(196, 181, 253, 0.6);
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.35);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-style: normal;
+  cursor: pointer;
+}
+
+.sig-banner-homura button:hover {
+  background: rgba(124, 58, 237, 0.6);
+}
+
+/* falling black feathers */
+.sig-feather {
+  position: absolute;
+  top: -80px;
+  left: var(--x);
+  width: calc(16px * var(--s));
+  color: #1b1229;
+  filter: drop-shadow(0 0 3px rgba(196, 181, 253, 0.75));
+  opacity: 0.85;
+  animation: sig-fall var(--t) linear var(--d) infinite;
+}
+
+@keyframes sig-fall {
+  0% {
+    transform: translate(0, 0) rotate(-20deg);
+  }
+  50% {
+    transform: translate(40px, 55vh) rotate(160deg);
+  }
+  100% {
+    transform: translate(-20px, 115vh) rotate(320deg);
+  }
+}
+
+/* time stop: everything greys out and freezes for a few seconds */
+.th-sig-homura .pf-head,
+.th-sig-homura .pf-tabs-wrap,
+.th-sig-homura .pf-panel {
+  transition: filter 0.45s ease;
+}
+
+.sig-stopped.th-sig-homura .pf-head,
+.sig-stopped.th-sig-homura .pf-tabs-wrap,
+.sig-stopped.th-sig-homura .pf-panel {
+  filter: grayscale(1) contrast(1.15) brightness(0.85);
+}
+
+.sig-stopped .sig-layer *,
+.sig-stopped .sig-clock,
+.sig-stopped .sig-clock *,
+.sig-stopped .pf-avatar-box::before,
+.sig-stopped .pf-avatar-box::after {
+  animation-play-state: paused !important;
+}
+
+.sig-stopped .sig-layer {
+  background: rgba(76, 29, 149, 0.14);
+}
+
+.sig-stopped .sig-layer::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  border: 2px solid #c4b5fd;
+  border-radius: 50%;
+  content: "";
+  animation: sig-ripple 1.1s ease-out forwards !important;
+  animation-play-state: running !important;
+  translate: -50% -50%;
+}
+
+.sig-stopped .sig-layer::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  padding: 10px 18px;
+  border: 1px solid rgba(196, 181, 253, 0.6);
+  border-radius: 999px;
+  background: rgba(18, 13, 30, 0.82);
+  color: #ede9fe;
+  content: "⏸ เวลาหยุดลงแล้ว";
+  font-size: 15px;
+  font-weight: 600;
+  translate: -50% -50%;
+}
+
+@keyframes sig-ripple {
+  to {
+    width: 200vmax;
+    height: 200vmax;
+    opacity: 0;
+  }
+}
+
+/* ================= ENDER 3D PRINTER (#26) ================= */
+.has-theme.th-sig-ender {
+  --pf-base: #16181c;
+  --surface: #20242a;
+  --line: #2f343c;
+  background:
+    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.6px) 0 0 / 7px 7px,
+    linear-gradient(rgba(249, 115, 22, 0.07) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(249, 115, 22, 0.07) 1px, transparent 1px) 0 0 / 44px 44px,
+    #16181c;
+}
+
+/* the cover is printed layer by layer (in step with the 4.5s slideshow) */
+.th-sig-ender .pf-cover > img.is-on {
+  animation: sig-print 4.5s steps(30, end) infinite;
+}
+
+@keyframes sig-print {
+  0% {
+    clip-path: inset(100% 0 0 0);
+  }
+  78%,
+  100% {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.sig-cover-ender .sig-layers {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(transparent 0 3px, rgba(0, 0, 0, 0.16) 3px 4px);
+}
+
+.sig-frame {
+  position: absolute;
+  background: linear-gradient(90deg, #2a2e35, #565d68 45%, #2a2e35);
+}
+
+.sig-frame.l,
+.sig-frame.r {
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.sig-frame.l {
+  left: 0;
+}
+
+.sig-frame.r {
+  right: 0;
+}
+
+.sig-frame.t {
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 14px;
+  background: linear-gradient(#565d68, #2a2e35);
+}
+
+.sig-gantry {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 9px;
+  background: linear-gradient(#6b7280, #374151);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  animation: sig-gantry 4.5s steps(30, end) infinite;
+}
+
+@keyframes sig-gantry {
+  0% {
+    top: calc(100% - 9px);
+  }
+  78%,
+  100% {
+    top: 14px;
+  }
+}
+
+.sig-carriage {
+  position: absolute;
+  top: -12px;
+  left: 10%;
+  width: 34px;
+  height: 30px;
+  border-radius: 5px;
+  background: #1f2937;
+  box-shadow:
+    inset 0 0 0 2px #374151,
+    0 3px 8px rgba(0, 0, 0, 0.5);
+  animation: sig-carriage 0.85s ease-in-out infinite alternate;
+}
+
+.sig-carriage::before {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #f97316;
+  border-radius: 50%;
+  content: "";
+}
+
+.sig-carriage i {
+  position: absolute;
+  bottom: -9px;
+  left: 12px;
+  border-top: 9px solid #f97316;
+  border-right: 5px solid transparent;
+  border-left: 5px solid transparent;
+  filter: drop-shadow(0 2px 4px rgba(249, 115, 22, 0.9));
+}
+
+@keyframes sig-carriage {
+  to {
+    left: calc(90% - 34px);
+  }
+}
+
+.sig-lcd {
+  position: absolute;
+  bottom: 12px;
+  left: 22px;
+  display: grid;
+  gap: 3px;
+  min-width: 150px;
+  padding: 8px 10px;
+  border: 3px solid #111827;
+  border-radius: 6px;
+  background: #0b2a4a;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  color: #7dd3fc;
+  font:
+    600 11px ui-monospace,
+    Consolas,
+    monospace;
+}
+
+.sig-lcd b {
+  color: #e0f2fe;
+  letter-spacing: 0.12em;
+  animation: sig-blink 1.2s steps(2) infinite;
+}
+
+.sig-lcd em {
+  display: block;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: #1e3a5f;
+}
+
+.sig-lcd em i {
+  display: block;
+  width: 87%;
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #fbbf24);
+}
+
+.sig-lcd small {
+  color: #93c5fd;
+  font-size: 10px;
+}
+
+@keyframes sig-blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.th-sig-ender .pf-avatar-box::before {
+  inset: -6px;
+  border: 3px dashed #f97316;
+  background: none;
+}
+
+.sig-banner-ender {
+  border: 1px solid #2f343c;
+  background: #101215;
+  color: #e5e7eb;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.sig-spool {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #16181c 0 22%, #f97316 23% 70%, #9a3412 71% 76%, #374151 77%);
+  animation: sig-spin 4s linear infinite;
+}
+
+.sig-gcode {
+  display: block;
+  flex: 1;
+  height: 18px;
+  overflow: hidden;
+  color: #fdba74;
+  font-size: 12.5px;
+  line-height: 18px;
+}
+
+.sig-gcode > span {
+  display: flex;
+  flex-direction: column;
+  animation: sig-ticker 14s steps(7) infinite;
+}
+
+.sig-gcode code {
+  height: 18px;
+  font: inherit;
+  white-space: nowrap;
+}
+
+@keyframes sig-ticker {
+  to {
+    transform: translateY(-126px);
+  }
+}
+
+/* ================= CP / C++ (#15) ================= */
+.has-theme.th-sig-cp {
+  --pf-base: #0d1117;
+  --surface: #161b22;
+  --line: #30363d;
+  --ink: #e6edf3;
+  --ink-900: #f0f6fc;
+  --muted-2: #9da7b3;
+  background:
+    radial-gradient(rgba(88, 166, 255, 0.07) 1px, transparent 1.4px) 0 0 / 22px 22px,
+    #0d1117;
+}
+
+.th-sig-cp .pf-info h1 {
+  color: #58a6ff;
+}
+
+.th-sig-cp .pf-avatar-box::before {
+  background: conic-gradient(
+    #cccccc,
+    #77ff77,
+    #77ddbb,
+    #aaaaff,
+    #ff88ff,
+    #ffcc88,
+    #ff7777,
+    #cccccc
+  );
+}
+
+.sig-editor {
+  position: absolute;
+  top: 8%;
+  left: 4%;
+  width: min(64%, 400px);
+  overflow: hidden;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  background: rgba(13, 17, 23, 0.9);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  color: #c9d1d9;
+  font:
+    11.5px/1.6 ui-monospace,
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+}
+
+.sig-tabs {
+  display: flex;
+  border-bottom: 1px solid #30363d;
+  background: #010409;
+}
+
+.sig-tabs span {
+  padding: 6px 12px;
+  color: #8b949e;
+}
+
+.sig-tabs span.on {
+  border-bottom: 2px solid #58a6ff;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.sig-editor ol {
+  margin: 0;
+  padding: 8px 10px 10px 0;
+  list-style: none;
+  counter-reset: ln;
+}
+
+.sig-editor li {
+  display: flex;
+  counter-increment: ln;
+  white-space: pre;
+}
+
+.sig-editor li::before {
+  flex: none;
+  width: 32px;
+  padding-right: 12px;
+  color: #6e7681;
+  content: counter(ln);
+  text-align: right;
+}
+
+.sig-editor li code {
+  display: inline-block;
+  max-width: 0;
+  overflow: hidden;
+  font: inherit;
+  white-space: pre;
+  animation: sig-type 0.6s steps(28, end) forwards;
+  animation-delay: calc(var(--i) * 0.5s + 0.3s);
+}
+
+.sig-editor li:last-child code::after {
+  color: #58a6ff;
+  content: "▍";
+  animation: sig-blink 1s steps(2) infinite;
+}
+
+@keyframes sig-type {
+  to {
+    max-width: 42ch;
+  }
+}
+
+.sig-editor b {
+  color: #ff7b72;
+  font-weight: 400;
+}
+
+.sig-editor s {
+  color: #a5d6ff;
+  text-decoration: none;
+}
+
+.sig-editor i {
+  color: #79c0ff;
+  font-style: normal;
+}
+
+.sig-editor u {
+  color: #d2a8ff;
+  text-decoration: none;
+}
+
+.sig-verdict {
+  position: absolute;
+  right: 5%;
+  bottom: 8%;
+  display: grid;
+  padding: 8px 14px;
+  border: 1px solid #238636;
+  border-radius: 10px;
+  background: rgba(4, 38, 15, 0.9);
+  box-shadow: 0 0 20px rgba(63, 185, 80, 0.35);
+  color: #3fb950;
+  font:
+    12px ui-monospace,
+    Consolas,
+    monospace;
+  opacity: 0;
+  animation: sig-verdict 7s ease-out 4.6s infinite;
+}
+
+.sig-verdict b {
+  font-size: 15px;
+}
+
+.sig-verdict span {
+  color: #7ee787;
+  opacity: 0.85;
+}
+
+@keyframes sig-verdict {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.92);
+  }
+  8%,
+  70% {
+    opacity: 1;
+    transform: none;
+  }
+  85%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.sig-banner-cp {
+  border: 1px solid #30363d;
+  background: #161b22;
+  color: #e6edf3;
+  font-family: ui-monospace, Consolas, monospace;
+}
+
+.sig-rating {
+  flex: none;
+  width: 150px;
+  height: 42px;
+  border-radius: 6px;
+  background: #0d1117;
+}
+
+.sig-banner-cp span {
+  display: grid;
+}
+
+.sig-banner-cp b {
+  color: #58a6ff;
+}
+
+.sig-banner-cp small {
+  color: #3fb950;
+  font-size: 12px;
+}
+
+/* ================= PUDDING (#7) ================= */
+.has-theme.th-sig-pudding {
+  --pf-base: #fff8e7;
+  --surface: #fff1cf;
+  --line: #f1dfb8;
+  background:
+    radial-gradient(circle, rgba(245, 158, 11, 0.16) 0 2px, transparent 3px) 0 0 / 34px 34px,
+    radial-gradient(circle, rgba(180, 83, 9, 0.09) 0 3px, transparent 4px) 17px 17px / 34px 34px,
+    linear-gradient(#fff8e7, #fff3d6);
+}
+
+/* caramel dripping from the top of the page */
+.pf-main.th-sig-pudding::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: -1;
+  height: 70px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 70' preserveAspectRatio='none'%3E%3Cpath d='M0 0h200v16q-6 4-10 0t-10 16q-4 14-8 0t-10-14q-8-4-12 6t-10 26q-4 12-8-2t-10-24q-8-6-14 2t-8 10q-4 6-8-4t-12-8q-8 0-10 14t-8 20q-4 6-8-6t-10-22q-6-6-12 2t-8 8Q8 18 0 16z' fill='%23b45309'/%3E%3C/svg%3E")
+    0 0 / 420px 70px repeat-x;
+  content: "";
+  opacity: 0.9;
+}
+
+.th-sig-pudding .pf-info h1 {
+  color: #92400e;
+}
+
+.th-sig-pudding .pf-avatar-box::before {
+  background: conic-gradient(#fcd34d, #b45309, #fde68a, #92400e, #fcd34d);
+  animation-duration: 10s;
+}
+
+.sig-drip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 54px;
+  filter: drop-shadow(0 3px 3px rgba(120, 53, 15, 0.35));
+}
+
+.sig-pudding {
+  position: absolute;
+  right: 3%;
+  bottom: 2%;
+  width: 30%;
+  max-width: 180px;
+  padding: 0;
+  border: 0;
+  background: none;
+  filter: drop-shadow(0 8px 12px rgba(120, 53, 15, 0.35));
+  cursor: pointer;
+  transform-origin: 50% 90%;
+  animation: sig-wobble 3.2s ease-in-out infinite;
+}
+
+.sig-pudding svg {
+  display: block;
+  width: 100%;
+}
+
+.sig-pudding.is-jiggle {
+  animation: sig-jiggle 0.9s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+@keyframes sig-wobble {
+  50% {
+    transform: scale(1.02, 0.98);
+  }
+}
+
+@keyframes sig-jiggle {
+  0% {
+    transform: scale(1);
+  }
+  20% {
+    transform: scale(1.18, 0.82);
+  }
+  40% {
+    transform: scale(0.88, 1.12) rotate(-3deg);
+  }
+  60% {
+    transform: scale(1.08, 0.94) rotate(2deg);
+  }
+  80% {
+    transform: scale(0.97, 1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.sig-banner-pudding {
+  border: 1px solid #f1dfb8;
+  background: #fff3d1;
+  color: #78350f;
+  font-weight: 600;
+}
+
+.sig-meter {
+  flex: 1;
+  min-width: 80px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #fde7b0;
+}
+
+.sig-meter i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.6) 50%, transparent 60%) -100%
+      0 / 50% 100% no-repeat,
+    linear-gradient(90deg, #fcd34d, #b45309);
+  animation: sig-meter 2.4s ease-in-out infinite;
+}
+
+@keyframes sig-meter {
+  to {
+    background-position:
+      200% 0,
+      0 0;
+  }
+}
+
+.sig-float {
+  position: absolute;
+  bottom: -40px;
+  left: var(--x);
+  font-size: 22px;
+  opacity: 0.55;
+  animation: sig-rise var(--t) linear var(--d) infinite;
+}
+
+@keyframes sig-rise {
+  to {
+    transform: translate(30px, -115vh) rotate(25deg);
+  }
+}
+
+/* ================= /me: signature card ================= */
+.sig-card {
+  display: flex;
+  overflow: hidden;
+  width: 100%;
+  height: 64px;
+  border-radius: 12px;
+}
+
+.sig-card i {
+  flex: 1;
+}
+
+.sig-card-homura i:nth-child(1) {
+  background: #120d1e;
+}
+
+.sig-card-homura i:nth-child(2) {
+  background: #a78bfa;
+}
+
+.sig-card-homura i:nth-child(3) {
+  background: #f0abfc;
+}
+
+.sig-card-ender i:nth-child(1) {
+  background: #16181c;
+}
+
+.sig-card-ender i:nth-child(2) {
+  background: #f97316;
+}
+
+.sig-card-ender i:nth-child(3) {
+  background: #22c55e;
+}
+
+.sig-card-cp i:nth-child(1) {
+  background: #0d1117;
+}
+
+.sig-card-cp i:nth-child(2) {
+  background: #58a6ff;
+}
+
+.sig-card-cp i:nth-child(3) {
+  background: #facc15;
+}
+
+.sig-card-pudding i:nth-child(1) {
+  background: #fde68a;
+}
+
+.sig-card-pudding i:nth-child(2) {
+  background: #b45309;
+}
+
+.sig-card-pudding i:nth-child(3) {
+  background: #fff8e7;
+}
+
+/* ================= small screens ================= */
+@media (max-width: 640px) {
+  .sig-clock {
+    width: 66%;
+  }
+
+  .sig-editor {
+    width: 82%;
+    font-size: 9.5px;
+  }
+
+  .sig-lcd {
+    left: 18px;
+    min-width: 120px;
+    font-size: 9.5px;
+  }
+
+  .sig-carriage {
+    width: 26px;
+    height: 24px;
+  }
+
+  .sig-pudding {
+    width: 34%;
+  }
+
+  .sig-banner-homura button {
+    margin-left: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sig-layer,
+  .sig-clock *,
+  .th-sig .pf-avatar-box::before,
+  .sig-pudding {
+    animation: none !important;
+  }
+
+  .th-sig-ender .pf-cover > img.is-on {
+    animation: none;
+  }
+
+  .sig-editor li code {
+    max-width: none;
+    animation: none;
+  }
+}
+
+/* ================= /me: "ธีมเฉพาะคุณ" ================= */
+.me2-sig h2 em {
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #a78bfa, #f472b6);
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 600;
+  vertical-align: 2px;
+}
+
+.me2-sig-card {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(120deg, color-mix(in srgb, #a78bfa 10%, #fff), #fff 60%);
+}
+
+.me2-sig-text b {
+  color: var(--ink-900);
+  font-size: 15px;
+}
+
+.me2-sig-text p {
+  margin-top: 2px;
+  color: var(--muted-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+[data-sig-toggle].is-on {
+  border: 1px solid var(--ink-strong);
+  background: #fff;
+  color: var(--ink-strong);
+}
+
+.me2-sig-art {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.me2-sig-art b {
+  color: var(--ink-900);
+  font-size: 14px;
+}
+
+.me2-sig-art .me-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.me2-sig-art-img {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 110px;
+  height: 74px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--muted-2);
+}
+
+.me2-sig-art-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 560px) {
+  .me2-sig-card {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+
+  .me2-sig-card [data-sig-toggle] {
+    grid-column: 1 / -1;
+  }
+
+  .me2-sig-art-img {
+    width: 84px;
+    height: 60px;
+  }
+}

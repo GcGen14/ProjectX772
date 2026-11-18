@@ -89,6 +89,12 @@ export type ProfileTheme = {
   emoji?: string;
   song?: string;
   hobbies?: string;
+  /** signature theme (only kept for its owner, see SIGNATURE_OWNERS) */
+  sig?: string;
+  /** upload id of the owner's picture for a signature theme */
+  art?: string;
+  /** owner switched their default-on signature theme off */
+  sigOff?: boolean;
 };
 const THEME_BG = [
   "plain",
@@ -110,7 +116,7 @@ const THEME_BG = [
 const THEME_FONTS = ["default", "mali", "playpen", "serif", "itim", "sriracha", "mono"];
 const THEME_AVATAR = ["round", "square"];
 /** extra look settings: [key, allowed values, default (not stored)] */
-const THEME_PICKS: [keyof ProfileTheme, string[], string][] = [
+const THEME_PICKS: ["mode" | "fx" | "corner" | "ring" | "cover", string[], string][] = [
   ["mode", ["light", "dark", "auto"], "light"],
   ["fx", ["none", "snow", "sparkle", "hearts", "petals", "gems", "cubes", "bubbles"], "none"],
   ["corner", ["sharp", "normal", "round"], "normal"],
@@ -412,6 +418,30 @@ function graphemes(v: string, n: number) {
 }
 
 /** Keep only known theme keys with valid values; anything else is dropped. */
+/** Signature themes (src/lib/signature.ts) and the one student allowed to use each. */
+export const SIGNATURE_OWNERS: Record<string, number> = {
+  homura: 1,
+  ender: 26,
+  cp: 15,
+  pudding: 7,
+};
+
+/** Drop a signature theme / picture that doesn't belong to this student. */
+export function restrictTheme(t: ProfileTheme, no: number): ProfileTheme {
+  if (t.sig && SIGNATURE_OWNERS[t.sig] !== no) delete t.sig;
+  if (t.art) {
+    try {
+      const own = getDb().prepare("SELECT owner FROM photo_owner WHERE photo_id = ?").get(t.art) as
+        | { owner: string }
+        | undefined;
+      if (own?.owner !== `s${no}`) delete t.art;
+    } catch {
+      delete t.art; // photo owners not set up yet
+    }
+  }
+  return t;
+}
+
 export function cleanTheme(v: unknown): ProfileTheme {
   const o = v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
   const pick = (k: string, allowed: string[]) =>
@@ -421,6 +451,9 @@ export function cleanTheme(v: unknown): ProfileTheme {
     out.accent = o.accent.toLowerCase();
   if (typeof o.accent2 === "string" && /^#[0-9a-f]{6}$/i.test(o.accent2))
     out.accent2 = o.accent2.toLowerCase();
+  if (typeof o.sig === "string" && o.sig in SIGNATURE_OWNERS) out.sig = o.sig;
+  if (typeof o.art === "string" && /^up-[\w-]{6,40}$/.test(o.art)) out.art = o.art;
+  if (o.sigOff === true) out.sigOff = true;
   const bg = pick("bg", THEME_BG);
   const font = pick("font", THEME_FONTS);
   const avatar = pick("avatar", THEME_AVATAR);
@@ -542,7 +575,7 @@ export function updateStudent(
     if (!(key in patch)) continue;
     if (key === "theme") {
       sets.push("theme = ?");
-      vals.push(JSON.stringify(cleanTheme(patch.theme)));
+      vals.push(JSON.stringify(restrictTheme(cleanTheme(patch.theme), no)));
       continue;
     }
     if (key === "badges") {
