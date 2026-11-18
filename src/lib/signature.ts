@@ -43,29 +43,16 @@ export const SIGNATURES: Signature[] = [
     owner: 26,
     name: "Ender 3D Printer",
     tagline: "เครื่องพิมพ์ 3D พิมพ์รูปปกทีละเลเยอร์ พร้อม G-code และจอ LCD",
-    preset: {
-      mode: "dark",
-      accent: "#f97316",
-      accent2: "#22c55e",
-      bg: "plain",
-      font: "mono",
-      ring: "none",
-      corner: "sharp",
-    },
+    // keeps the site's normal light look; only the decorations are themed
+    preset: { accent: "#f97316", accent2: "#22c55e", bg: "plain", ring: "none" },
   },
   {
     key: "cp",
     owner: 15,
     name: "Competitive Programmer",
     tagline: "C++ บนหน้าปก ผลตรวจ Accepted และกราฟเรตติ้งแบบ Codeforces",
-    preset: {
-      mode: "dark",
-      accent: "#3b82f6",
-      accent2: "#facc15",
-      bg: "plain",
-      font: "mono",
-      ring: "none",
-    },
+    // keeps the site's normal light look; only the decorations are themed
+    preset: { accent: "#2563eb", accent2: "#facc15", bg: "plain", ring: "none" },
   },
   {
     key: "pudding",
@@ -90,11 +77,18 @@ export const signatureOf = (no: number) => SIGNATURES.find((s) => s.owner === no
  * The theme a profile actually shows: owners get their signature theme by default (it was made
  * for them), unless they switched it off in /me (`sigOff`).
  */
-export function effectiveTheme(no: number, theme: ProfileTheme | undefined): ProfileTheme {
+export function effectiveTheme(
+  no: number,
+  theme: ProfileTheme | undefined,
+  /** the student's chosen profile picture: their own upload doubles as the signature picture */
+  avatar?: string,
+): ProfileTheme {
   const t = theme ?? {};
   const sig = signatureOf(no);
-  if (!sig || t.sig || t.sigOff) return t;
-  return { ...t, ...sig.preset, sig: sig.key };
+  if (!sig || t.sigOff) return t;
+  const on: ProfileTheme = t.sig ? { ...t } : { ...t, ...sig.preset, sig: sig.key };
+  if (sig.art && !on.art && avatar && /^up-[\w-]{6,40}$/.test(avatar)) on.art = avatar;
+  return on;
 }
 export const getSignature = (key: string | undefined) => SIGNATURES.find((s) => s.key === key);
 export const artSrc = (id: string | undefined) =>
@@ -136,6 +130,16 @@ function clockFace() {
     <path class="sig-gem" d="M0 -9 L7 0 L0 9 L-7 0 Z"/>
   </svg>`;
 }
+
+/** hourglass with sand running from the top bulb to the bottom one */
+const hourglass = () => `<svg class="sig-hourglass" viewBox="0 0 40 64" aria-hidden="true">
+  <defs><clipPath id="sig-hg-top"><path d="M9 8h22c0 12-8 16-11 22-3-6-11-10-11-22z"/></clipPath><clipPath id="sig-hg-bot"><path d="M9 56h22c0-12-8-16-11-22-3 6-11 10-11 22z"/></clipPath></defs>
+  <rect class="sand top" x="6" y="8" width="28" height="22" clip-path="url(#sig-hg-top)"/>
+  <rect class="sand bot" x="6" y="34" width="28" height="22" clip-path="url(#sig-hg-bot)"/>
+  <rect class="stream" x="19.4" y="29" width="1.2" height="16"/>
+  <path class="glass" d="M9 8h22c0 12-8 16-11 24 3 8 11 12 11 24H9c0-12 8-16 11-24-3-8-11-12-11-24z"/>
+  <rect class="cap" x="5" y="4" width="30" height="4" rx="2"/><rect class="cap" x="5" y="56" width="30" height="4" rx="2"/>
+</svg>`;
 
 const feather = `<svg viewBox="0 0 24 60"><path d="M12 2c8 10 10 26 2 44l-2 12-2-12C2 28 4 12 12 2z" fill="currentColor"/><path d="M12 6v52" stroke="rgba(255,255,255,.25)" stroke-width="1"/></svg>`;
 
@@ -212,7 +216,16 @@ function coverHtml(sig: SigKey, theme: ProfileTheme) {
   switch (sig) {
     case "homura": {
       const art = artSrc(theme.art);
-      return `<div class="sig-cover sig-cover-homura">${art ? `<img class="sig-art" src="${art}" alt="">` : ""}<div class="sig-vignette"></div>${clockFace()}<span class="sig-cover-tag">⌛ Time Stop</span></div>`;
+      // no picture yet: the clock over the normal cover photos
+      if (!art)
+        return `<div class="sig-cover sig-cover-homura"><div class="sig-vignette"></div>${clockFace()}<span class="sig-cover-tag">⌛ Time Stop</span></div>`;
+      // with a picture: a whole night scene (the cover photos sit underneath)
+      return `<div class="sig-cover sig-cover-homura has-art">
+        <div class="sig-night"></div>
+        ${clockFace()}
+        <figure class="sig-portrait"><img src="${art}" alt=""></figure>
+        <div class="sig-title">${hourglass()}<b>Homura</b><span>Akemi · Time Stop</span></div>
+      </div>`;
     }
     case "ender":
       return `<div class="sig-cover sig-cover-ender" aria-hidden="true">

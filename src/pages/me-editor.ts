@@ -202,7 +202,10 @@ export function renderEditor(
   const no = s.no;
   const sig = signatureOf(no);
   // owners see their signature theme switched on unless they turned it off
-  const draft: StudentRecord = { ...rec, theme: effectiveTheme(rec.no, { ...rec.theme }) };
+  const draft: StudentRecord = {
+    ...rec,
+    theme: effectiveTheme(rec.no, { ...rec.theme }, rec.avatar),
+  };
   let tab: TabKey = "info";
   try {
     const t = sessionStorage.getItem(TAB_KEY) as TabKey | null;

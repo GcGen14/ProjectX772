@@ -223,9 +223,10 @@
   backdrop-filter: blur(6px);
   color: #ede9fe;
   font:
-    italic 600 13px Georgia,
+    600 13px "Cinzel",
+    Georgia,
     serif;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 .sig-banner-homura {
@@ -347,27 +348,22 @@
 
 /* ================= ENDER 3D PRINTER (#26) ================= */
 .has-theme.th-sig-ender {
-  --pf-base: #16181c;
-  --surface: #20242a;
-  --line: #2f343c;
   background:
-    radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1.6px) 0 0 / 7px 7px,
-    linear-gradient(rgba(249, 115, 22, 0.07) 1px, transparent 1px) 0 0 / 44px 44px,
-    linear-gradient(90deg, rgba(249, 115, 22, 0.07) 1px, transparent 1px) 0 0 / 44px 44px,
-    #16181c;
+    linear-gradient(rgba(249, 115, 22, 0.06) 1px, transparent 1px) 0 0 / 44px 44px,
+    linear-gradient(90deg, rgba(249, 115, 22, 0.06) 1px, transparent 1px) 0 0 / 44px 44px,
+    #fff;
 }
 
 /* the cover is printed layer by layer (in step with the 4.5s slideshow) */
 .th-sig-ender .pf-cover > img.is-on {
-  animation: sig-print 4.5s steps(30, end) infinite;
+  animation: sig-print 1.6s steps(24, end) both;
 }
 
 @keyframes sig-print {
-  0% {
+  from {
     clip-path: inset(100% 0 0 0);
   }
-  78%,
-  100% {
+  to {
     clip-path: inset(0 0 0 0);
   }
 }
@@ -421,7 +417,7 @@
   0% {
     top: calc(100% - 9px);
   }
-  78%,
+  35%,
   100% {
     top: 14px;
   }
@@ -526,10 +522,9 @@
 }
 
 .sig-banner-ender {
-  border: 1px solid #2f343c;
-  background: #101215;
-  color: #e5e7eb;
-  font-family: ui-monospace, Consolas, monospace;
+  border: 1px solid #fed7aa;
+  background: #fff7ed;
+  color: #7c2d12;
 }
 
 .sig-spool {
@@ -546,9 +541,11 @@
   flex: 1;
   height: 18px;
   overflow: hidden;
-  color: #fdba74;
-  font-size: 12.5px;
-  line-height: 18px;
+  color: #c2410c;
+  font:
+    600 12.5px/18px ui-monospace,
+    Consolas,
+    monospace;
 }
 
 .sig-gcode > span {
@@ -571,19 +568,13 @@
 
 /* ================= CP / C++ (#15) ================= */
 .has-theme.th-sig-cp {
-  --pf-base: #0d1117;
-  --surface: #161b22;
-  --line: #30363d;
-  --ink: #e6edf3;
-  --ink-900: #f0f6fc;
-  --muted-2: #9da7b3;
   background:
-    radial-gradient(rgba(88, 166, 255, 0.07) 1px, transparent 1.4px) 0 0 / 22px 22px,
-    #0d1117;
+    radial-gradient(rgba(37, 99, 235, 0.08) 1px, transparent 1.4px) 0 0 / 22px 22px,
+    #fff;
 }
 
 .th-sig-cp .pf-info h1 {
-  color: #58a6ff;
+  color: #1d4ed8;
 }
 
 .th-sig-cp .pf-avatar-box::before {
@@ -601,22 +592,31 @@
 
 .sig-editor {
   position: absolute;
-  top: 8%;
-  left: 4%;
-  width: min(64%, 400px);
+  bottom: 10px;
+  left: 10px;
+  width: min(46%, 300px);
   overflow: hidden;
   border: 1px solid #30363d;
   border-radius: 10px;
-  background: rgba(13, 17, 23, 0.9);
+  background: rgba(13, 17, 23, 0.82);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
   color: #c9d1d9;
   font:
-    11.5px/1.6 ui-monospace,
+    10.5px/1.55 ui-monospace,
     "SFMono-Regular",
     Consolas,
     monospace;
+}
+
+/* only the last lines show in the small window (it scrolls as it "types") */
+.sig-editor ol {
+  max-height: 7.2em;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
 }
 
 .sig-tabs {
@@ -702,17 +702,17 @@
 
 .sig-verdict {
   position: absolute;
-  right: 5%;
-  bottom: 8%;
+  right: 10px;
+  bottom: 10px;
   display: grid;
-  padding: 8px 14px;
+  padding: 7px 12px;
   border: 1px solid #238636;
   border-radius: 10px;
   background: rgba(4, 38, 15, 0.9);
   box-shadow: 0 0 20px rgba(63, 185, 80, 0.35);
   color: #3fb950;
   font:
-    12px ui-monospace,
+    11.5px ui-monospace,
     Consolas,
     monospace;
   opacity: 0;
@@ -745,18 +745,18 @@
 }
 
 .sig-banner-cp {
-  border: 1px solid #30363d;
-  background: #161b22;
-  color: #e6edf3;
-  font-family: ui-monospace, Consolas, monospace;
+  border: 1px solid #dbeafe;
+  background: #f5f9ff;
+  color: #1f2328;
 }
 
 .sig-rating {
   flex: none;
   width: 150px;
   height: 42px;
+  border: 1px solid #e5e7eb;
   border-radius: 6px;
-  background: #0d1117;
+  background: #fff;
 }
 
 .sig-banner-cp span {
@@ -764,12 +764,16 @@
 }
 
 .sig-banner-cp b {
-  color: #58a6ff;
+  color: #1d4ed8;
+  font-family: ui-monospace, Consolas, monospace;
 }
 
 .sig-banner-cp small {
-  color: #3fb950;
-  font-size: 12px;
+  color: #15803d;
+  font:
+    600 12px ui-monospace,
+    Consolas,
+    monospace;
 }
 
 /* ================= PUDDING (#7) ================= */
@@ -1118,4 +1122,211 @@
     width: 84px;
     height: 60px;
   }
+}
+
+/* ---------- Homura: night scene when there is a picture ---------- */
+.sig-cover-homura.has-art {
+  background:
+    radial-gradient(circle at 78% 46%, rgba(167, 139, 250, 0.35), transparent 55%),
+    radial-gradient(circle at 18% 60%, rgba(240, 171, 252, 0.22), transparent 50%),
+    linear-gradient(160deg, #1d1236, #0c0817 70%);
+}
+
+.sig-night {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 12% 18%, #fff, transparent 60%),
+    radial-gradient(1.5px 1.5px at 34% 72%, #e9d5ff, transparent 60%),
+    radial-gradient(1px 1px at 52% 12%, #fff, transparent 60%),
+    radial-gradient(1.2px 1.2px at 64% 84%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 88% 10%, #f5d0fe, transparent 60%),
+    radial-gradient(1.5px 1.5px at 92% 66%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 6% 88%, #fff, transparent 60%),
+    radial-gradient(1px 1px at 44% 40%, #ddd6fe, transparent 60%);
+  animation: sig-twinkle 4s ease-in-out infinite alternate;
+}
+
+@keyframes sig-twinkle {
+  to {
+    opacity: 0.45;
+  }
+}
+
+.sig-cover-homura.has-art .sig-clock {
+  top: 50%;
+  right: -4%;
+  width: 66%;
+  opacity: 0.9;
+  translate: 0 -50%;
+}
+
+.sig-portrait {
+  position: absolute;
+  top: 50%;
+  left: 7%;
+  z-index: 1;
+  height: 82%;
+  aspect-ratio: 3 / 4;
+  margin: 0;
+  padding: 4px;
+  border-radius: 999px 999px 18px 18px;
+  background: linear-gradient(160deg, #e9d5ff, #a78bfa 45%, #6d28d9);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.35),
+    0 0 34px rgba(167, 139, 250, 0.7),
+    0 18px 40px rgba(0, 0, 0, 0.5);
+  translate: 0 -50%;
+}
+
+.sig-portrait img {
+  width: 100%;
+  height: 100%;
+  border-radius: 999px 999px 14px 14px;
+  object-fit: cover;
+  object-position: 50% 20%;
+}
+
+/* a little soul gem on top of the arch */
+.sig-portrait::before {
+  position: absolute;
+  top: -9px;
+  left: calc(50% - 9px);
+  width: 18px;
+  height: 18px;
+  background: linear-gradient(135deg, #f5d0fe, #a855f7 45%, #581c87);
+  box-shadow: 0 0 14px rgba(240, 171, 252, 0.95);
+  content: "";
+  transform: rotate(45deg);
+  animation: sig-gem 2.4s ease-in-out infinite;
+}
+
+.sig-hourglass {
+  position: absolute;
+  bottom: 9%;
+  left: calc(7% + 82% * 0.75 * 0.93);
+  z-index: 2;
+  width: 30px;
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.8));
+}
+
+.sig-hourglass .glass {
+  fill: rgba(237, 233, 254, 0.12);
+  stroke: #ddd6fe;
+  stroke-width: 1.6;
+}
+
+.sig-hourglass .cap {
+  fill: #c4b5fd;
+}
+
+.sig-hourglass .sand {
+  fill: #f0abfc;
+}
+
+.sig-hourglass .sand.top {
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+  animation: sig-sand-top 6s linear infinite;
+}
+
+.sig-hourglass .sand.bot {
+  transform-origin: 50% 100%;
+  transform-box: fill-box;
+  animation: sig-sand-bot 6s linear infinite;
+}
+
+.sig-hourglass .stream {
+  fill: #f0abfc;
+  animation: sig-blink 0.4s steps(2) infinite;
+}
+
+@keyframes sig-sand-top {
+  from {
+    transform: scaleY(1);
+  }
+  to {
+    transform: scaleY(0.05);
+  }
+}
+
+@keyframes sig-sand-bot {
+  from {
+    transform: scaleY(0.05);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+.sig-title {
+  position: absolute;
+  right: 6%;
+  bottom: 9%;
+  z-index: 2;
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.sig-title b {
+  background: linear-gradient(100deg, #fff, #ddd6fe 50%, #f0abfc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font:
+    700 clamp(26px, 3.4vw, 40px) / 1 "Cinzel",
+    Georgia,
+    serif;
+  letter-spacing: 0.06em;
+  filter: drop-shadow(0 2px 10px rgba(167, 139, 250, 0.6));
+}
+
+.sig-title span {
+  margin-top: 4px;
+  color: #ddd6fe;
+  font:
+    600 12px "Cinzel",
+    Georgia,
+    serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.sig-stopped .sig-night,
+.sig-stopped .sig-hourglass *,
+.sig-stopped .sig-portrait::before {
+  animation-play-state: paused !important;
+}
+
+@media (max-width: 640px) {
+  .sig-editor {
+    width: 58%;
+    font-size: 9px;
+  }
+
+  .sig-title span {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+  }
+
+  .sig-hourglass {
+    width: 22px;
+  }
+}
+
+/* .pf-cover img (the slideshow) is hidden until it's the active slide; the portrait is not a slide */
+.pf-cover .sig-portrait img {
+  position: static;
+  inset: auto;
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+/* the hourglass sits above the title */
+.sig-title .sig-hourglass {
+  position: static;
+  width: 26px;
+  margin-bottom: 8px;
 }
