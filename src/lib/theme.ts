@@ -36,6 +36,8 @@ export type ProfileTheme = {
   sig?: "homura" | "ender" | "cp" | "pudding";
   /** owner-uploaded picture used by a signature theme (an upload id, "up-…") */
   art?: string;
+  /** the owner switched their (default-on) signature theme off */
+  sigOff?: boolean;
   emoji?: string;
   song?: string;
   hobbies?: string;
@@ -156,9 +158,9 @@ export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: s
 
 /** Put the theme on an element, replacing whatever theme it had before. */
 export function applyTheme(el: HTMLElement, t: ProfileTheme | undefined) {
-  el.classList.forEach((c) => {
-    if (c === "has-theme" || c.startsWith("th-")) el.classList.remove(c);
-  });
+  // collect first: removing while iterating a live classList skips every other class
+  const old = [...el.classList].filter((c) => c === "has-theme" || c.startsWith("th-"));
+  el.classList.remove(...old);
   el.style.removeProperty("--pf-accent");
   el.style.removeProperty("--pf-accent2");
   const { cls, style } = themeAttrs(t);
