@@ -52,12 +52,26 @@ from PIL import Image
 
 sys.stdout.reconfigure(encoding="utf-8")
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-HERE = os.path.join(ROOT, "scripts")
-CACHE = os.path.join(HERE, ".cache")
-MODELS = os.path.join(HERE, "models")
+HERE = os.path.dirname(os.path.abspath(__file__))  # scripts/ (on the server: server/faces/)
+
+
+def find_root(d):
+    while not os.path.isdir(os.path.join(d, "src", "data")):
+        if d == os.path.dirname(d):
+            raise SystemExit("faces.py: can't find the project folder (src/data)")
+        d = os.path.dirname(d)
+    return d
+
+
+ROOT = find_root(HERE)
+# On the server, FACES_HOME=data/faces holds the models, the cache and the output, because data/ is
+# the only folder that survives a deploy. Portraits / avatars are not rebuilt there (they ship in dist).
+FACES_HOME = os.environ.get("FACES_HOME")
+CACHE = os.path.join(FACES_HOME, "cache") if FACES_HOME else os.path.join(HERE, ".cache")
+MODELS = os.path.join(FACES_HOME, "models") if FACES_HOME else os.path.join(HERE, "models")
 MANIFEST = os.path.join(ROOT, "src", "data", "manifest.json")
-PEOPLE_JSON = os.path.join(ROOT, "src", "data", "people.json")
+BUNDLED_PEOPLE = os.path.join(ROOT, "src", "data", "people.json")
+PEOPLE_JSON = os.path.join(FACES_HOME, "people.json") if FACES_HOME else BUNDLED_PEOPLE
 POOL_JSON = os.path.join(ROOT, "src", "data", "portrait_pool.json")
 GROUPS = os.path.join(HERE, "people_groups.json")
 OVERRIDES = os.path.join(HERE, "people_overrides.json")
@@ -122,8 +136,11 @@ def download(ids, folder, size):
 
     def one(fid):
         if fid.startswith("lb-"):  # added from this computer (import_local_album.py), not on Drive
-            p = os.path.join(ROOT, "public", "photos", "large", fid + ".jpg")
-            return p if os.path.exists(p) else None
+            for base in ("public", "dist"):  # dev / server
+                p = os.path.join(ROOT, base, "photos", "large", fid + ".jpg")
+                if os.path.exists(p):
+                    return p
+            return None
         p = os.path.join(folder, fid + ".jpg")
         if os.path.exists(p) and os.path.getsize(p) > 1000:
             return p
@@ -573,9 +590,17 @@ def cmd_match():
         for pid in pids:
             hits[int(k) - 1].pop(pid, None)
 
-    os.makedirs(PUBLIC_PEOPLE, exist_ok=True)
+    bundled = {}
+    if FACES_HOME:  # server: portraits + avatars come with the build; only the tags are new
+        bundled = {x["set"]: x["portraits"] for x in json.load(open(BUNDLED_PEOPLE, encoding="utf8"))["sets"]}
+    else:
+        os.makedirs(PUBLIC_PEOPLE, exist_ok=True)
     out = []
     for k, s in enumerate(sets):
+        photos = [pid for pid, _ in sorted(hits[k].items(), key=lambda kv: -kv[1][0])]
+        if FACES_HOME:
+            out.append({"set": k + 1, "portraits": bundled.get(k + 1, []), "photos": photos})
+            continue
         ports = []
         for p in s:
             dst = os.path.join(PUBLIC_PEOPLE, p["id"] + ".jpg")
@@ -587,7 +612,6 @@ def cmd_match():
                 w, h = im.size
             ports.append({"id": p["id"], "w": w, "h": h})
         save_avatar(s[0], os.path.join(PUBLIC_PEOPLE, f"avatar-{k + 1}.jpg"))
-        photos = [pid for pid, _ in sorted(hits[k].items(), key=lambda kv: -kv[1][0])]
         out.append({"set": k + 1, "portraits": ports, "photos": photos})
         print(f"set {k + 1:2d}: portraits={len(ports):2d} photos={len(photos):3d}")
     # per-photo face tags for the viewer: { photoId: [[set, x, y, w, h], ...] } (box = fraction of image)
@@ -601,14 +625,14 @@ def cmd_match():
         if not i["set"]:
             solo.append({"no": i["no"], "photos": [pid for pid, _ in sorted(h.items(), key=lambda kv: -kv[1][0])]})
             print(f"no {i['no']:2d} (school photo only): photos={len(h):3d}")
-    json.dump(
-        {"sets": out, "tags": tags, "students": solo, "studentTags": solo_tags},
-        open(PEOPLE_JSON, "w", encoding="utf8"),
-        separators=(",", ":"),
-    )
+    tmp = PEOPLE_JSON + ".part"  # the site reads this file while we work: swap it in whole
+    with open(tmp, "w", encoding="utf8") as f:
+        json.dump({"sets": out, "tags": tags, "students": solo, "studentTags": solo_tags}, f, separators=(",", ":"))
+    os.replace(tmp, PEOPLE_JSON)
     print("tagged photos:", len(set(tags) | set(solo_tags)))
     print("wrote", os.path.relpath(PEOPLE_JSON, ROOT))
-    cmd_pool()
+    if not FACES_HOME:
+        cmd_pool()
 
 
 if __name__ == "__main__":
