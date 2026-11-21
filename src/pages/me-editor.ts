@@ -62,6 +62,7 @@ const TABS = [
   { k: "theme", label: "ธีม", icon: "palette" },
   { k: "character", label: "ตัวการ์ตูน", icon: "sparkle" },
   { k: "socials", label: "โซเชียล", icon: "globe" },
+  { k: "layout", label: "จัดหน้า", icon: "grid" },
   { k: "privacy", label: "ความเป็นส่วนตัว", icon: "shield" },
   { k: "account", label: "บัญชี", icon: "lock" },
 ] as const;
@@ -353,6 +354,7 @@ export function renderEditor(
         <div class="me2-panel" data-panel="more" role="tabpanel">${extrasSectionHtml(no, "more")}</div>
         <div class="me2-panel" data-panel="character" role="tabpanel">${extrasSectionHtml(no, "character")}</div>
         <div class="me2-panel" data-panel="socials" role="tabpanel">${extrasSectionHtml(no, "socials")}</div>
+        <div class="me2-panel" data-panel="layout" role="tabpanel">${extrasSectionHtml(no, "layout")}</div>
         <div class="me2-panel" data-panel="privacy" role="tabpanel">${extrasSectionHtml(no, "privacy")}</div>
 
         <div class="me2-panel" data-panel="account" role="tabpanel">
