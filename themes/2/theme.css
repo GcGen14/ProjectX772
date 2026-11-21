@@ -1,0 +1,156 @@
+/*
+  เลขที่ 2 · เขต — FTC + เครื่องบิน / ยานอวกาศ
+  แนวคิด: "สมุดคู่มือการบิน" กระดาษ blueprint เส้นบาง ๆ สีกรมท่า
+  จุดเน้นสีส้ม FIRST ใช้แค่ที่เดียวต่อหนึ่งองค์ประกอบ เพื่อให้เข้ากับเว็บที่เรียบ ๆ
+*/
+:root {
+  --pf-accent: #f26a21;
+  --pf-accent2: #0b3d6b;
+  --t2-ink: #0b2a4a;
+  --t2-line: rgba(11, 61, 107, 0.12);
+}
+
+.pf-head {
+  position: relative;
+  isolation: isolate;
+}
+
+/* กระดาษ blueprint จางลงเมื่อลงมาด้านล่าง ไม่ลามไปถึงแกลเลอรี */
+.pf-head::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -14px 0 -28px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--t2-line) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(90deg, var(--t2-line) 1px, transparent 1px) 0 0 / 28px 28px,
+    radial-gradient(ellipse 70% 90% at 80% 0, rgba(242, 106, 33, 0.07), transparent 70%),
+    linear-gradient(#f3f8fe, #fff);
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 55%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 55%, transparent);
+}
+
+/* ป้ายชื่อรหัสเรียกขาน เหนือชื่อ */
+.pf-info-text::before {
+  content: "CALLSIGN · PILOT NO.02";
+  margin-bottom: 2px;
+  color: var(--pf-accent);
+  font:
+    700 11px/1 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    Consolas,
+    monospace;
+  letter-spacing: 0.2em;
+}
+
+.pf-info h1 {
+  color: var(--t2-ink);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.pf-handle {
+  color: #51657d;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+/* เครื่องบินกระดาษเล็ก ๆ ท้ายแฮนเดิล */
+.pf-handle::after {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M2 11 22 2 15 22 11 13z' fill='%23f26a21'/><path d='M11 13 22 2' stroke='%23fff' stroke-width='1.2'/></svg>")
+    center / contain no-repeat;
+  transform: rotate(-12deg);
+}
+
+.pf-bio {
+  color: #33475f;
+}
+
+:root.has-theme .pf-line .icon {
+  color: var(--pf-accent);
+}
+
+/* รูปโปรไฟล์: วงโคจรเส้นประ */
+.pf-avatar {
+  outline: 1.5px dashed var(--pf-accent);
+  outline-offset: 5px;
+}
+
+/* หน้าปก: กรอบเฟรมกล้อง + แถบบอกสถานะด้านล่าง */
+:root.has-theme .pf-cover {
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px var(--t2-line),
+    0 18px 36px -22px rgba(11, 42, 74, 0.55);
+}
+
+.pf-cover::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(#fff, #fff) 0 0 / 20px 1.5px no-repeat,
+    linear-gradient(#fff, #fff) 0 0 / 1.5px 20px no-repeat,
+    linear-gradient(#fff, #fff) 100% 0 / 20px 1.5px no-repeat,
+    linear-gradient(#fff, #fff) 100% 0 / 1.5px 20px no-repeat,
+    linear-gradient(#fff, #fff) 0 100% / 20px 1.5px no-repeat,
+    linear-gradient(#fff, #fff) 0 100% / 1.5px 20px no-repeat,
+    linear-gradient(#fff, #fff) 100% 100% / 20px 1.5px no-repeat,
+    linear-gradient(#fff, #fff) 100% 100% / 1.5px 20px no-repeat;
+  opacity: 0.85;
+}
+
+.pf-cover::after {
+  content: "FTC  ·  BUILD  →  FLY  →  ITERATE";
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 26px 20px 12px;
+  color: #fff;
+  font:
+    600 11px/1 ui-monospace,
+    "SFMono-Regular",
+    Menlo,
+    Consolas,
+    monospace;
+  letter-spacing: 0.22em;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 28, 52, 0.72), transparent);
+}
+
+/* ป้ายด้านล่างหน้าปก เหมือนสเปกบนแผ่นแบบ */
+:root.has-theme .pf-tag {
+  border: 1px solid #c8d7e8;
+  border-radius: 6px;
+  background: #f4f8fd;
+  color: var(--t2-ink);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+:root.has-theme .pf-tag .icon {
+  color: var(--pf-accent);
+}
+
+.pf-tab.is-active {
+  color: var(--t2-ink);
+}
+
+.pf-tab.is-active::after {
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--pf-accent);
+}
+
+:root.has-theme .pf-tab-count {
+  color: var(--pf-accent);
+}
