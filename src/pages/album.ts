@@ -1,118 +1,46 @@
 // /album/<slug> — a page made for looking at photos:
 //   hero mosaic + facts, "who's in this album" (tap a face to filter), sticky toolbar,
-//   photos grouped by day in justified rows, videos, about, other albums.
+//   photos in justified rows (by day / album order / most people), events, videos, about.
 import {
   BRAND,
-  CLASS,
   albums,
   driveFolder,
-  eventList,
   featured,
   getAlbum,
-  getPhoto,
   large,
   photoExif,
-  photoInfo,
-  photoSrc,
   photoTags,
   students,
   studentAvatar,
   thumb,
+  photoSrc,
   type Album,
-  type EventRec,
   type Photo,
   type Student,
 } from "../data.ts";
 import { myNo } from "../lib/api.ts";
+import { albumCard, eventCard } from "../lib/cards.ts";
+import {
+  albumCount,
+  albumEvents,
+  albumCover,
+  albumCoverSrc,
+  albumSrcs,
+  dateRange,
+  dayKey,
+  longDay,
+  shortDay,
+} from "../lib/events.ts";
+import { readPref, rowsHtml, tileHtml, writePref, type Size } from "../lib/gallery.ts";
 import { icon, logoMark } from "../lib/icons.ts";
+import { previewHtml } from "../lib/preview.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
 import { createViewer, type MediaItem } from "../lib/viewer.ts";
 import { mountVideos, rail, renderProfilePage, type PageApi } from "./profile.ts";
 
-export const albumCover = (a: Album) => {
-  const f = featured(a);
-  // a landscape shot from a third of the way in: the first file is often a sign/test shot
-  const wide = f.filter((p) => p.w >= p.h);
-  return wide[Math.floor(wide.length / 3)] ?? f[0] ?? a.photos[0];
-};
-export const albumCoverSrc = (a: Album) => {
-  const c = albumCover(a);
-  if (c) return large(c);
-  const v = a.videos.find((x) => x.thumb);
-  return v ? thumb(v.id) : "/favicon.svg";
-};
-export const albumCount = (a: Album) =>
-  [
-    a.photos.length ? `${a.photos.length.toLocaleString()} รูป` : "",
-    a.videos.length ? `${a.videos.length} คลิป` : "",
-  ]
-    .filter(Boolean)
-    .join(" · ");
+export { albumCover, albumCoverSrc, albumCount };
 
-/* ---------------- events (photos grouped by occasion, see scripts/events.py) ---------------- */
-export type AlbumEvent = { ev: EventRec; photos: Photo[] };
-/** This album's photos split by event, in time order; photos no event claims go last. */
-export function albumEvents(a: Album): AlbumEvent[] {
-  const mine = new Map(a.photos.map((p) => [p.id, p]));
-  const out: AlbumEvent[] = [];
-  const placed = new Set<string>();
-  for (const ev of eventList()) {
-    const photos = ev.photos.map((id) => mine.get(id)).filter((p): p is Photo => !!p);
-    if (!photos.length) continue;
-    out.push({ ev, photos });
-    photos.forEach((p) => placed.add(p.id));
-  }
-  const rest = a.photos.filter((p) => !placed.has(p.id));
-  if (rest.length)
-    out.push({
-      ev: {
-        id: `rest-${a.slug}`,
-        title: "ภาพอื่น ๆ",
-        day: null,
-        start: null,
-        end: null,
-        other: true,
-        albums: { [a.slug]: rest.length },
-        photos: rest.map((p) => p.id),
-        cover: rest[0].id,
-      },
-      photos: rest,
-    });
-  return out;
-}
-const realEvents = (a: Album) => albumEvents(a).filter((x) => !x.ev.other && x.photos.length >= 3);
-export const albumEventCount = (a: Album) => realEvents(a).length;
-
-/** Three-picture collage for an album card: the cover + the covers of its biggest events. */
-export function albumPreview(a: Album) {
-  const imgs = [albumCoverSrc(a)];
-  for (const { ev, photos } of [...realEvents(a)].sort(
-    (x, y) => y.photos.length - x.photos.length,
-  )) {
-    const src = photoSrc(getPhoto(ev.cover) ?? photos[0]);
-    if (!imgs.includes(src)) imgs.push(src);
-    if (imgs.length === 3) break;
-  }
-  return `<span class="al-pv n-${imgs.length}">${imgs.map((s) => `<img src="${s}" alt="" loading="lazy">`).join("")}</span>`;
-}
-
-/** "09:42–11:05" when the event has clock times. */
-export const eventTime = (e: EventRec) =>
-  e.start && e.start.length > 10
-    ? e.end && e.end !== e.start
-      ? `${e.start.slice(11)}–${e.end.slice(11)}`
-      : e.start.slice(11)
-    : "";
-/** Date line: "13 ก.พ. 2569", a range for multi-day events, "ไม่ทราบวันที่". */
-export function eventDay(e: EventRec) {
-  if (!e.day) return "";
-  const end = e.end?.slice(0, 10);
-  return (
-    (e.approx ? "ราว " : "") + shortDay(e.day) + (end && end !== e.day ? ` – ${shortDay(end)}` : "")
-  );
-}
-
-/** Cards linking to albums (used on student pages). */
+/** Small rows linking to albums (used on student pages). */
 export const albumRows = (list: Album[]) =>
   list
     .map(
@@ -121,79 +49,22 @@ export const albumRows = (list: Album[]) =>
     )
     .join("");
 
+/** Cards linking to albums (student / teacher pages). Hover flips through the album's pictures. */
 export const albumCards = (list: Album[]) =>
   `<div class="pf-svc-grid">${list
-    .map(
-      (a) => `<a class="pf-svc-card" href="/album/${a.slug}" data-link>
-        <div class="al-pv-wrap">${albumPreview(a)}</div>
+    .map((a) => {
+      const { srcs, videoFrom } = albumSrcs(a);
+      return `<a class="pf-svc-card pv-host" href="/album/${a.slug}" data-link>
+        <div class="al-pv-wrap">${previewHtml(srcs, { videoFrom })}</div>
         <h3>${esc(a.title)} <span class="muted">· ${esc(a.en)}</span></h3>
-        <div class="pf-svc-meta">${icon("image", 14)} <span>${albumCount(a)}${albumEventCount(a) ? ` · ${albumEventCount(a)} เหตุการณ์` : ""}</span></div>
-      </a>`,
-    )
+        <div class="pf-svc-meta">${icon("image", 14)} <span>${albumCount(a)}</span></div>
+      </a>`;
+    })
     .join("")}</div>`;
 
-/* ---------------- dates ---------------- */
-const TH_MONTHS = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
-const toDate = (d: string) => new Date(d.replace(" ", "T"));
-const dayKey = (p: Photo) => {
-  const d = photoExif(p.id).date;
-  return d && d >= "2020" ? d.slice(0, 10) : "";
-};
-const shortDay = (k: string) => {
-  const d = toDate(k);
-  return `${d.getDate()} ${TH_MONTHS[d.getMonth()]} ${d.getFullYear() + 543}`;
-};
-const longDay = (k: string) =>
-  new Intl.DateTimeFormat("th-TH", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(toDate(k));
-function dateRange(photos: Photo[]) {
-  const days = [...new Set(photos.map(dayKey).filter(Boolean))].sort();
-  if (!days.length) return "";
-  const a = days[0];
-  const b = days[days.length - 1];
-  if (a === b) return shortDay(a);
-  const [da, db] = [toDate(a), toDate(b)];
-  if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth())
-    return `${da.getDate()}–${db.getDate()} ${TH_MONTHS[db.getMonth()]} ${db.getFullYear() + 543}`;
-  return `${shortDay(a)} – ${shortDay(b)}`;
-}
-
-type View = "event" | "day" | "album" | "people";
+type View = "day" | "album" | "people";
 const VIEW_KEY = "album-view";
 const SIZE_KEY = "album-size";
-const SIZES = { s: 150, m: 220, l: 320 } as const;
-type Size = keyof typeof SIZES;
-const read = (k: string) => {
-  try {
-    return localStorage.getItem(k) ?? "";
-  } catch {
-    return "";
-  }
-};
-const write = (k: string, v: string) => {
-  try {
-    localStorage.setItem(k, v);
-  } catch {
-    /* ignore */
-  }
-};
 
 export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
   const a = getAlbum(slug);
@@ -210,14 +81,8 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     .filter((s) => perPerson.has(s.no))
     .sort((x, y) => perPerson.get(y.no)! - perPerson.get(x.no)!);
   const datedShare = a.photos.filter((p) => dayKey(p)).length / Math.max(1, a.photos.length);
-  const cameras = [
-    ...new Set(a.photos.map((p) => photoExif(p.id).camera).filter(Boolean)),
-  ] as string[];
   const range = dateRange(a.photos);
-  const evs = albumEvents(a);
-  const railEvents = evs.filter((x) => !x.ev.other && x.photos.length >= 3);
-  const hasEvents = railEvents.length >= 2;
-  const evById = new Map(evs.map((x) => [x.ev.id, x]));
+  const events = albumEvents(a);
   const caption = (p: Photo) => (p.group && a.groups.length ? `${a.title} · ${p.group}` : a.title);
   const others = albums.filter((x) => x !== a);
   const me = myNo();
@@ -264,19 +129,17 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
       <header class="al-hero">
         <div class="al-mosaic n-${Math.min(5, Math.max(1, picks.length || a.videos.filter((v) => v.thumb).slice(0, 5).length))}">${mosaic}</div>
         <div class="al-hero-info">
-          <span class="al-kicker">${icon("image", 14)} อัลบั้ม · ${esc(a.en)}</span>
+          <span class="al-kicker">${icon("image", 14)} ${esc(a.en)}</span>
           <h1>${esc(a.title)}</h1>
           ${a.tagline ? `<p class="al-tagline">${esc(a.tagline)}</p>` : ""}
           <div class="al-facts">
             ${fact("calendar", range)}
             ${fact("image", a.photos.length ? `<b>${a.photos.length.toLocaleString()}</b> รูป` : "")}
             ${fact("video", a.videos.length ? `<b>${a.videos.length}</b> คลิป` : "")}
-            ${fact("sparkle", hasEvents ? `<b>${railEvents.length}</b> เหตุการณ์` : "")}
-            ${fact("users", people.length ? `<b>${people.length}</b> เพื่อนในรูป` : "")}
-            ${fact("camera", cameras.length ? esc(cameras.slice(0, 2).join(", ")) : "")}
+            ${fact("users", people.length ? `<b>${people.length}</b> คนในรูป` : "")}
           </div>
           <div class="al-actions">
-            ${hasPhotos ? `<button type="button" class="al-btn is-primary" data-slideshow>${icon("play", 16)} ดูสไลด์โชว์</button>` : ""}
+            ${hasPhotos ? `<button type="button" class="al-btn is-primary" data-slideshow>${icon("play", 16)} สไลด์โชว์</button>` : ""}
             <button type="button" class="al-btn" data-copy>${icon("share", 16)} <span>คัดลอกลิงก์</span></button>
             ${a.folders[0] ? `<a class="al-btn" href="${driveFolder(a.folders[0])}" target="_blank" rel="noopener">${icon("folder", 16)} Google Drive ${icon("arrowUpRight", 13)}</a>` : ""}
           </div>
@@ -285,8 +148,8 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
 
       ${
         people.length
-          ? `<section class="al-people" aria-label="เพื่อนในอัลบั้มนี้">
-        <div class="al-people-head"><h2>เพื่อนในอัลบั้มนี้</h2><span>แตะที่หน้าเพื่อดูเฉพาะรูปที่มีคนนั้น</span></div>
+          ? `<section class="al-people" aria-label="คนในอัลบั้มนี้">
+        <div class="al-people-head"><h2>คนในอัลบั้มนี้</h2></div>
         <div class="al-faces">${[
           ...(me != null && perPerson.has(me) ? [students.find((s) => s.no === me)!] : []),
           ...people.filter((s) => s.no !== me),
@@ -300,24 +163,10 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
           : ""
       }
 
-      ${
-        hasEvents
-          ? `<section class="al-events" aria-label="เหตุการณ์ในอัลบั้มนี้">
-        <div class="al-people-head"><h2>เหตุการณ์ในอัลบั้มนี้</h2><span>จัดกลุ่มรูปให้อัตโนมัติจากวัน เวลา และฉาก · แตะเพื่อดูเฉพาะเหตุการณ์</span></div>
-        <div class="al-ev-rail">${railEvents
-          .map(({ ev, photos }) => {
-            const c = getPhoto(ev.cover) ?? photos[0];
-            const sub = [eventDay(ev), ev.place].filter(Boolean).join(" · ");
-            return `<button type="button" class="al-evc" data-event="${ev.id}" aria-pressed="false"><span class="al-evc-img"><img src="${photoSrc(c)}" alt="" loading="lazy"><b>${photos.length.toLocaleString()} รูป</b></span><span class="al-evc-title">${esc(ev.title)}</span><span class="al-evc-meta">${esc(sub) || "ไม่ทราบวันที่"}</span></button>`;
-          })
-          .join("")}</div>
-      </section>`
-          : ""
-      }
-
       <div class="al-bar">
         <div class="al-tabs" role="tablist">
           ${hasPhotos ? `<button type="button" role="tab" data-tab="photos" aria-selected="${startTab === "photos"}">รูปภาพ <span>${a.photos.length.toLocaleString()}</span></button>` : ""}
+          ${events.length > 1 ? `<button type="button" role="tab" data-tab="events" aria-selected="false">เหตุการณ์ <span>${events.length}</span></button>` : ""}
           ${a.videos.length ? `<button type="button" role="tab" data-tab="videos" aria-selected="${startTab === "videos"}">วิดีโอ <span>${a.videos.length}</span></button>` : ""}
           <button type="button" role="tab" data-tab="about" aria-selected="${startTab === "about"}">เกี่ยวกับ</button>
         </div>
@@ -333,7 +182,6 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
               : ""
           }
           <label class="al-select">${icon("grid", 15)}<select data-view aria-label="จัดเรียง">
-            ${hasEvents ? `<option value="event">แยกตามเหตุการณ์</option>` : ""}
             ${datedShare > 0.2 ? `<option value="day">แยกตามวัน</option>` : ""}
             <option value="album">ลำดับในอัลบั้ม</option>
             <option value="people">คนในรูปเยอะสุด</option>
@@ -348,6 +196,7 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
       <p class="al-status" data-status></p>
 
       <section class="al-panel" data-panel="photos"${startTab === "photos" ? "" : " hidden"}><div data-groups></div></section>
+      <section class="al-panel" data-panel="events" hidden><div class="al-more-row">${events.map((x) => eventCard(x.ev, x.n)).join("")}</div></section>
       <section class="al-panel" data-panel="videos"${startTab === "videos" ? "" : " hidden"}><div data-videos></div></section>
       <section class="al-panel" data-panel="about"${startTab === "about" ? "" : " hidden"}>
         <div class="al-about">
@@ -360,23 +209,14 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
             <div><dt>${icon("image", 16)} รูปภาพ</dt><dd>${a.photos.length.toLocaleString()}</dd></div>
             <div><dt>${icon("video", 16)} วิดีโอ</dt><dd>${a.videos.length}</dd></div>
             ${range ? `<div><dt>${icon("calendar", 16)} ช่วงเวลา</dt><dd>${range}</dd></div>` : ""}
-            ${cameras.length ? `<div><dt>${icon("camera", 16)} กล้อง</dt><dd>${esc(cameras.join(", "))}</dd></div>` : ""}
-            <div><dt>${icon("home", 16)} ห้อง</dt><dd>${CLASS.name} · ${CLASS.gen}</dd></div>
-            <div><dt>${icon("clock", 16)} ซิงก์ล่าสุด</dt><dd>${esc(fmtSynced(a.syncedAt))}</dd></div>
-            <div><dt>${icon("folder", 16)} ต้นฉบับ</dt><dd>${a.folders.map((f, i) => `<a href="${driveFolder(f)}" target="_blank" rel="noopener">Google Drive${a.folders.length > 1 ? ` ${i + 1}` : ""} ↗</a>`).join("<br>") || "—"}</dd></div>
+            ${a.folders.length ? `<div><dt>${icon("folder", 16)} ต้นฉบับ</dt><dd>${a.folders.map((f, i) => `<a href="${driveFolder(f)}" target="_blank" rel="noopener">Google Drive${a.folders.length > 1 ? ` ${i + 1}` : ""} ↗</a>`).join("<br>")}</dd></div>` : ""}
           </dl>
         </div>
       </section>
 
       ${
         others.length
-          ? `<section class="al-more"><h2>อัลบั้มอื่นของ ${CLASS.name}</h2><div class="al-more-row">${others
-              .map(
-                (o) => `<a class="al-card" href="/album/${o.slug}" data-link>
-              <span class="al-card-img">${albumPreview(o)}${albumEventCount(o) ? `<span class="al-card-badge">${icon("sparkle", 12)} ${albumEventCount(o)} เหตุการณ์</span>` : ""}</span>
-              <b>${esc(o.title)}</b><span>${albumCount(o)}${dateRange(o.photos) ? ` · ${dateRange(o.photos)}` : ""}</span></a>`,
-              )
-              .join("")}</div></section>`
+          ? `<section class="al-more"><h2>อัลบั้มอื่น</h2><div class="al-more-row">${others.map((o) => albumCard(o)).join("")}</div></section>`
           : ""
       }
     </div>
@@ -414,15 +254,13 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
 
   /* ---------- state ---------- */
   const state = {
-    view: ((read(VIEW_KEY) as View) ||
-      (hasEvents ? "event" : datedShare > 0.2 ? "day" : "album")) as View,
-    size: ((read(SIZE_KEY) as Size) || "m") as Size,
+    view: (readPref(VIEW_KEY) as View) || (datedShare > 0.2 ? "day" : "album"),
+    size: ((readPref(SIZE_KEY) as Size) || "m") as Size,
     group: "",
     person: 0,
-    event: "",
   };
   if (state.view === "day" && datedShare <= 0.2) state.view = "album";
-  if (state.view === "event" && !hasEvents) state.view = datedShare > 0.2 ? "day" : "album";
+  if (!["day", "album", "people"].includes(state.view)) state.view = "album";
   const viewSel = $<HTMLSelectElement>("[data-view]");
   if (viewSel) viewSel.value = state.view;
   let list: Photo[] = [];
@@ -430,18 +268,12 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     list.map((p): MediaItem => ({ kind: "photo", photo: p, caption: caption(p) }));
 
   const filtered = () => {
-    const inEvent = state.event ? new Set(evById.get(state.event)?.photos.map((p) => p.id)) : null;
     let out = a.photos.filter(
       (p) =>
         (!state.group || p.group === state.group) &&
-        (!inEvent || inEvent.has(p.id)) &&
         (!state.person || (tagsOf.get(p.id) ?? []).includes(state.person)),
     );
-    if (state.view === "event") {
-      const rank = new Map<string, number>();
-      evs.forEach((x, k) => x.photos.forEach((p, i) => rank.set(p.id, k * 100000 + i)));
-      out = [...out].sort((x, y) => (rank.get(x.id) ?? 1e12) - (rank.get(y.id) ?? 1e12));
-    } else if (state.view === "day")
+    if (state.view === "day")
       out = [...out].sort((x, y) => {
         const dx = photoExif(x.id).date ?? "~";
         const dy = photoExif(y.id).date ?? "~";
@@ -456,85 +288,19 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
 
   /* ---------- justified rows ---------- */
   const groupsHost = $("[data-groups]")!;
-  const tileHtml = (p: Photo, i: number, w: number, h: number) => {
-    const nos = tagsOf.get(p.id) ?? [];
-    const cap = photoInfo(p.id)?.caption;
-    const day = dayKey(p);
-    return `<button class="al-tile" type="button" data-view="${i}" style="width:${w.toFixed(1)}px;height:${h.toFixed(1)}px" aria-label="เปิดรูป ${i + 1}${nos.length ? ` · ${nos.length} คน` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async"><span class="al-tile-info">${cap ? `<span class="al-tile-cap">${esc(cap)}</span>` : day && state.view !== "day" ? `<span>${shortDay(day)}</span>` : "<span></span>"}${
-      nos.length
-        ? `<span class="pf-tile-people">${nos
-            .slice(0, 3)
-            .map((n) => `<img src="${studentAvatar(students.find((s) => s.no === n)!)}" alt="">`)
-            .join("")}${nos.length > 3 ? `<b>+${nos.length - 3}</b>` : ""}</span>`
-        : ""
-    }</span></button>`;
-  };
-  function rowsHtml(photos: Photo[], offset: number, width: number) {
-    const target = SIZES[state.size] * (innerWidth < 640 ? 0.62 : 1);
-    const gap = 4;
-    let out = "";
-    let row: Photo[] = [];
-    let sum = 0;
-    const flush = (last: boolean) => {
-      if (!row.length) return;
-      const h = last
-        ? Math.min(target, (width - gap * (row.length - 1)) / sum)
-        : (width - gap * (row.length - 1)) / sum;
-      out += `<div class="al-row">${row
-        .map((p) => tileHtml(p, offset + photos.indexOf(p), (p.w / p.h) * h, h))
-        .join("")}</div>`;
-      row = [];
-      sum = 0;
-    };
-    for (const p of photos) {
-      row.push(p);
-      sum += p.w / p.h;
-      if (sum * target + gap * (row.length - 1) >= width) flush(false);
-    }
-    flush(true);
-    return out;
-  }
+  const tile = (p: Photo, i: number, w: number, h: number) =>
+    tileHtml(p, i, w, h, tagsOf.get(p.id) ?? []);
   function render() {
     list = filtered();
     const width = groupsHost.clientWidth || main.clientWidth - 48;
     const who = state.person ? students.find((s) => s.no === state.person) : null;
-    status.innerHTML = `${list.length.toLocaleString()} รูป${who ? ` ที่มี <b>${esc(who.nickname)}</b> <button type="button" class="al-clear" data-clear>${icon("close", 12)} ล้าง</button>` : ""}${state.group ? ` · ${esc(state.group)}` : ""}${state.event ? ` · เหตุการณ์ <b>${esc(evById.get(state.event)?.ev.title ?? "")}</b> <button type="button" class="al-clear" data-clear-event>${icon("close", 12)} ล้าง</button>` : ""}`;
+    status.innerHTML = `${list.length.toLocaleString()} รูป${who ? ` ที่มี <b>${esc(who.nickname)}</b> <button type="button" class="al-clear" data-clear>${icon("close", 12)} ล้าง</button>` : ""}${state.group ? ` · ${esc(state.group)}` : ""}`;
     if (!list.length) {
       groupsHost.innerHTML = `<p class="pf-empty">ไม่มีรูปที่ตรงกับตัวกรองนี้</p>`;
       return;
     }
-    if (state.view === "event") {
-      const byEvent = new Map<string, Photo[]>();
-      for (const p of list) {
-        const id = evs.find((x) => x.photos.includes(p))?.ev.id ?? "";
-        byEvent.set(id, [...(byEvent.get(id) ?? []), p]);
-      }
-      let off = 0;
-      let html = "";
-      for (const [id, ps] of byEvent) {
-        const x = evById.get(id);
-        if (!x) continue;
-        const e = x.ev;
-        const count = new Map<number, number>();
-        for (const p of ps)
-          for (const n of tagsOf.get(p.id) ?? []) count.set(n, (count.get(n) ?? 0) + 1);
-        const top = [...count].sort((m, n) => n[1] - m[1]).slice(0, 6);
-        const meta = [
-          eventDay(e) ? `${icon("calendar", 14)} ${esc(eventDay(e))}` : "",
-          eventTime(e) ? `${icon("clock", 14)} ${eventTime(e)}` : "",
-          e.place ? `${icon("pin", 14)} ${esc(e.place)}` : "",
-        ]
-          .filter(Boolean)
-          .map((m) => `<span>${m}</span>`)
-          .join("");
-        html += `<section class="al-ev" id="ev-${esc(e.id)}"><header class="al-ev-head"><div class="al-ev-text"><h3>${esc(e.title)}${e.en ? ` <span class="muted">· ${esc(e.en)}</span>` : ""}</h3>${meta ? `<p class="al-ev-meta">${meta}</p>` : ""}${e.note ? `<p class="al-ev-note">${esc(e.note)}</p>` : ""}</div><div class="al-ev-side">${top.length ? `<span class="pf-tile-people">${top.map(([n]) => `<img src="${studentAvatar(students.find((s) => s.no === n)!)}" alt="" title="${esc(students.find((s) => s.no === n)!.nickname)}">`).join("")}${count.size > top.length ? `<b>+${count.size - top.length}</b>` : ""}</span>` : ""}<span class="al-ev-count">${ps.length.toLocaleString()} รูป</span></div></header><div class="al-rows">${rowsHtml(ps, off, width)}</div></section>`;
-        off += ps.length;
-      }
-      groupsHost.innerHTML = html;
-      return;
-    }
     if (state.view !== "day") {
-      groupsHost.innerHTML = `<div class="al-rows">${rowsHtml(list, 0, width)}</div>`;
+      groupsHost.innerHTML = `<div class="al-rows">${rowsHtml(list, 0, width, state.size, tile)}</div>`;
       return;
     }
     // one section per day (undated photos last)
@@ -544,7 +310,7 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     let html = "";
     for (const [k, ps] of days) {
       const ppl = new Set(ps.flatMap((p) => tagsOf.get(p.id) ?? [])).size;
-      html += `<section class="al-day"><h3>${k ? esc(longDay(k)) : "ไม่ทราบวันที่"}<span>${ps.length.toLocaleString()} รูป${ppl ? ` · ${ppl} คน` : ""}</span></h3><div class="al-rows">${rowsHtml(ps, offset, width)}</div></section>`;
+      html += `<section class="al-day"><h3>${k ? esc(longDay(k)) : "ไม่ทราบวันที่"}<span>${ps.length.toLocaleString()} รูป${ppl ? ` · ${ppl} คน` : ""}</span></h3><div class="al-rows">${rowsHtml(ps, offset, width, state.size, tile)}</div></section>`;
       offset += ps.length;
     }
     groupsHost.innerHTML = html;
@@ -583,13 +349,13 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     const b = (e.target as Element).closest<HTMLElement>("[data-size]");
     if (!b) return;
     state.size = b.dataset.size as Size;
-    write(SIZE_KEY, state.size);
+    writePref(SIZE_KEY, state.size);
     markSize();
     render();
   });
   viewSel?.addEventListener("change", () => {
     state.view = viewSel.value as View;
-    write(VIEW_KEY, state.view);
+    writePref(VIEW_KEY, state.view);
     render();
   });
   $<HTMLSelectElement>("[data-group]")?.addEventListener("change", (e) => {
@@ -607,21 +373,11 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     root.querySelector(".al-bar")!.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const setEvent = (id: string) => {
-    state.event = state.event === id ? "" : id;
-    root
-      .querySelectorAll<HTMLElement>("[data-event]")
-      .forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.event === state.event)));
-    showTab("photos");
-    root.querySelector(".al-bar")!.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   /* ---------- clicks ---------- */
   root.querySelector(".al-page")!.addEventListener("click", (e) => {
     const t = e.target as Element;
-    const tile = t.closest<HTMLElement>("[data-view]");
-    if (tile && tile.classList.contains("al-tile"))
-      return viewer.open(items(), Number(tile.dataset.view));
+    const tileEl = t.closest<HTMLElement>(".al-tile");
+    if (tileEl) return viewer.open(items(), Number(tileEl.dataset.view));
     const hero = t.closest<HTMLElement>("[data-hero]");
     if (hero) {
       const all = a!.photos.map((p): MediaItem => ({
@@ -634,9 +390,6 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
     const person = t.closest<HTMLElement>("[data-person]");
     if (person) return setPerson(Number(person.dataset.person));
     if (t.closest("[data-clear]")) return setPerson(state.person);
-    const evBtn = t.closest<HTMLElement>("[data-event]");
-    if (evBtn) return setEvent(evBtn.dataset.event!);
-    if (t.closest("[data-clear-event]")) return setEvent(state.event);
     if (t.closest("[data-slideshow]")) {
       if (!list.length) list = filtered();
       return viewer.open(items(), 0, { slideshow: true });
@@ -687,10 +440,4 @@ export function renderAlbum(root: HTMLElement, slug: string): Cleanup {
   };
 }
 
-function fmtSynced(v: string | undefined) {
-  if (!v) return "—";
-  const d = new Date(v.includes("T") ? v : v.replace(" ", "T"));
-  return Number.isNaN(d.getTime())
-    ? v
-    : new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeStyle: "short" }).format(d);
-}
+export { shortDay };

@@ -510,37 +510,7 @@
 
 .al-tile:hover img {
   transform: scale(1.03);
-}
-
-.al-tile-info {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 6px;
-  padding: 26px 8px 8px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
-  color: #fff;
-  font-size: 12px;
-  text-align: left;
-  opacity: 0;
-  transition: opacity 0.2s;
-  pointer-events: none;
-}
-
-.al-tile:hover .al-tile-info,
-.al-tile:focus-visible .al-tile-info {
-  opacity: 1;
-}
-
-.al-tile-cap {
-  display: -webkit-box;
-  overflow: hidden;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+  filter: brightness(0.94);
 }
 
 /* ---------- about ---------- */
@@ -637,17 +607,6 @@
   background: var(--surface);
 }
 
-.al-card-img img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.6s var(--ease-out);
-}
-
-.al-card:hover .al-card-img img {
-  transform: scale(1.05);
-}
-
 .al-card b {
   color: var(--ink-900);
   font-size: 15px;
@@ -657,6 +616,144 @@
 .al-card span:last-child {
   color: var(--muted-2);
   font-size: 13px;
+}
+
+/* ---------- hover preview (album + event cards, timeline) ---------- */
+.pv {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.pv img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease-out);
+}
+
+.pv img.pv-next {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.pv img.pv-next.is-in {
+  opacity: 1;
+}
+
+.pv-host:hover .pv img {
+  transform: scale(1.05);
+}
+
+.pv-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(19, 25, 34, 0.6);
+  color: #fff;
+  opacity: 0;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(6px);
+}
+
+.pv.is-video .pv-play {
+  opacity: 1;
+}
+
+.pv-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+  translate: -50% 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.pv-host:hover .pv-dots {
+  opacity: 1;
+}
+
+.pv-dots i {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  transition:
+    width 0.3s,
+    background-color 0.3s;
+}
+
+.pv-dots i.is-on {
+  width: 16px;
+  background: #fff;
+}
+
+.al-pv-wrap {
+  margin-bottom: 12px;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+/* ---------- event pages ---------- */
+.ev-head {
+  margin: 8px 0 28px;
+}
+
+.ev-head h1 {
+  color: var(--ink-900);
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.ev-head p {
+  margin-top: 6px;
+  color: var(--muted-2);
+  font-size: 15px;
+}
+
+.ev-month {
+  margin-top: 34px;
+}
+
+.ev-month h2 {
+  margin-bottom: 14px;
+  color: var(--ink-900);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.ev-from {
+  color: var(--muted-2);
+  font-size: 13.5px;
+}
+
+.ev-from a {
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.ev-count {
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 @media (max-width: 1000px) {
@@ -696,9 +793,5 @@
 
   .al-about {
     grid-template-columns: 1fr;
-  }
-
-  .al-tile-info {
-    display: none;
   }
 }

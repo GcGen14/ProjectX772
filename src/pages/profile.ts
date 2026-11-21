@@ -3,9 +3,10 @@
 import {
   BRAND,
   CLASS,
+  large,
   photoExif,
-  photoSrc,
   photoTags,
+  photoSrc,
   students,
   studentAvatar,
   thumb,
@@ -119,22 +120,14 @@ const shortDate = (d?: string) => {
       );
 };
 
-/** Grid tile; class photos show the date + who is in it on hover. */
+/** Grid tile; resting the mouse on it opens a bigger preview (hover-preview.ts). */
 const tile = (p: Photo, i: number) => {
   const tags = p.local ? [] : photoTags(p.id);
   const date = p.local ? "" : shortDate(photoExif(p.id).date);
-  const info =
-    date || tags.length
-      ? `<span class="pf-tile-info">${date ? `<span>${icon("calendar", 12)} ${date}</span>` : "<span></span>"}${
-          tags.length
-            ? `<span class="pf-tile-people">${tags
-                .slice(0, 3)
-                .map((t) => `<img src="${studentAvatar(t.student)}" alt="">`)
-                .join("")}${tags.length > 3 ? `<b>+${tags.length - 3}</b>` : ""}</span>`
-            : ""
-        }</span>`
-      : "";
-  return `<button class="pf-tile" type="button" data-view="${i}" style="aspect-ratio:${p.w}/${p.h}" aria-label="เปิดรูป ${i + 1}${tags.length ? ` · ${tags.length} คนในรูป` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async">${info}</button>`;
+  const names = tags.map((t) => t.student.nickname);
+  const people =
+    names.length > 6 ? `${names.slice(0, 6).join(", ")} +${names.length - 6}` : names.join(", ");
+  return `<button class="pf-tile" type="button" data-view="${i}" data-hp="photo" data-hp-src="${large(p)}" data-hp-ratio="${p.w}/${p.h}" data-hp-cap="${esc(date)}" data-hp-people="${esc(people)}" style="aspect-ratio:${p.w}/${p.h}" aria-label="เปิดรูป ${i + 1}${tags.length ? ` · ${tags.length} คนในรูป` : ""}"><img src="${photoSrc(p)}" alt="" loading="lazy" decoding="async"></button>`;
 };
 
 /**
@@ -194,7 +187,10 @@ export function mountVideos(host: HTMLElement, videos: Video[], api: PageApi) {
   host.innerHTML = videos.length
     ? `<div class="pf-video-grid">${videos
         .map(
-          (v, i) => `<button class="pf-video" type="button" data-video="${i}">
+          (
+            v,
+            i,
+          ) => `<button class="pf-video" type="button" data-video="${i}" data-hp="video" data-hp-id="${esc(v.id)}" data-hp-poster="${v.thumb ? thumb(v.id) : ""}" data-hp-ratio="${v.w && v.h ? `${v.w}/${v.h}` : ""}" data-hp-cap="${esc(v.name.replace(/\.[^.]+$/, ""))}">
             <span class="pf-video-thumb">${v.thumb ? `<img src="${thumb(v.id)}" alt="" loading="lazy">` : ""}<span class="pf-play">${icon("play", 22)}</span></span>
             <span class="pf-video-name">${esc(v.name.replace(/\.[^.]+$/, ""))}</span>
           </button>`,

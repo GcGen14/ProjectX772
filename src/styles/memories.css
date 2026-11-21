@@ -173,6 +173,11 @@
   border-radius: 10px;
 }
 
+.why-pv .pv-dots,
+.why-pv .pv-play {
+  display: none;
+}
+
 img.flag {
   object-fit: cover;
 }
