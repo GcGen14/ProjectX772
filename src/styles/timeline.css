@@ -62,6 +62,12 @@
   font-size: 15px;
 }
 
+.tl-head p a {
+  color: var(--ink-900);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .tl-viewport {
   overflow: hidden;
 }
@@ -127,6 +133,18 @@
   border-radius: 999px;
   background: #fff;
   box-shadow: 0 0 0 4px #fff;
+}
+
+.tl-stop.tl-chapter {
+  width: 96px;
+}
+
+.tl-chapter .tl-when b {
+  font-size: 22px;
+}
+
+.tl-chapter .tl-dot {
+  background: var(--ink-strong);
 }
 
 .tl-stop.is-grad .tl-dot {

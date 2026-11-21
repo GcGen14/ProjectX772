@@ -15,6 +15,7 @@ import {
   totals,
   wall,
   type Album,
+  type EventRec,
   type Photo,
   profileUrl,
   teacherAvatar,
@@ -27,7 +28,18 @@ import { myNo, session } from "../lib/api.ts";
 import { bindSongPlayers, songNavButton, songSectionHtml } from "../lib/song.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { clamp, esc, prefersReducedMotion, type Cleanup } from "../lib/router.ts";
-import { albumCount, albumEventCount, albumPreview } from "./album.ts";
+import {
+  albumSrcs,
+  eventSrcs,
+  eventUrl,
+  gradeOf,
+  listedEvents,
+  shortDay,
+  spread,
+  TH_MONTHS,
+} from "../lib/events.ts";
+import { previewHtml } from "../lib/preview.ts";
+import { albumCount } from "./album.ts";
 
 /* ------------------------------------------------------------------ *
  * Hero card layout, in a 1440 x 675 reference frame.
@@ -278,150 +290,98 @@ const messageCards = () => {
 
 type Stop = {
   key: string;
-  /** "YYYY-MM" (or "0000" for the everyday chapter, "9999" for graduation) */
-  date: string;
-  label: string;
-  sub: string;
+  /** "YYYY-MM-DD" ("" for the last, undated stop) */
+  day: string;
   title: string;
-  album?: Album;
-  photos: Photo[];
+  href: string;
+  srcs: string[];
   count: number;
-  videos: number;
-};
-const TH_MONTHS = [
-  "ม.ค.",
-  "ก.พ.",
-  "มี.ค.",
-  "เม.ย.",
-  "พ.ค.",
-  "มิ.ย.",
-  "ก.ค.",
-  "ส.ค.",
-  "ก.ย.",
-  "ต.ค.",
-  "พ.ย.",
-  "ธ.ค.",
-];
-const gradDate = new Date(GRAD_AT);
-// the school year starts in May; ม.6 is the year that ends with graduation
-const M6_START = gradDate.getMonth() < 4 ? gradDate.getFullYear() - 1 : gradDate.getFullYear();
-const gradeOf = (ym: string) => {
-  const [y, m] = ym.split("-").map(Number);
-  const start = m >= 5 ? y : y - 1;
-  const g = 6 - (M6_START - start);
-  return g >= 4 && g <= 6 ? `ม.${g}` : "";
+  chapter?: string;
 };
 const monthLabel = (ym: string) => {
   const [y, m] = ym.split("-").map(Number);
   return `${TH_MONTHS[m - 1]} ${y + 543}`;
 };
-
+const gradDate = new Date(GRAD_AT);
+/** One stop per day that has something worth showing: its biggest event leads, the others
+ *  of that day feed the hover preview. */
 function timelineStops(): Stop[] {
+  const byDay = new Map<string, EventRec[]>();
+  for (const e of listedEvents())
+    if (e.day && e.photos.length >= 8) byDay.set(e.day, [...(byDay.get(e.day) ?? []), e]);
   const stops: Stop[] = [];
-  for (const a of albums) {
-    const byMonth = new Map<string, Photo[]>();
-    const undated: Photo[] = [];
-    for (const p of a.photos) {
-      const d = photoExif(p.id).date;
-      if (d && d >= "2020") byMonth.set(d.slice(0, 7), [...(byMonth.get(d.slice(0, 7)) ?? []), p]);
-      else undated.push(p);
-    }
-    // tiny clusters aren't worth a stop of their own
-    // (deleting the current entry while iterating a Map is safe)
-    for (const [ym, list] of byMonth) {
-      if (list.length < 3) {
-        undated.push(...list);
-        byMonth.delete(ym);
-      }
-    }
-    const months = [...byMonth.keys()].sort();
-    if (months.length === 1 || (!months.length && (undated.length || a.videos.length))) {
-      // one event (a shoot, a trip): everything in one stop
-      const ym = months[0];
+  let lastGrade = "";
+  for (const day of [...byDay.keys()].sort()) {
+    const evs = byDay.get(day)!.sort((x, y) => y.photos.length - x.photos.length);
+    const lead = evs[0];
+    const grade = gradeOf(day);
+    if (grade && grade !== lastGrade) {
       stops.push({
-        key: a.slug,
-        date: ym ?? "0001",
-        label: ym ? monthLabel(ym) : "ตลอด ม.ปลาย",
-        sub: ym ? gradeOf(ym) : "",
-        title: a.title,
-        album: a,
-        photos: [...(byMonth.get(ym) ?? []), ...undated],
-        count: a.photos.length,
-        videos: a.videos.length,
+        key: `ch-${grade}`,
+        day,
+        title: "",
+        href: "",
+        srcs: [],
+        count: 0,
+        chapter: grade,
       });
-      continue;
+      lastGrade = grade;
     }
-    for (const ym of months)
-      stops.push({
-        key: `${a.slug}-${ym}`,
-        date: ym,
-        label: monthLabel(ym),
-        sub: gradeOf(ym),
-        title: a.title,
-        album: a,
-        photos: byMonth.get(ym)!,
-        count: byMonth.get(ym)!.length,
-        videos: 0,
-      });
-    if (undated.length || a.videos.length)
-      stops.push({
-        key: `${a.slug}-all`,
-        date: "0000",
-        label: "ตลอด ม.ปลาย",
-        sub: "ม.4 – ม.6",
-        title: `${a.title} · ทุกวันของเรา`,
-        album: a,
-        photos: undated,
-        count: undated.length,
-        videos: a.videos.length,
-      });
+    // several events on one day that share a name ("ถ่ายรูปรุ่น · กลุ่ม G1…") read as one stop
+    const head = lead.title.split(" · ")[0];
+    const same = evs.length > 1 && evs.every((x) => x.title.split(" · ")[0] === head);
+    stops.push({
+      key: day,
+      day,
+      title: same ? head : lead.title,
+      href: eventUrl(lead),
+      srcs: spread(
+        evs.flatMap((x) => eventSrcs(x, 3)),
+        3,
+      ),
+      count: same ? evs.reduce((n, x) => n + x.photos.length, 0) : lead.photos.length,
+    });
   }
-  stops.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
-  stops.push({
-    key: "grad",
-    date: "9999",
-    label: `${gradDate.getDate()} ${TH_MONTHS[gradDate.getMonth()]} ${gradDate.getFullYear() + 543}`,
-    sub: "ม.6",
-    title: "วันจบ ม.6",
-    photos: [],
-    count: 0,
-    videos: 0,
-  });
+  const bucket = albums.find((a) => a.slug === "bucket");
+  if (bucket) {
+    const { srcs } = albumSrcs(bucket, 3, 0);
+    stops.push({
+      key: "bucket",
+      day: "",
+      title: bucket.title,
+      href: `/album/${bucket.slug}`,
+      srcs,
+      count: bucket.photos.length,
+    });
+  }
   return stops;
 }
 
 const tlStop = (s: Stop, i: number) => {
-  // a spread of photos from the whole stop, not just the first few
-  // (offset by half a step so a stop never opens on its first file, often a sign / test shot)
-  const step = Math.max(1, Math.floor(s.photos.length / 3));
-  const pics = [0, 1, 2]
-    .map((k) => s.photos[Math.min(s.photos.length - 1, k * step + Math.floor(step / 2))])
-    .filter((p, k, arr) => p && arr.indexOf(p) === k);
-  const vids = s.album?.videos.filter((v) => v.thumb).slice(0, 3 - pics.length) ?? [];
-  const meta = [s.count ? `${s.count.toLocaleString()} รูป` : "", s.videos ? `${s.videos} คลิป` : ""]
-    .filter(Boolean)
-    .join(" · ");
-  const days = Math.max(0, Math.ceil((GRAD_AT - Date.now()) / 86_400_000));
-  const inner = s.album
-    ? `<div class="tl-photos n-${pics.length + vids.length}">${pics
-        .map((p) => `<img src="${thumb(p.id)}" alt="" loading="lazy">`)
-        .join(
-          "",
-        )}${vids.map((v) => `<img src="${thumb(v.id)}" alt="" loading="lazy">`).join("")}</div>
-      <div class="tl-text"><b>${esc(s.title)}</b><span>${meta}</span></div>`
-    : `<div class="tl-grad"><span class="tl-grad-faces">${students
-        .slice(0, 6)
-        .map((st) => `<img src="${studentAvatar(st)}" alt="">`)
-        .join(
-          "",
-        )}</span><b>${esc(s.title)}</b><span>${days ? `อีก ${days.toLocaleString()} วัน` : "วันนี้แหละ 🎓"}</span></div>`;
-  const href = s.album
-    ? `/album/${s.album.slug}${s.photos[0] ? `#photo=${s.photos[0].id}` : ""}`
-    : "#classmates";
-  return `<li class="tl-stop${s.album ? "" : " is-grad"}" style="--i:${i}">
-    <span class="tl-when"><b>${s.label}</b>${s.sub ? `<small>${s.sub}</small>` : ""}</span>
+  if (s.chapter)
+    return `<li class="tl-stop tl-chapter" style="--i:${i}"><span class="tl-when"><b>${s.chapter}</b></span><span class="tl-dot" aria-hidden="true"></span></li>`;
+  const pics = s.srcs.slice(0, 3);
+  return `<li class="tl-stop" style="--i:${i}">
+    <span class="tl-when"><b>${s.day ? shortDay(s.day) : "ตลอด ม.ปลาย"}</b>${s.day && gradeOf(s.day) ? `<small>${gradeOf(s.day)}</small>` : ""}</span>
     <span class="tl-dot" aria-hidden="true"></span>
-    <a class="tl-card" href="${href}" ${s.album ? "data-link" : `data-scroll="#classmates"`}>${inner}</a>
+    <a class="tl-card" href="${s.href}" data-link>
+      <div class="tl-photos n-${pics.length}">${pics.map((src) => `<img src="${src}" alt="" loading="lazy">`).join("")}</div>
+      <div class="tl-text"><b>${esc(s.title)}</b><span>${s.count.toLocaleString()} รูป</span></div>
+    </a>
+  </li>`;
+};
+
+const tlGrad = () => {
+  const days = Math.max(0, Math.ceil((GRAD_AT - Date.now()) / 86_400_000));
+  return `<li class="tl-stop is-grad" style="--i:99">
+    <span class="tl-when"><b>${gradDate.getDate()} ${TH_MONTHS[gradDate.getMonth()]} ${gradDate.getFullYear() + 543}</b><small>ม.6</small></span>
+    <span class="tl-dot" aria-hidden="true"></span>
+    <a class="tl-card" href="#classmates" data-scroll="#classmates"><div class="tl-grad"><span class="tl-grad-faces">${students
+      .slice(0, 6)
+      .map((st) => `<img src="${studentAvatar(st)}" alt="">`)
+      .join(
+        "",
+      )}</span><b>วันจบ ม.6</b><span>${days ? `อีก ${days.toLocaleString()} วัน` : "วันนี้แหละ 🎓"}</span></div></a>
   </li>`;
 };
 
@@ -431,9 +391,9 @@ const timeline = () => `
           <header class="tl-head">
             <span class="tl-kicker">${icon("clock", 14)} ไทม์ไลน์</span>
             <h2>3 ปีของ ${CLASS.name} ตั้งแต่ ม.4 จนวันจบ</h2>
-            <p>เลื่อนลงเพื่อเดินทางผ่านแต่ละช่วง · กดการ์ดเพื่อเปิดรูปของช่วงนั้น</p>
+            <p>เลื่อนลงเพื่อเดินทางผ่านแต่ละช่วง · <a href="/events" data-link>ดูทุกเหตุการณ์</a></p>
           </header>
-          <div class="tl-viewport"><ol class="tl-track">${timelineStops().map(tlStop).join("")}</ol></div>
+          <div class="tl-viewport"><ol class="tl-track">${timelineStops().map(tlStop).join("")}${tlGrad()}</ol></div>
           <div class="tl-progress" aria-hidden="true"><i></i></div>
         </div>
       </section>`;
@@ -533,7 +493,7 @@ const albumsModal = () => `
         ${albums
           .map(
             (a) =>
-              `<li><a href="/album/${a.slug}" data-link><span class="why-pv">${albumPreview(a)}</span><div><b>${esc(a.title)}</b><span>${esc(a.en)} · ${albumCount(a)}${albumEventCount(a) ? ` · ${albumEventCount(a)} เหตุการณ์` : ""}</span></div></a></li>`,
+              `<li><a class="pv-host" href="/album/${a.slug}" data-link><span class="why-pv">${previewHtml(albumSrcs(a).srcs, { videoFrom: albumSrcs(a).videoFrom })}</span><div><b>${esc(a.title)}</b><span>${esc(a.en)} · ${albumCount(a)}</span></div></a></li>`,
           )
           .join("")}
       </ul>
