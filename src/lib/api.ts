@@ -1,11 +1,11 @@
 // Client for the class database API (server/api.ts).
 import type {
   AlbumData,
+  EventRec,
   PhotoInfo,
   Roster,
   StudentRecord,
   TagFix,
-  Teacher,
   WallPost,
 } from "../data.ts";
 import type { Badge } from "./badges.ts";
@@ -63,7 +63,7 @@ export class ApiError extends Error {
   }
 }
 
-async function call<T>(method: string, url: string, body?: unknown): Promise<T> {
+export async function call<T>(method: string, url: string, body?: unknown): Promise<T> {
   const res = await fetch(url, {
     method,
     credentials: "same-origin",
@@ -81,23 +81,8 @@ async function call<T>(method: string, url: string, body?: unknown): Promise<T> 
 export const api = {
   /* photo owners + teachers (server/roster.ts) */
   roster: () => call<Roster>("GET", "/api/roster"),
-  adminRenumber: (from: number, to: number, mode: "all" | "photos") =>
-    call<Roster>("POST", "/api/admin/renumber", { from, to, mode }),
-  adminSetOwner: (photos: string[], owner: string) =>
-    call<Roster>("POST", "/api/admin/owner", { photos, owner }),
-  adminAddTeacher: () => call<Roster & { created: number }>("POST", "/api/admin/teachers", {}),
-  adminUpdateTeacher: (id: number, patch: Partial<Teacher>) =>
-    call<Roster>("PUT", `/api/admin/teachers/${id}`, patch),
-  adminMoveTeacher: (id: number, dir: -1 | 1) =>
-    call<Roster>("POST", `/api/admin/teachers/${id}/move`, { dir }),
-  adminDeleteTeacher: (id: number) => call<Roster>("DELETE", `/api/admin/teachers/${id}`, {}),
-  adminUpload: (body: { data: string; face: string; w: number; h: number; owner?: string }) =>
-    call<Roster & { uploaded: string }>("POST", "/api/admin/upload", body),
-  adminDeleteUpload: (id: string) => call<Roster>("DELETE", `/api/admin/upload/${id}`, {}),
   students: () => call<{ students: StudentRecord[] }>("GET", "/api/students"),
   badges: () => call<{ badges: Badge[] }>("GET", "/api/badges"),
-  adminSaveBadges: (badges: Badge[]) =>
-    call<{ badges: Badge[] }>("PUT", "/api/admin/badges", { badges }),
   me: () => call<Me>("GET", "/api/me"),
   login: (no: number, password: string) =>
     call<{ ok: true; needsPassword: boolean }>("POST", "/api/login", { no, password }),
@@ -113,28 +98,8 @@ export const api = {
     call<PhotoData>("POST", `/api/photos/${id}/tag`, { no, action }),
   albums: () => call<{ albums: AlbumData[] }>("GET", "/api/albums"),
   people: () => call<People>("GET", "/api/people"),
-  adminAlbums: () =>
-    call<{ albums: AdminAlbum[]; jobs: Record<string, Job> }>("GET", "/api/admin/albums"),
-  adminJobs: () => call<{ jobs: Record<string, Job> }>("GET", "/api/admin/jobs"),
-  adminAddAlbum: (body: { folder: string; title?: string; en?: string; tagline?: string }) =>
-    call<{ slug: string; job: Job }>("POST", "/api/admin/albums", body),
-  adminUpdateAlbum: (slug: string, patch: Record<string, unknown>) =>
-    call<{ album: AdminAlbum }>("PUT", `/api/admin/albums/${slug}`, patch),
-  adminSyncAlbum: (slug: string) =>
-    call<{ job: Job }>("POST", `/api/admin/albums/${slug}/sync`, {}),
-  adminAddFolder: (slug: string, folder: string) =>
-    call<{ job: Job }>("POST", `/api/admin/albums/${slug}/folders`, { folder }),
-  adminDeleteAlbum: (slug: string) => call<{ ok: true }>("DELETE", `/api/admin/albums/${slug}`, {}),
-  adminRunFaces: () => call<{ job: Job }>("POST", "/api/admin/faces", {}),
+  events: () => call<{ events: EventRec[] }>("GET", "/api/events"),
   adminLogin: (password: string) => call<{ ok: true }>("POST", "/api/admin/login", { password }),
-  adminStudents: () =>
-    call<{
-      students: (StudentRecord & {
-        account: { claimed: boolean; code: string | null; lastLogin: string | null };
-      })[];
-    }>("GET", "/api/admin/students"),
-  adminUpdate: (no: number, patch: Partial<StudentRecord>) =>
-    call<{ student: StudentRecord }>("PUT", `/api/admin/students/${no}`, patch),
   /* public messages */
   wall: () => call<{ posts: WallPost[] }>("GET", "/api/wall"),
   wallMine: () => call<{ inbox: WallItem[]; sent: WallItem[] }>("GET", "/api/wall/mine"),
@@ -142,7 +107,6 @@ export const api = {
     call<{ post: WallItem }>("POST", "/api/wall", { to, text }),
   wallAction: (id: number, action: "approve" | "hide" | "delete") =>
     call<{ post?: WallItem; ok?: true }>("POST", `/api/wall/${id}`, { action }),
-  adminWall: () => call<{ posts: WallItem[] }>("GET", "/api/admin/wall"),
   /* private chat (ciphertext only) */
   chatKeys: () => call<{ keys: { no: number; v: number; pub: string }[] }>("GET", "/api/chat/keys"),
   chatMyKey: () => call<{ keys: WrappedKey[] }>("GET", "/api/chat/mykey"),
@@ -167,8 +131,6 @@ export const api = {
       `/api/chat/poll?after=${after}`,
     ),
   chatUnread: () => call<{ private: number; pending: number }>("GET", "/api/chat/unread"),
-  adminReset: (no: number) =>
-    call<{ ok: true; code: string }>("POST", `/api/admin/students/${no}/reset`, {}),
 };
 
 /** Logged-in state shared across pages (refreshed on load and after login/logout). */

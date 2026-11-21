@@ -27,6 +27,7 @@ import {
   type Teacher,
 } from "../data.ts";
 import { api } from "../lib/api.ts";
+import { adminApi } from "../lib/admin-api.ts";
 import { createBadgeTools } from "./backend-badges.ts";
 import { icon } from "../lib/icons.ts";
 import { esc } from "../lib/router.ts";
@@ -97,7 +98,7 @@ export function createPeopleTools(o: Opts) {
         theme: r.theme ?? {},
         href: o.profileHref(r),
         save: async (patch) => {
-          const out = await api.adminUpdate(r.no, patch);
+          const out = await adminApi.adminUpdate(r.no, patch);
           Object.assign(r, out.student);
           applyStudentRecords(o.rows());
         },
@@ -113,7 +114,7 @@ export function createPeopleTools(o: Opts) {
       coverId: t.coverPhoto,
       theme: t.theme ?? {},
       href: teacherUrl(t),
-      save: async (patch) => applyRoster(await api.adminUpdateTeacher(t.id, patch)),
+      save: async (patch) => applyRoster(await adminApi.adminUpdateTeacher(t.id, patch)),
     };
   }
   const ownerLabel = (key: string) => person(key)?.label ?? "ไม่มีเจ้าของ";
@@ -394,11 +395,11 @@ export function createPeopleTools(o: Opts) {
       } else if (act === "move") {
         const to = modal.querySelector<HTMLSelectElement>("[data-pm-target]")!.value;
         if (!to) return pmStatus("เลือกก่อนว่าจะย้ายไปให้ใคร");
-        takeRoster(await api.adminSetOwner(sel, to));
+        takeRoster(await adminApi.adminSetOwner(sel, to));
         setStatus(`ย้าย ${sel.length} รูปจาก ${p.label} ไปให้ ${ownerLabel(to)} แล้ว`);
         s.sel.clear();
       } else if (act === "none" || act === "auto") {
-        takeRoster(await api.adminSetOwner(sel, act));
+        takeRoster(await adminApi.adminSetOwner(sel, act));
         setStatus(
           act === "none"
             ? `ซ่อน ${sel.length} รูป (ไม่ใช่รูปของใคร)`
@@ -408,19 +409,19 @@ export function createPeopleTools(o: Opts) {
       } else if (act === "delete") {
         if (!confirmPending("delete")) return pmStatus('กด "ลบรูปที่อัปโหลด" อีกครั้งเพื่อยืนยัน (ลบถาวร)');
         let last: Roster | null = null;
-        for (const id of sel) last = await api.adminDeleteUpload(id);
+        for (const id of sel) last = await adminApi.adminDeleteUpload(id);
         if (last) takeRoster(last);
         setStatus(`ลบรูปที่อัปโหลด ${sel.length} รูปแล้ว`);
         s.sel.clear();
       } else if (act === "take-avatar") {
         const id = [...s.add][0];
-        takeRoster(await api.adminSetOwner([id], s.key));
+        takeRoster(await adminApi.adminSetOwner([id], s.key));
         await p.save({ avatar: id });
         setStatus(`ตั้งรูปโปรไฟล์ใหม่ของ ${p.label} แล้ว`);
         s.add.clear();
       } else if (act === "take") {
         const ids = [...s.add];
-        takeRoster(await api.adminSetOwner(ids, s.key));
+        takeRoster(await adminApi.adminSetOwner(ids, s.key));
         setStatus(`ย้าย ${ids.length} รูปมาเป็นของ ${p.label} แล้ว`);
         s.add.clear();
       }
@@ -465,7 +466,7 @@ export function createPeopleTools(o: Opts) {
         face.width = face.height = 240;
         face.getContext("2d")!.drawImage(full, sx, sy, side, side, 0, 0, 240, 240);
         bmp.close();
-        const r = await api.adminUpload({
+        const r = await adminApi.adminUpload({
           data: full.toDataURL("image/jpeg", 0.86),
           face: face.toDataURL("image/jpeg", 0.86),
           w,
@@ -579,7 +580,7 @@ export function createPeopleTools(o: Opts) {
     if (value === (r[key] ?? "")) return;
     psMsg("กำลังบันทึก…");
     try {
-      const out = await api.adminUpdate(r.no, { [key]: value });
+      const out = await adminApi.adminUpdate(r.no, { [key]: value });
       Object.assign(r, out.student);
       applyStudentRecords(o.rows());
       // keep the big table in sync
@@ -599,7 +600,7 @@ export function createPeopleTools(o: Opts) {
     if (!confirmPending(`reset${r.no}`))
       return psMsg('กด "รีเซ็ตรหัส" อีกครั้งเพื่อยืนยัน (รหัสผ่านเดิมของนักเรียนจะใช้ไม่ได้)');
     try {
-      const out = await api.adminReset(r.no);
+      const out = await adminApi.adminReset(r.no);
       (r as Row & Acc).account = { claimed: false, code: out.code };
       const accCell = root.querySelector<HTMLElement>(`[data-acc="${r.no}"]`);
       if (accCell)
@@ -703,7 +704,7 @@ export function createPeopleTools(o: Opts) {
     modal.querySelectorAll<HTMLButtonElement>("[data-nb-go]").forEach((b) => (b.disabled = true));
     nbStatus("กำลังบันทึก…");
     try {
-      applyRoster(await api.adminRenumber(x, y, mode));
+      applyRoster(await adminApi.adminRenumber(x, y, mode));
       await o.reload();
       const msg =
         mode === "photos"
@@ -845,7 +846,7 @@ export function createPeopleTools(o: Opts) {
   }
 
   async function saveSet(r: Row, set: number | null) {
-    const out = await api.adminUpdate(r.no, { portraitSet: set });
+    const out = await adminApi.adminUpdate(r.no, { portraitSet: set });
     Object.assign(r, out.student);
   }
 
@@ -1040,7 +1041,7 @@ export function createPeopleTools(o: Opts) {
     const st = card.querySelector<HTMLElement>("[data-tch-state]")!;
     st.textContent = "…";
     try {
-      applyRoster(await api.adminUpdateTeacher(id, { [key]: el.value }));
+      applyRoster(await adminApi.adminUpdateTeacher(id, { [key]: el.value }));
       st.textContent = "✓";
       if (key === "name") {
         // the "shown on the site" badge depends on the name
@@ -1123,8 +1124,8 @@ export function createPeopleTools(o: Opts) {
 
     // teachers tab
     if (t.closest("[data-tch-add]")) {
-      void teacherAction(() => api.adminAddTeacher(), "เพิ่มครูแล้ว · ใส่ชื่อในช่องใหม่ด้านล่าง").then(() =>
-        host?.querySelector<HTMLElement>(".tch-card:last-child input")?.focus(),
+      void teacherAction(() => adminApi.adminAddTeacher(), "เพิ่มครูแล้ว · ใส่ชื่อในช่องใหม่ด้านล่าง").then(
+        () => host?.querySelector<HTMLElement>(".tch-card:last-child input")?.focus(),
       );
       return true;
     }
@@ -1135,11 +1136,13 @@ export function createPeopleTools(o: Opts) {
       if (!tc) return true;
       const move = t.closest<HTMLElement>("[data-tch-move]");
       if (move) {
-        void teacherAction(() => api.adminMoveTeacher(id, Number(move.dataset.tchMove) as -1 | 1));
+        void teacherAction(() =>
+          adminApi.adminMoveTeacher(id, Number(move.dataset.tchMove) as -1 | 1),
+        );
         return true;
       }
       if (t.closest("[data-tch-hide]")) {
-        void teacherAction(() => api.adminUpdateTeacher(id, { hidden: !tc.hidden }));
+        void teacherAction(() => adminApi.adminUpdateTeacher(id, { hidden: !tc.hidden }));
         return true;
       }
       if (t.closest("[data-tch-del]")) {
@@ -1149,7 +1152,7 @@ export function createPeopleTools(o: Opts) {
           return true;
         }
         confirmDel = 0;
-        void teacherAction(() => api.adminDeleteTeacher(id), `ลบ ${teacherLabel(tc)} แล้ว`);
+        void teacherAction(() => adminApi.adminDeleteTeacher(id), `ลบ ${teacherLabel(tc)} แล้ว`);
         return true;
       }
     }

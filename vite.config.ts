@@ -48,6 +48,22 @@ function studentThemes(): Plugin {
 
 export default defineConfig({
   plugins: [studentThemes(), classApi()],
+  build: {
+    sourcemap: false,
+    cssCodeSplit: true,
+    rollupOptions: {
+      output: {
+        // The admin screens (src/pages/backend*.ts, admin-api.ts) become assets/admin-<hash>.js/.css.
+        // server/index.ts only serves those to a logged-in admin.
+        chunkFileNames: (chunk: { name: string }) =>
+          chunk.name === "backend" ? "assets/admin-[hash].js" : "assets/[name]-[hash].js",
+        assetFileNames: (asset: { names?: string[]; name?: string }) =>
+          (asset.names?.[0] ?? asset.name ?? "").startsWith("backend")
+            ? "assets/admin-[hash][extname]"
+            : "assets/[name]-[hash][extname]",
+      },
+    },
+  },
   server: {
     // the SQLite files change on every save; don't trigger page reloads for them
     watch: { ignored: ["**/data/**"] },

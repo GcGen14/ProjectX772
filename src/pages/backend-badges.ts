@@ -2,7 +2,7 @@
 // admin-made "special theme" a student gets as their own preset on /me.
 // Opened from a student's settings panel (backend-people.ts), which owns the modal.
 import { applyStudentRecords, studentAvatar, type StudentRecord } from "../data.ts";
-import { api } from "../lib/api.ts";
+import { adminApi } from "../lib/admin-api.ts";
 import {
   applyBadges,
   badgeCatalog,
@@ -35,7 +35,7 @@ type Hooks = {
 export function createBadgeTools(h: Hooks) {
   const row = (no: number) => h.rows().find((r) => r.no === no);
   const save = async (r: StudentRecord, patch: Partial<StudentRecord>) => {
-    const out = await api.adminUpdate(r.no, patch);
+    const out = await adminApi.adminUpdate(r.no, patch);
     Object.assign(r, out.student);
     applyStudentRecords(h.rows());
   };
@@ -159,7 +159,7 @@ export function createBadgeTools(h: Hooks) {
     $("[data-bc-save]").addEventListener("click", async () => {
       msg.textContent = "กำลังบันทึก…";
       try {
-        const out = await api.adminSaveBadges(list.filter((b) => b.name.trim()));
+        const out = await adminApi.adminSaveBadges(list.filter((b) => b.name.trim()));
         applyBadges(out.badges);
         list = out.badges.map((b) => ({ ...b }));
         h.setStatus("บันทึกรายการป้ายแล้ว");

@@ -517,7 +517,7 @@ const footer = () => `
         <span><strong>${totals.photos.toLocaleString()}</strong> รูป</span>
         <span><strong>${totals.videos}</strong> คลิป</span>
         <span><strong>${albums.length}</strong> อัลบั้ม · <strong>${students.length}</strong> คน</span>
-        <a href="/backend" data-link>แก้ไขข้อมูล</a>
+        ${session.user && "admin" in session.user ? `<a href="/backend" data-link>แก้ไขข้อมูล</a>` : ""}
       </div>
     </div>
   </footer>`;

@@ -11,6 +11,10 @@ import {
   profileUrl,
 } from "../data.ts";
 import { api, refreshSession, type AdminAlbum, type Job } from "../lib/api.ts";
+import { adminApi } from "../lib/admin-api.ts";
+import "../styles/backend.css";
+import "../styles/backend-albums.css";
+import "../styles/backend-people.css";
 import { icon, logoMark } from "../lib/icons.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
 import { createPeopleTools } from "./backend-people.ts";
@@ -100,28 +104,9 @@ export function renderBackend(root: HTMLElement): Cleanup {
     showLogin();
   }
 
+  /** Session ended while the page was open: go back to the login gate. */
   function showLogin() {
-    setStatus("สำหรับผู้ดูแลห้องเท่านั้น");
-    body.innerHTML = `
-      <form class="me-card me-narrow adm-login" data-login novalidate>
-        <h2>เข้าสู่ระบบผู้ดูแล</h2>
-        <label class="me-field"><span>รหัสผ่านผู้ดูแล</span><input name="password" type="password" autocomplete="current-password" required></label>
-        <p class="me-error" data-error role="alert"></p>
-        <button class="me-btn me-block" type="submit">เข้าสู่ระบบ</button>
-        <p class="me-help small">รหัสถูกสร้างครั้งแรกไว้ในไฟล์ <code>data/ADMIN_PASSWORD.txt</code> ในโฟลเดอร์โปรเจกต์ (หรือตั้งเองด้วยตัวแปร ADMIN_PASSWORD)</p>
-      </form>`;
-    const form = body.querySelector<HTMLFormElement>("[data-login]")!;
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const err = form.querySelector<HTMLElement>("[data-error]")!;
-      try {
-        await api.adminLogin((form.elements.namedItem("password") as HTMLInputElement).value);
-        await refreshSession();
-        openTab(tab);
-      } catch (ex) {
-        err.textContent = (ex as Error).message;
-      }
-    });
+    location.reload();
   }
 
   /* ---------------- tabs ---------------- */
@@ -252,7 +237,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
 
   /* ---------------- public messages (moderation) ---------------- */
   async function loadWall() {
-    const { posts } = await api.adminWall();
+    const { posts } = await adminApi.adminWall();
     if (!alive || tab !== "wall") return;
     const pending = posts.filter((p) => p.status === "pending").length;
     setStatus(
@@ -277,7 +262,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
 
   async function loadAlbums() {
     setStatus("จัดการอัลบั้มรูป · เพิ่มโฟลเดอร์ Google Drive ใหม่ หรือซิงก์รูปที่เพิ่มเข้ามาในโฟลเดอร์เดิม");
-    const r = await api.adminAlbums();
+    const r = await adminApi.adminAlbums();
     albumsList = r.albums;
     jobs = r.jobs;
     renderAlbums();
@@ -293,9 +278,9 @@ export function renderBackend(root: HTMLElement): Cleanup {
       const before = Object.entries(jobs)
         .filter(([, j]) => j.state === "running")
         .map(([k]) => k);
-      jobs = (await api.adminJobs()).jobs;
+      jobs = (await adminApi.adminJobs()).jobs;
       if (before.some((k) => jobs[k]?.state !== "running")) {
-        albumsList = (await api.adminAlbums()).albums;
+        albumsList = (await adminApi.adminAlbums()).albums;
         void api.albums().then((x) => applyAlbums(x.albums)); // live site data in this tab too
       }
       // don't wipe a form the admin is typing in
@@ -327,7 +312,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
       err.textContent = "";
       const btn = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
       btn.disabled = true;
-      api
+      adminApi
         .adminAddAlbum({
           folder: val("folder"),
           title: val("title"),
@@ -349,7 +334,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
     if (form.matches("[data-edit-form]"))
       void albumAction(
         () =>
-          api.adminUpdateAlbum(slug, {
+          adminApi.adminUpdateAlbum(slug, {
             title: val("title"),
             en: val("en"),
             tagline: val("tagline"),
@@ -359,7 +344,10 @@ export function renderBackend(root: HTMLElement): Cleanup {
         "บันทึกอัลบั้มแล้ว",
       );
     if (form.matches("[data-folder-form]"))
-      void albumAction(() => api.adminAddFolder(slug, val("folder")), "เพิ่มโฟลเดอร์แล้ว กำลังซิงก์…");
+      void albumAction(
+        () => adminApi.adminAddFolder(slug, val("folder")),
+        "เพิ่มโฟลเดอร์แล้ว กำลังซิงก์…",
+      );
   });
 
   const cell = (r: Row, f: Field) => {
@@ -380,7 +368,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
   async function loadTable() {
     root.querySelector<HTMLElement>("[data-actions]")!.hidden = false;
     setStatus("กำลังโหลดข้อมูล…");
-    rows = (await api.adminStudents()).students;
+    rows = (await adminApi.adminStudents()).students;
     applyStudentRecords(rows);
     await people.refreshRoster(); // who owns which photo (profile pictures in the table)
     setStatus("แก้ไขแล้วระบบบันทึกให้อัตโนมัติเมื่อออกจากช่อง · นักเรียนเข้าสู่ระบบที่หน้า /me ด้วยเลขที่ + รหัสครั้งแรก");
@@ -416,7 +404,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
     const st = root.querySelector<HTMLElement>(`[data-state="${no}"]`)!;
     st.textContent = "…";
     try {
-      const out = await api.adminUpdate(no, { [key]: value });
+      const out = await adminApi.adminUpdate(no, { [key]: value });
       Object.assign(r, out.student);
       st.textContent = "✓";
       applyStudentRecords(rows);
@@ -450,15 +438,15 @@ export function renderBackend(root: HTMLElement): Cleanup {
       return;
     }
     if (t.closest("[data-faces]"))
-      return void albumAction(() => api.adminRunFaces(), "เริ่มจับคู่ใบหน้าแล้ว");
+      return void albumAction(() => adminApi.adminRunFaces(), "เริ่มจับคู่ใบหน้าแล้ว");
     const card = t.closest<HTMLElement>("[data-album]");
     if (card && t.closest("button") && !t.closest("form")) {
       const slug = card.dataset.album!;
       const a = albumsList.find((x) => x.slug === slug)!;
       if (t.closest("[data-sync]"))
-        return void albumAction(() => api.adminSyncAlbum(slug), `เริ่มซิงก์ ${a.title}`);
+        return void albumAction(() => adminApi.adminSyncAlbum(slug), `เริ่มซิงก์ ${a.title}`);
       if (t.closest("[data-hide]"))
-        return void albumAction(() => api.adminUpdateAlbum(slug, { hidden: !a.hidden }));
+        return void albumAction(() => adminApi.adminUpdateAlbum(slug, { hidden: !a.hidden }));
       if (t.closest("[data-edit-open]")) {
         card.querySelector<HTMLElement>("[data-edit-form]")!.hidden = false;
         return;
@@ -474,7 +462,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
           return renderAlbums();
         }
         confirmDelete = "";
-        return void albumAction(() => api.adminDeleteAlbum(slug), `ลบอัลบั้ม ${a.title} แล้ว`);
+        return void albumAction(() => adminApi.adminDeleteAlbum(slug), `ลบอัลบั้ม ${a.title} แล้ว`);
       }
     }
     if (card && t.closest("[data-edit-cancel]")) {
@@ -487,7 +475,7 @@ export function renderBackend(root: HTMLElement): Cleanup {
       const r = rows.find((x) => x.no === no)!;
       reset.disabled = true;
       try {
-        const out = await api.adminReset(no);
+        const out = await adminApi.adminReset(no);
         r.account = { claimed: false, code: out.code, lastLogin: r.account.lastLogin };
         root.querySelector<HTMLElement>(`[data-acc="${no}"]`)!.innerHTML = accountCell(r);
         setStatus(`เลขที่ ${no}: รหัสครั้งแรกใหม่คือ ${out.code} (รหัสผ่านเดิมใช้ไม่ได้แล้ว)`);
