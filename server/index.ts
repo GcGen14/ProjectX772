@@ -48,7 +48,7 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse) {
     return res.end();
   }
   // dotfiles and source maps are never served
-  if (/(^|[\/])\./.test(path.relative(DIST, file)) || file.endsWith(".map")) return notFound(res);
+  if (/(^|[/])\./.test(path.relative(DIST, file)) || file.endsWith(".map")) return notFound(res);
   const hashed = urlPath.startsWith("/assets/");
   const cacheControl = hashed
     ? IMMUTABLE
@@ -58,7 +58,8 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse) {
   if (sendFile(req, res, file, { cache: cacheControl })) return;
   // a missing file under /assets or with an extension is a real 404; everything else is an SPA route
   if (hashed || path.extname(urlPath)) return notFound(res);
-  if (urlPath.replace(/\/+$/, "") === "/backend") res.setHeader("x-robots-tag", "noindex, nofollow");
+  if (urlPath.replace(/\/+$/, "") === "/backend")
+    res.setHeader("x-robots-tag", "noindex, nofollow");
   sendFile(req, res, path.join(DIST, "index.html"), { cache: "no-cache" });
 }
 

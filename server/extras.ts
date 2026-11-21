@@ -464,7 +464,8 @@ export function createExtrasApi() {
       if (!(req.headers["content-type"] ?? "").includes("application/json"))
         return send(res, 415, { error: "ต้องส่งเป็น JSON" });
       const origin = req.headers.origin;
-      if (origin && !sameHost(origin, req.headers.host)) return send(res, 403, { error: "ไม่อนุญาต" });
+      if (origin && !sameHost(origin, req.headers.host))
+        return send(res, 403, { error: "ไม่อนุญาต" });
       const s = sessionOf(req);
       if (!s || s.isAdmin || s.no == null || !getStudentRow(s.no))
         return send(res, 401, { error: "กรุณาเข้าสู่ระบบ" });
@@ -479,7 +480,8 @@ export function createExtrasApi() {
       if (!(req.headers["content-type"] ?? "").includes("application/json"))
         return send(res, 415, { error: "ต้องส่งเป็น JSON" });
       const origin = req.headers.origin;
-      if (origin && !sameHost(origin, req.headers.host)) return send(res, 403, { error: "ไม่อนุญาต" });
+      if (origin && !sameHost(origin, req.headers.host))
+        return send(res, 403, { error: "ไม่อนุญาต" });
       if (!sessionOf(req)?.isAdmin) return send(res, 401, { error: "ต้องเข้าสู่ระบบผู้ดูแล" });
       readBody(req)
         .then((body) => send(res, 200, { letter: saveLetter(body) }))

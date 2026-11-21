@@ -72,15 +72,9 @@ type Next = (err?: unknown) => void;
 
 const COOKIE = "s602";
 
-// the request being answered, so send() can gzip big lists (students, photos, people...) for browsers that accept it
-let current: Req | null = null;
+// gzips big lists (students, photos, people...) for browsers that accept it
 function send(res: Res, status: number, body: unknown) {
-  const json = JSON.stringify(body);
-  if (current) return sendJsonCompressed(current, res, status, json);
-  res.statusCode = status;
-  res.setHeader("content-type", "application/json; charset=utf-8");
-  res.setHeader("cache-control", "no-store");
-  res.end(json);
+  sendJsonCompressed(res.req, res, status, JSON.stringify(body));
 }
 
 function cookies(req: Req): Record<string, string> {
@@ -147,7 +141,6 @@ export function createApi() {
     if (serveUploads(req, res)) return;
     const url = new URL(req.url ?? "/", "http://x");
     if (!url.pathname.startsWith("/api/")) return next();
-    current = req;
     handle(req, res, url.pathname).catch((e: unknown) => {
       if (e instanceof HttpError) send(res, e.status, { error: e.message });
       else {
