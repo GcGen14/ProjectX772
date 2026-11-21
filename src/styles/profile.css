@@ -1297,3 +1297,56 @@ body.page-profile {
     grid-template-columns: 1fr;
   }
 }
+
+/* share-card button: same grey pill as the "more" / step-nav buttons */
+.pf-pass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: none;
+  height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #ededed;
+  color: var(--ink-900);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pf-pass:hover {
+  background: #e2e2e2;
+}
+
+.pf-pass:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.th-dark .pf-pass {
+  background: var(--surface);
+}
+
+.th-dark .pf-pass:hover {
+  background: var(--surface-2);
+}
+
+@media (max-width: 720px) {
+  .pf-top-right {
+    gap: 8px;
+  }
+
+  /* icon only on small screens so the top bar never overflows */
+  .pf-pass {
+    width: 40px;
+    padding: 0;
+  }
+
+  .pf-pass span {
+    display: none;
+  }
+}

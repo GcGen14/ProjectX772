@@ -1,6 +1,7 @@
 import "./styles/base.css";
 import "./styles/landing.css";
 import "./styles/profile.css";
+import "./styles/share-card.css";
 import "./styles/memories.css";
 import "./styles/backend.css";
 import "./styles/backend-albums.css";

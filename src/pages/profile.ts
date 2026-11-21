@@ -21,6 +21,7 @@ import { badgeRow, decorateAvatar } from "../lib/badges.ts";
 import { mountSignature } from "../lib/signature.ts";
 import { applyTheme, type ProfileTheme } from "../lib/theme.ts";
 import { songNavButton } from "../lib/song.ts";
+import { openShareDialog } from "../lib/share-dialog.ts";
 import { createViewer, type MediaItem } from "../lib/viewer.ts";
 
 export type { MediaItem } from "../lib/viewer.ts";
@@ -64,6 +65,8 @@ export type ProfileConfig = {
   moreTags?: string[];
   preload: string[];
   tabs: ProfileTab[];
+  /** show "แชร์การ์ด" (profile pass image for IG / LINE etc.) */
+  sharePass?: boolean;
 };
 
 /* ----------------------------- shared bits ----------------------------- */
@@ -221,6 +224,7 @@ function header(cfg: ProfileConfig, tab: string) {
       .join("")}</nav>
     <div class="pf-top-right">
       ${cfg.topNav ?? ""}
+      ${cfg.sharePass ? `<button class="pf-pass" type="button" data-pass aria-label="แชร์การ์ดโปรไฟล์">${icon("share", 16)}<span>แชร์การ์ด</span></button>` : ""}
       <div class="pf-more-wrap">
         <button class="pf-more" type="button" aria-label="More" aria-haspopup="menu" data-more>${icon("more", 20)}</button>
         <div class="pf-menu" role="menu" hidden>
@@ -429,6 +433,8 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
       }, 1800);
     }
 
+    let closeShare: (() => void) | undefined;
+    disposers.push(() => closeShare?.());
     function onClick(e: MouseEvent) {
       const t = e.target as Element;
       const tabBtn = t.closest<HTMLElement>("[data-tab]");
@@ -445,6 +451,31 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
       }
       if (t.closest("[data-more]")) {
         menu.hidden = !menu.hidden;
+        return;
+      }
+      if (t.closest("[data-pass]")) {
+        closeShare?.();
+        closeShare = openShareDialog(
+          {
+            name: c.name,
+            handle: c.handle,
+            bio: c.bio,
+            avatar: c.avatar,
+            round: c.avatarShape !== "square",
+            badges: c.badges,
+            chips: c.tags
+              .filter((x) => !x.label.startsWith("Class of"))
+              .slice(0, 3)
+              .map((x) => x.label),
+            year: CLASS.yearEn,
+            accent: c.theme?.accent,
+            cover: c.covers[0],
+            brand: BRAND,
+            classLine: `${CLASS.name} · ${CLASS.gen}`,
+            url: location.origin + location.pathname,
+          },
+          toast,
+        );
         return;
       }
       if (t.closest("[data-share]")) {

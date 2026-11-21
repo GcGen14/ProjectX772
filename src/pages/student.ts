@@ -175,6 +175,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     nameBadge: theme.emoji,
     theme,
     badges: s.badges,
+    sharePass: true,
     handle: `@602.${String(s.no).padStart(2, "0")}`,
     handleNote: `<b>เลขที่ ${s.no}</b>${s.studentId ? ` · ID ${esc(s.studentId)}` : ` ${CLASS.name}`}`,
     bio: s.quote,
