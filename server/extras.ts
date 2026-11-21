@@ -13,6 +13,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { createAvatar, getPartsForSlot } from "@humation/core";
 import { humation1 } from "@humation/assets-humation-1";
 import { readSession } from "./auth.ts";
+import { safeDecode, sendJsonCompressed } from "./security.ts";
 import fs from "node:fs";
 import path from "node:path";
 import { ROOT, clean, getDb, getStudentRow } from "./db.ts";
@@ -349,17 +350,22 @@ export function isNoindexPath(pathname: string): boolean {
 
 /* ---------------- http ---------------- */
 
+function sameHost(origin: string, host: string | undefined): boolean {
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
+}
+
 function send(res: Res, status: number, body: unknown) {
-  res.statusCode = status;
-  res.setHeader("content-type", "application/json; charset=utf-8");
-  res.setHeader("cache-control", "no-store");
-  res.end(JSON.stringify(body));
+  sendJsonCompressed(res.req, res, status, JSON.stringify(body));
 }
 
 function sessionOf(req: Req) {
   const cookie = req.headers.cookie ?? "";
   const m = cookie.match(/(?:^|;\s*)s602=([^;]+)/);
-  return readSession(getDb(), m ? decodeURIComponent(m[1]) : undefined);
+  return readSession(getDb(), m ? (safeDecode(m[1]) ?? undefined) : undefined);
 }
 
 async function readBody(req: Req): Promise<Record<string, unknown>> {
@@ -458,8 +464,7 @@ export function createExtrasApi() {
       if (!(req.headers["content-type"] ?? "").includes("application/json"))
         return send(res, 415, { error: "ต้องส่งเป็น JSON" });
       const origin = req.headers.origin;
-      if (origin && new URL(origin).host !== req.headers.host)
-        return send(res, 403, { error: "ไม่อนุญาต" });
+      if (origin && !sameHost(origin, req.headers.host)) return send(res, 403, { error: "ไม่อนุญาต" });
       const s = sessionOf(req);
       if (!s || s.isAdmin || s.no == null || !getStudentRow(s.no))
         return send(res, 401, { error: "กรุณาเข้าสู่ระบบ" });
@@ -474,8 +479,7 @@ export function createExtrasApi() {
       if (!(req.headers["content-type"] ?? "").includes("application/json"))
         return send(res, 415, { error: "ต้องส่งเป็น JSON" });
       const origin = req.headers.origin;
-      if (origin && new URL(origin).host !== req.headers.host)
-        return send(res, 403, { error: "ไม่อนุญาต" });
+      if (origin && !sameHost(origin, req.headers.host)) return send(res, 403, { error: "ไม่อนุญาต" });
       if (!sessionOf(req)?.isAdmin) return send(res, 401, { error: "ต้องเข้าสู่ระบบผู้ดูแล" });
       readBody(req)
         .then((body) => send(res, 200, { letter: saveLetter(body) }))
