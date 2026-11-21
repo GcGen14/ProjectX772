@@ -1,0 +1,289 @@
+/* share-card popup (src/lib/share-dialog.ts)
+   Wide screens: preview on the left, options on the right. Phones: bottom sheet, preview on top.
+   Colours follow the page: light by default, dark when the profile theme is dark (html.pf-dark). */
+.sc-modal {
+  --sc-bg: #fff;
+  --sc-fg: var(--ink-900, #171717);
+  --sc-muted: var(--muted-2, #6b7078);
+  --sc-chip: #ededed;
+  --sc-chip-hover: #e2e2e2;
+  --sc-well: var(--surface, #f5f6f7);
+  --sc-line: var(--line, #e4e8ef);
+  --sc-primary: var(--ink-strong, #131922);
+  --sc-primary-fg: #fff;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+html.pf-dark .sc-modal {
+  --sc-bg: #131922;
+  --sc-fg: #f5f6f7;
+  --sc-muted: #9aa3af;
+  --sc-chip: #222c3a;
+  --sc-chip-hover: #2b3748;
+  --sc-well: #0b0f16;
+  --sc-line: #263040;
+  --sc-primary: #f5f6f7;
+  --sc-primary-fg: #131922;
+}
+
+.sc-modal.is-open {
+  opacity: 1;
+}
+
+.sc-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(19, 25, 34, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.sc-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 32px);
+  padding: 18px;
+  border-radius: 24px;
+  background: var(--sc-bg);
+  color: var(--sc-fg);
+  box-shadow: 0 24px 60px rgba(19, 25, 34, 0.35);
+}
+
+.sc-card header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  grid-column: 1 / -1;
+}
+
+.sc-card h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.sc-card h3 {
+  margin: 0 0 8px;
+  color: var(--sc-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.sc-x {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sc-chip);
+  color: inherit;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.sc-x:hover {
+  background: var(--sc-chip-hover);
+}
+
+.sc-preview {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--sc-well);
+}
+
+.sc-canvas {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 100%;
+  max-height: min(56dvh, 600px);
+  aspect-ratio: 9 / 16;
+  object-fit: contain;
+}
+
+.sc-loading {
+  padding: 60px 16px;
+  color: var(--sc-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.sc-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sc-opts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sc-opt,
+.sc-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1.5px solid transparent;
+  border-radius: 999px;
+  background: var(--sc-chip);
+  color: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.sc-opt:hover,
+.sc-theme:hover {
+  background: var(--sc-chip-hover);
+}
+
+.sc-opt[aria-checked="true"],
+.sc-theme[aria-checked="true"] {
+  border-color: var(--sc-fg);
+  font-weight: 600;
+}
+
+.sc-theme {
+  padding: 0 14px 0 6px;
+}
+
+.sc-theme i {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(128, 128, 128, 0.35);
+}
+
+.sc-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.sc-btn {
+  flex: 1;
+  height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sc-chip);
+  color: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.sc-btn:hover:not(:disabled) {
+  background: var(--sc-chip-hover);
+}
+
+.sc-btn.is-primary,
+.sc-btn.is-primary:hover:not(:disabled) {
+  background: var(--sc-primary);
+  color: var(--sc-primary-fg);
+}
+
+.sc-btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.sc-modal button:focus-visible {
+  outline: 2px solid var(--blue, #0569ff);
+  outline-offset: 2px;
+}
+
+/* tablet / desktop: two columns */
+@media (min-width: 760px) {
+  .sc-card {
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    width: min(820px, 100%);
+    gap: 18px 24px;
+    padding: 24px;
+  }
+
+  .sc-canvas {
+    max-height: calc(100dvh - 170px);
+  }
+
+  .sc-side {
+    overflow-y: auto;
+  }
+}
+
+/* phones: bottom sheet that scrolls if it is too tall */
+@media (max-width: 759px) {
+  .sc-modal {
+    place-items: end center;
+    padding: 0;
+  }
+
+  .sc-card {
+    width: 100%;
+    max-height: 94dvh;
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    border-radius: 24px 24px 0 0;
+  }
+
+  .sc-preview {
+    min-height: 0;
+    padding: 10px;
+  }
+
+  .sc-canvas {
+    max-height: 44dvh;
+    border-radius: 10px;
+  }
+
+  .sc-modal.is-open .sc-card {
+    animation: sc-up 0.28s var(--ease-out, ease-out);
+  }
+
+  /* themes in one swipeable row */
+  .sc-themes {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .sc-theme {
+    flex: none;
+  }
+}
+
+@keyframes sc-up {
+  from {
+    transform: translateY(40px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-modal,
+  .sc-modal.is-open .sc-card {
+    animation: none;
+    transition: none;
+  }
+}
