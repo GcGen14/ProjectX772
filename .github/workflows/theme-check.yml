@@ -1,0 +1,29 @@
+name: Theme check
+
+# Student theme PRs (themes/<no>/) must only touch their own folder and pass scripts/check-themes.ts.
+
+on:
+  pull_request:
+    paths:
+      - "themes/**"
+      - "scripts/theme-css.ts"
+      - "scripts/check-themes.ts"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Use the checker from the base branch, not from the PR
+        run: git checkout "origin/${{ github.base_ref }}" -- scripts/theme-css.ts scripts/check-themes.ts
+      - name: Check themes
+        run: node scripts/check-themes.ts --pr "origin/${{ github.base_ref }}"
