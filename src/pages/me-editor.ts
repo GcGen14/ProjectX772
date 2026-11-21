@@ -26,8 +26,22 @@ import {
   themeEditorHtml,
   type ProfileTheme,
 } from "../lib/theme.ts";
-import { cropSquare, deleteMine, loadImage, toBody, uploadMine } from "../lib/upload.ts";
+import {
+  cropSquare,
+  deleteMine,
+  loadImage,
+  progressBar,
+  toBody,
+  uploadMine,
+} from "../lib/upload.ts";
 import { bindExtrasEditor, extrasSectionHtml } from "./me-extras.ts";
+import {
+  customThemeMeta,
+  editThemeUrl,
+  hasCustomTheme,
+  newThemeUrl,
+  themesGuideUrl,
+} from "../lib/custom-theme.ts";
 import { artSrc, effectiveTheme, signatureCard, signatureOf } from "../lib/signature.ts";
 
 const LIMITS = {
@@ -44,6 +58,7 @@ type Field = keyof typeof LIMITS;
 const TABS = [
   { k: "info", label: "ข้อมูล", icon: "user" },
   { k: "photos", label: "รูปภาพ", icon: "image" },
+  { k: "more", label: "มหาลัย / พอร์ต", icon: "book" },
   { k: "theme", label: "ธีม", icon: "palette" },
   { k: "character", label: "ตัวการ์ตูน", icon: "sparkle" },
   { k: "socials", label: "โซเชียล", icon: "globe" },
@@ -310,7 +325,21 @@ export function renderEditor(
           </section>`
               : ""
           }
-          <section class="me-section${sig ? "" : " me2-first"}">
+          <section class="me-section${sig ? "" : " me2-first"}" data-css-theme>
+            <h2>${icon("code", 18)} ธีมที่เขียนเอง (CSS) <em>ส่งผ่าน GitHub Pull Request</em></h2>
+            ${
+              hasCustomTheme(no)
+                ? `<div class="me2-sig-card">
+              <div class="me2-sig-text"><b>${esc(customThemeMeta(no).name || "ธีมของฉัน")}</b><p>${esc(customThemeMeta(no).tagline || "ธีมนี้ถูกเพิ่มเข้าเว็บแล้ว")}</p></div>
+              <button type="button" class="me-btn me-small" data-css-toggle></button>
+            </div>
+            <p class="me-help small"><a href="${editThemeUrl(no)}" target="_blank" rel="noopener">${icon("pen", 13)} แก้ธีมบน GitHub</a> แล้วเปิด Pull Request ใหม่ · <a href="${themesGuideUrl}" target="_blank" rel="noopener">คู่มือ</a></p>`
+                : `<p class="me-help small">ออกแบบหน้าโปรไฟล์ของตัวเองด้วย CSS ได้เต็มที่ (สี ลาย ฟอนต์ แอนิเมชัน) กดปุ่มด้านล่าง GitHub จะเปิดไฟล์ตัวอย่างให้แก้ แล้วกด <b>Propose changes</b> → <b>Create pull request</b> ระบบตรวจให้อัตโนมัติ และเมื่อผู้ดูแลกด merge ธีมจะขึ้นบนโปรไฟล์ของคุณ</p>
+            <div class="me-row"><a class="me-btn me-small" href="${newThemeUrl(no)}" target="_blank" rel="noopener">${icon("code", 14)} สร้างธีมของฉันบน GitHub</a>
+            <a class="btn-outline me-small" href="${themesGuideUrl}" target="_blank" rel="noopener">อ่านคู่มือ</a></div>`
+            }
+          </section>
+          <section class="me-section">
             <h2>${icon("sparkle", 18)} ธีมสำเร็จรูป</h2>
             <p class="me-help small">แตะครั้งเดียวเปลี่ยนทั้งหน้า แล้วค่อยปรับต่อด้านล่างได้</p>
             <div class="me2-presets">${presets.map(presetCard).join("")}</div>
@@ -321,6 +350,7 @@ export function renderEditor(
           </section>
         </div>
 
+        <div class="me2-panel" data-panel="more" role="tabpanel">${extrasSectionHtml(no, "more")}</div>
         <div class="me2-panel" data-panel="character" role="tabpanel">${extrasSectionHtml(no, "character")}</div>
         <div class="me2-panel" data-panel="socials" role="tabpanel">${extrasSectionHtml(no, "socials")}</div>
         <div class="me2-panel" data-panel="privacy" role="tabpanel">${extrasSectionHtml(no, "privacy")}</div>
@@ -533,7 +563,9 @@ export function renderEditor(
   fileInput.addEventListener("change", async () => {
     const f = fileInput.files?.[0];
     if (!f) return;
+    let bar: ReturnType<typeof progressBar> | undefined;
     try {
+      upStatus.classList.remove("has-progress");
       upStatus.textContent = "กำลังเปิดรูป…";
       const full = await loadImage(f);
       let box: Awaited<ReturnType<typeof cropSquare>> | undefined;
@@ -542,16 +574,19 @@ export function renderEditor(
         box = await cropSquare(full);
         if (!box) return;
       }
-      upStatus.textContent = "กำลังอัปโหลด…";
-      const id = await uploadMine(toBody(full, box ?? undefined));
+      bar = progressBar(upStatus);
+      bar.prepare("กำลังย่อรูป…");
+      await new Promise((r) => setTimeout(r, 30)); // let the bar paint before the heavy encode
+      const id = await uploadMine(toBody(full, box ?? undefined), bar.update);
       if (uploadKind === "avatar") draft.avatar = id;
       else draft.coverPhoto = id;
       setDirty(true);
-      upStatus.textContent = "อัปโหลดแล้ว ✓ อย่าลืมกดบันทึกด้านล่าง";
+      bar.done("อัปโหลดแล้ว ✓ อย่าลืมกดบันทึกด้านล่าง");
       renderPhotos();
       refreshPreview();
     } catch (ex) {
-      upStatus.textContent = (ex as Error).message;
+      if (bar) bar.fail((ex as Error).message);
+      else upStatus.textContent = (ex as Error).message;
       if (ex instanceof ApiError && ex.status === 401) hooks.showLogin();
     }
   });
@@ -571,6 +606,32 @@ export function renderEditor(
     });
   };
   mountThemeEditor();
+
+  /* ---------- CSS theme from a merged pull request: switch on / off ---------- */
+  const cssToggle = view.querySelector<HTMLButtonElement>("[data-css-toggle]");
+  if (cssToggle) {
+    const paintCss = () => {
+      const on = !!draft.theme?.custom;
+      cssToggle.textContent = on ? "ปิดธีมนี้" : "ใช้ธีมนี้";
+      cssToggle.classList.toggle("is-on", on);
+      cssToggle.setAttribute("aria-pressed", String(on));
+    };
+    paintCss();
+    cssToggle.addEventListener("click", () => {
+      const t = { ...draft.theme };
+      if (t.custom) {
+        delete t.custom;
+        t.customOff = true;
+      } else {
+        t.custom = no;
+        delete t.customOff;
+      }
+      draft.theme = t;
+      setDirty(true);
+      refreshPreview();
+      paintCss();
+    });
+  }
 
   /* ---------- signature theme (only for its owner; the server checks too) ---------- */
   if (sig) {
@@ -620,9 +681,15 @@ export function renderEditor(
     file?.addEventListener("change", async () => {
       const f = file.files?.[0];
       if (!f) return;
+      let bar: ReturnType<typeof progressBar> | undefined;
       try {
-        status!.textContent = "กำลังอัปโหลด…";
-        const id = await uploadMine(toBody(await loadImage(f)));
+        status!.classList.remove("has-progress");
+        status!.textContent = "กำลังเปิดรูป…";
+        const img = await loadImage(f);
+        bar = progressBar(status!);
+        bar.prepare("กำลังย่อรูป…");
+        await new Promise((r) => setTimeout(r, 30));
+        const id = await uploadMine(toBody(img), bar.update);
         draft.theme = {
           ...draft.theme,
           art: id,
@@ -632,9 +699,10 @@ export function renderEditor(
         setDirty(true);
         refreshPreview();
         paintSig();
-        status!.textContent = "อัปโหลดแล้ว ✓ อย่าลืมกดบันทึกด้านล่าง";
+        bar.done("อัปโหลดแล้ว ✓ อย่าลืมกดบันทึกด้านล่าง");
       } catch (ex) {
-        status!.textContent = (ex as Error).message;
+        if (bar) bar.fail((ex as Error).message);
+        else status!.textContent = (ex as Error).message;
       }
     });
   }
@@ -646,6 +714,9 @@ export function renderEditor(
       PERSONAL.map((k) => [k, draft.theme?.[k]]).filter(([, v]) => v),
     );
     const picked: ProfileTheme = { ...presets[Number(b.dataset.preset)].theme, ...keep };
+    // the CSS theme from a merged pull request is separate from presets: keep its on/off state
+    if (draft.theme?.custom) picked.custom = draft.theme.custom;
+    if (draft.theme?.customOff) picked.customOff = true;
     // picking another look means the owner chose to switch their signature theme off
     if (sig && !picked.sig) picked.sigOff = true;
     draft.theme = picked;
