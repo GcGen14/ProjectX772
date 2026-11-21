@@ -53,8 +53,18 @@ export type Badge = {
   /** chip style (src/lib/badges.ts LOOKS) */
   look?: string;
 };
-const BADGE_DECOS = ["crown", "crown-silver", "tiara", "halo", "laurel", "code", "stars", "flame"];
-const BADGE_LOOKS = ["shine", "holo", "solid"];
+const BADGE_DECOS = [
+  "none",
+  "crown",
+  "crown-silver",
+  "tiara",
+  "halo",
+  "laurel",
+  "code",
+  "stars",
+  "flame",
+];
+const BADGE_LOOKS = ["chip", "shine", "holo", "solid"];
 export const DEFAULT_BADGES: Badge[] = [
   { id: "leader", name: "หัวหน้าห้อง", emoji: "👑", color: "#ca8a04", deco: "crown", look: "shine" },
   { id: "vice", name: "รองหัวหน้าห้อง", emoji: "🎖️", color: "#ea580c", deco: "crown-silver" },
@@ -386,11 +396,26 @@ function cleanBadges(v: unknown): Badge[] {
   }
   return out;
 }
+/**
+ * A catalog saved before badges had decorations / styles has neither field: give those badges the
+ * built-in decoration and style for their id (an admin's explicit "none" / "chip" is kept).
+ */
+function withBadgeDefaults(list: Badge[]): Badge[] {
+  return list.map((b) => {
+    const def = DEFAULT_BADGES.find((d) => d.id === b.id);
+    if (!def) return b;
+    const out = { ...b };
+    if (out.deco === undefined && !out.crown && def.deco) out.deco = def.deco;
+    if (out.look === undefined && def.look) out.look = def.look;
+    return out;
+  });
+}
+
 export function getBadges(): Badge[] {
   const r = getDb().prepare("SELECT value FROM settings WHERE key = 'badges'").get() as
     | { value: string }
     | undefined;
-  return r ? parseJson(r.value, cleanBadges) : DEFAULT_BADGES;
+  return r ? withBadgeDefaults(parseJson(r.value, cleanBadges)) : DEFAULT_BADGES;
 }
 /** Replace the whole catalog (admin). Badges removed here simply stop showing on profiles. */
 export function saveBadges(v: unknown): Badge[] {
