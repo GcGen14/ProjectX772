@@ -13,6 +13,14 @@ import {
   type SocialType,
 } from "../lib/extras.ts";
 import { icon } from "../lib/icons.ts";
+import {
+  LAYOUT_LABELS,
+  LAYOUT_TABS,
+  cleanLayout,
+  type HideKey,
+  type Layout,
+  type LayoutTab,
+} from "../lib/layout.ts";
 import { esc } from "../lib/router.ts";
 
 const SLOT_LABELS: Record<string, string> = {
@@ -54,11 +62,11 @@ const portRow = (p: { title: string; url: string }) => `
     <button type="button" class="mx-icon-btn" data-port-remove aria-label="ลบ">${icon("trash", 16)}</button>
   </div>`;
 
-export type ExtrasPart = "character" | "socials" | "privacy" | "more";
+export type ExtrasPart = "character" | "socials" | "privacy" | "more" | "layout";
 
 /** All three sections in one block (kept for callers that want them together). */
 export const extrasEditorHtml = (no: number): string =>
-  (["more", "character", "socials", "privacy"] as const)
+  (["more", "character", "socials", "privacy", "layout"] as const)
     .map((k) => extrasSectionHtml(no, k))
     .join("");
 
@@ -66,6 +74,7 @@ export const extrasEditorHtml = (no: number): string =>
 export function extrasSectionHtml(no: number, part: ExtrasPart): string {
   const e = extrasOf(no);
   const p = e.privacy;
+  if (part === "layout") return layoutSectionHtml(e.layout);
   if (part === "character")
     return `
     <section class="me-section" data-mx-character>
@@ -150,6 +159,84 @@ export function extrasSectionHtml(no: number, part: ExtrasPart): string {
     </section>`;
 }
 
+/* ---------------- layout (จัดหน้าโปรไฟล์) ---------------- */
+
+const showToggle = (key: string, shown: boolean, label: string) => `
+  <label class="mx-toggle mx-lay">
+    <input type="checkbox" data-lay-show="${key}"${shown ? " checked" : ""}>
+    <span class="mx-switch" aria-hidden="true"></span>
+    <span class="mx-toggle-text"><b>${esc(label)}</b></span>
+  </label>`;
+
+function layoutSectionHtml(l: Layout): string {
+  const hid = (k: string) => !!l.hide?.includes(k as HideKey);
+  const order = [
+    ...(l.tabs ?? []),
+    ...LAYOUT_TABS.filter((t) => !(l.tabs ?? []).includes(t)),
+  ] as LayoutTab[];
+  const group = (title: string, keys: string[]) =>
+    `<div class="mx-lay-group"><h3>${title}</h3><div class="mx-toggles">${keys.map((k) => showToggle(k, !hid(k), LAYOUT_LABELS.hide[k])).join("")}</div></div>`;
+  return `
+    <section class="me-section me2-first" data-mx-layout>
+      <h2>${icon("grid", 18)} จัดหน้าโปรไฟล์</h2>
+      <p class="me-help small">เปิด/ปิดส่วนที่อยากให้เพื่อนเห็น เรียงแท็บใหม่ และเลือกขนาดรูป ทุกอย่างมีผลกับหน้าโปรไฟล์ของคุณหลังกดบันทึก</p>
+
+      <div class="mx-lay-group">
+        <h3>แท็บ <small>ใช้ลูกศรเลื่อนลำดับ</small></h3>
+        <ol class="mx-lay-tabs" data-lay-tabs>${order
+          .map(
+            (t) => `<li class="mx-lay-tab" data-lay-tab="${t}">
+          <label class="mx-toggle mx-lay"><input type="checkbox" data-lay-show="tab:${t}"${hid(`tab:${t}`) ? "" : " checked"}><span class="mx-switch" aria-hidden="true"></span><span class="mx-toggle-text"><b>${esc(LAYOUT_LABELS.tabs[t])}</b></span></label>
+          <span class="mx-lay-move"><button type="button" class="mx-icon-btn" data-lay-move="-1" aria-label="เลื่อนขึ้น">${icon("chevronLeft", 16)}</button><button type="button" class="mx-icon-btn" data-lay-move="1" aria-label="เลื่อนลง">${icon("chevronRight", 16)}</button></span>
+        </li>`,
+          )
+          .join("")}</ol>
+        <label class="me-field mx-lay-select"><span>แท็บที่เปิดก่อน</span>
+          <select data-lay-start><option value="">แท็บแรก</option>${LAYOUT_TABS.map((t) => `<option value="${t}"${l.start === t ? " selected" : ""}>${esc(LAYOUT_LABELS.tabs[t])}</option>`).join("")}</select>
+        </label>
+      </div>
+
+      ${group("ส่วนบนของหน้า", ["cover", "bio", "badges", "friends", "tags", "share"])}
+      ${group("ข้อมูลที่แสดง (ซ่อนได้ทุกที่ ทั้งด้านบน แท็ก และแท็บเกี่ยวกับ)", ["fullName", "studentId", "group", "birthday", "dream", "socials", "song", "hobbies", "note", "info", "mates"])}
+
+      <div class="mx-lay-group">
+        <h3>รูปแบบ</h3>
+        <div class="me-grid">
+          <label class="me-field"><span>รูปปก</span>
+            <select data-lay-cover><option value="slideshow">สไลด์หลายรูป</option><option value="single"${l.cover === "single" ? " selected" : ""}>รูปเดียว</option></select>
+          </label>
+          <label class="me-field"><span>ความทรงจำ</span>
+            <select data-lay-memories><option value="grid">รวมเป็นตารางเดียว</option><option value="events"${l.memories === "events" ? " selected" : ""}>แยกตามเหตุการณ์</option></select>
+          </label>
+          <label class="me-field"><span>จำนวนคอลัมน์รูป</span>
+            <select data-lay-cols><option value="">อัตโนมัติ</option>${[2, 3, 4, 5].map((n) => `<option value="${n}"${l.cols === n ? " selected" : ""}>${n} คอลัมน์</option>`).join("")}</select>
+          </label>
+        </div>
+      </div>
+      <div class="me-row"><button type="button" class="btn-outline me-small" data-lay-reset>${icon("close", 14)} คืนค่าเริ่มต้น</button></div>
+    </section>`;
+}
+
+/** Read the layout section back from its controls. */
+export function readLayoutFrom(root: HTMLElement): Layout {
+  const hide: string[] = [];
+  root.querySelectorAll<HTMLInputElement>("[data-lay-show]").forEach((c) => {
+    if (!c.checked) hide.push(c.dataset.layShow!);
+  });
+  const tabs = [...root.querySelectorAll<HTMLElement>("[data-lay-tab]")].map(
+    (li) => li.dataset.layTab!,
+  );
+  const sel = (q: string) => root.querySelector<HTMLSelectElement>(q)?.value ?? "";
+  return cleanLayout({
+    hide,
+    tabs,
+    start: sel("[data-lay-start]"),
+    cols: Number(sel("[data-lay-cols]")) || undefined,
+    memories: sel("[data-lay-memories]"),
+    cover: sel("[data-lay-cover]"),
+  });
+}
+
 type PartsResponse = { parts: Record<string, string[]>; colors: string[]; current: CharacterState };
 
 /** Wire the sections up. Returns save(), which the editor calls when the profile is saved. */
@@ -162,6 +249,8 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
     colors: { ...e.character.colors },
   };
   let info: Info = JSON.parse(JSON.stringify(e.info));
+  let layout: Layout = JSON.parse(JSON.stringify(e.layout ?? {}));
+  let layoutChanged = false;
   let charChanged = false;
   let parts: Record<string, string[]> = {};
 
@@ -338,6 +427,39 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
     if ((ev.target as HTMLElement).matches("[data-info]")) syncInfo();
   });
 
+  /* ---- layout ---- */
+  const layHost = () => host.querySelector<HTMLElement>("[data-mx-layout]");
+  const layDirty = () => {
+    const h = layHost();
+    if (!h) return;
+    layout = readLayoutFrom(h);
+    layoutChanged = true;
+    onDirty();
+  };
+  host.addEventListener("change", (ev) => {
+    if ((ev.target as HTMLElement).closest("[data-mx-layout]")) layDirty();
+  });
+  host.addEventListener("click", (ev) => {
+    const t = ev.target as Element;
+    const mv = t.closest<HTMLElement>("[data-lay-move]");
+    if (mv) {
+      const li = mv.closest<HTMLElement>("[data-lay-tab]")!;
+      const dir = Number(mv.dataset.layMove);
+      const sib = dir < 0 ? li.previousElementSibling : li.nextElementSibling;
+      if (sib && dir < 0) sib.before(li);
+      else if (sib) sib.after(li);
+      return layDirty();
+    }
+    if (t.closest("[data-lay-reset]")) {
+      const h = layHost();
+      if (!h) return;
+      h.outerHTML = layoutSectionHtml({});
+      layout = {};
+      layoutChanged = true;
+      onDirty();
+    }
+  });
+
   /* ---- socials ---- */
   function readSocials(): Social[] {
     return [...host.querySelectorAll<HTMLElement>("[data-social-row]")]
@@ -358,7 +480,10 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
     async save() {
       const patch: Parameters<typeof saveMyExtras>[0] = { socials, privacy, info };
       if (charChanged) patch.character = character;
+      if (layoutChanged) patch.layout = layout;
       const saved = await saveMyExtras(patch);
+      layoutChanged = false;
+      layout = saved.layout ?? {};
       setExtrasFor(no, saved); // avatars + face stickers update everywhere right away
       charChanged = false;
       // show what the server kept (it tidies handles / links)

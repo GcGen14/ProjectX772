@@ -68,6 +68,10 @@ export type ProfileConfig = {
   tabs: ProfileTab[];
   /** show "แชร์การ์ด" (profile pass image for IG / LINE etc.) */
   sharePass?: boolean;
+  /** pieces the owner switched off (src/lib/layout.ts HIDE_KEYS) */
+  hide?: string[];
+  /** tab to open first when the address has no ?tab= */
+  start?: string;
 };
 
 /* ----------------------------- shared bits ----------------------------- */
@@ -220,7 +224,7 @@ function header(cfg: ProfileConfig, tab: string) {
       .join("")}</nav>
     <div class="pf-top-right">
       ${cfg.topNav ?? ""}
-      ${cfg.sharePass ? `<button class="pf-pass" type="button" data-pass aria-label="แชร์การ์ดโปรไฟล์">${icon("share", 16)}<span>แชร์การ์ด</span></button>` : ""}
+      ${cfg.sharePass && !cfg.hide?.includes("share") ? `<button class="pf-pass" type="button" data-pass aria-label="แชร์การ์ดโปรไฟล์">${icon("share", 16)}<span>แชร์การ์ด</span></button>` : ""}
       <div class="pf-more-wrap">
         <button class="pf-more" type="button" aria-label="More" aria-haspopup="menu" data-more>${icon("more", 20)}</button>
         <div class="pf-menu" role="menu" hidden>
@@ -238,26 +242,34 @@ function header(cfg: ProfileConfig, tab: string) {
       })()}
       <div class="pf-info-text">
         <h1>${esc(cfg.name)}${cfg.nameBadge ? ` <span class="pf-emoji" aria-hidden="true">${esc(cfg.nameBadge)}</span>` : ""}</h1>
-        ${badgeRow(cfg.badges, "pf-roles")}
+        ${cfg.hide?.includes("badges") ? "" : badgeRow(cfg.badges, "pf-roles")}
         <div class="pf-handle">${esc(cfg.handle)} <span class="pf-dot">•</span> <span class="pf-followers">${cfg.handleNote}</span></div>
-        <p class="pf-bio">${esc(cfg.bio)}</p>
+        ${cfg.hide?.includes("bio") ? "" : `<p class="pf-bio">${esc(cfg.bio)}</p>`}
         ${cfg.lines.map((l) => `<div class="pf-line">${icon(l.icon, 16)}<span>${l.html}</span></div>`).join("")}
-        <button class="pf-clients pf-friends" type="button" data-clients aria-label="เพื่อนในห้อง">
+        ${
+          cfg.hide?.includes("friends")
+            ? ""
+            : `<button class="pf-clients pf-friends" type="button" data-clients aria-label="เพื่อนในห้อง">
           ${cfg.stack.avatars.map((a) => `<img class="pf-friend" src="${a}" alt="">`).join("")}
           <span class="pf-client more">+${cfg.stack.more}</span>
-        </button>
+        </button>`
+        }
       </div>
     </div>
     <div class="pf-cover-col">
       <div class="pf-cover">${cfg.covers.map((c, i) => `<img src="${c}" alt="" class="${i === 0 ? "is-on" : ""}">`).join("")}</div>
-      <div class="pf-tags">
+      ${
+        cfg.hide?.includes("tags")
+          ? ""
+          : `<div class="pf-tags">
         ${cfg.tags.map((t) => `<span class="chip pf-tag">${icon(t.icon, 18)}${esc(t.label)}</span>`).join("")}
         ${
           cfg.moreTags?.length
             ? `<span class="pf-tag-extra" hidden>${cfg.moreTags.map((t) => `<span class="chip pf-tag">${esc(t)}</span>`).join("")}</span><button class="chip pf-tag pf-tag-more" type="button" data-more-tags>+${cfg.moreTags.length}</button>`
             : ""
         }
-      </div>
+      </div>`
+      }
     </div>
   </section>
   <div class="pf-tabs-wrap">
@@ -337,7 +349,8 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
     const c = cfg!;
     const keys = c.tabs.map((t) => t.key);
     const q = new URLSearchParams(location.search).get("tab");
-    let tab = q && keys.includes(q) ? q : keys[0];
+    const first = c.start && keys.includes(c.start) ? c.start : keys[0];
+    let tab = q && keys.includes(q) ? q : first;
     main.innerHTML = header(c, tab);
     main.classList.add("is-mounted");
     disposers.push(mountSignature(main, c.theme));
@@ -378,7 +391,7 @@ export function renderProfilePage(root: HTMLElement, cfg: ProfileConfig | null):
         b.setAttribute("aria-selected", String(on));
       });
       const url = new URL(location.href);
-      if (t === keys[0]) url.searchParams.delete("tab");
+      if (t === first) url.searchParams.delete("tab");
       else url.searchParams.set("tab", t);
       history.replaceState({}, "", url.pathname + url.search);
       renderPanel();

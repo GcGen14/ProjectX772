@@ -462,3 +462,81 @@ a.sx-chip:hover {
     grid-column: 2;
   }
 }
+
+/* ---------- layout editor (จัดหน้าโปรไฟล์) ---------- */
+.mx-lay-group {
+  margin-top: 22px;
+}
+
+.mx-lay-group h3 {
+  color: var(--ink-900);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.mx-lay-group h3 small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.mx-lay-tabs {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 12px;
+  padding: 0;
+  list-style: none;
+}
+
+.mx-lay-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.mx-lay-move {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.mx-lay-move .mx-icon-btn:first-child svg {
+  rotate: 90deg;
+}
+
+.mx-lay-move .mx-icon-btn:last-child svg {
+  rotate: 90deg;
+}
+
+.mx-lay-select {
+  max-width: 280px;
+}
+
+/* ---------- memories grouped by event on a profile ---------- */
+.pf-by-event {
+  display: grid;
+  gap: 34px;
+}
+
+.pf-ev h3 {
+  margin-bottom: 12px;
+  color: var(--ink-900);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.pf-ev h3 span {
+  margin-left: 8px;
+  color: var(--muted-2);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.pf-ev .pf-portfolio {
+  display: block;
+}
