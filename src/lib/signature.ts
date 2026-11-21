@@ -8,6 +8,7 @@
 // All artwork here is original SVG / CSS (no copyrighted character images are bundled; the
 // owner can upload their own picture as `theme.art`).
 import { esc } from "./router.ts";
+import { hasCustomTheme, loadCustomTheme } from "./custom-theme.ts";
 import type { ProfileTheme } from "./theme.ts";
 
 export type SigKey = "homura" | "ender" | "cp" | "pudding" | "gamedev";
@@ -87,7 +88,12 @@ export const signatureOf = (no: number) => SIGNATURES.find((s) => s.owner === no
  * for them), unless they switched it off in /me (`sigOff`).
  */
 export function effectiveTheme(no: number, theme: ProfileTheme | undefined): ProfileTheme {
-  const t = theme ?? {};
+  let t = theme ?? {};
+  // a merged CSS theme (themes/<no>/) is on by default too; loading its stylesheet is a no-op after the first time
+  if (hasCustomTheme(no) && !t.customOff) {
+    loadCustomTheme(no);
+    t = { ...t, custom: no };
+  }
   const sig = signatureOf(no);
   if (!sig || t.sig || t.sigOff) return t;
   return { ...t, ...sig.preset, sig: sig.key };

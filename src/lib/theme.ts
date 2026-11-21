@@ -38,6 +38,10 @@ export type ProfileTheme = {
   art?: string;
   /** the owner switched their (default-on) signature theme off */
   sigOff?: boolean;
+  /** student number whose CSS theme (themes/<no>/) is applied; set on the client by effectiveTheme(), never stored */
+  custom?: number;
+  /** the owner switched their (default-on) CSS theme off */
+  customOff?: boolean;
   emoji?: string;
   song?: string;
   hobbies?: string;
@@ -145,6 +149,7 @@ export function themeAttrs(t: ProfileTheme | undefined): { cls: string; style: s
   if (t.fx && t.fx !== "none") cls.push("th-fx", `th-fx-${t.fx}`);
   if (t.sig && /^(homura|ender|cp|pudding|gamedev)$/.test(t.sig))
     cls.push("th-sig", `th-sig-${t.sig}`);
+  if (Number.isInteger(t.custom) && t.custom! > 0) cls.push("th-custom", `th-custom-${t.custom}`);
   for (const k of ["corner", "ring", "cover"] as const)
     if (t[k] && t[k] !== DEFAULTS[k]) cls.push(`th-${k}-${t[k]}`);
   const hex = (v?: string) => !!v && /^#[0-9a-f]{6}$/i.test(v);

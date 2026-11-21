@@ -95,6 +95,8 @@ export type ProfileTheme = {
   art?: string;
   /** owner switched their default-on signature theme off */
   sigOff?: boolean;
+  /** owner switched their CSS theme (themes/<no>/, merged by pull request) off */
+  customOff?: boolean;
 };
 const THEME_BG = [
   "plain",
@@ -455,6 +457,7 @@ export function cleanTheme(v: unknown): ProfileTheme {
   if (typeof o.sig === "string" && o.sig in SIGNATURE_OWNERS) out.sig = o.sig;
   if (typeof o.art === "string" && /^up-[\w-]{6,40}$/.test(o.art)) out.art = o.art;
   if (o.sigOff === true) out.sigOff = true;
+  if (o.customOff === true) out.customOff = true;
   const bg = pick("bg", THEME_BG);
   const font = pick("font", THEME_FONTS);
   const avatar = pick("avatar", THEME_AVATAR);
