@@ -27,7 +27,7 @@ import { myNo, session } from "../lib/api.ts";
 import { bindSongPlayers, songNavButton, songSectionHtml } from "../lib/song.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { clamp, esc, prefersReducedMotion, type Cleanup } from "../lib/router.ts";
-import { albumCount, albumCover, albumCoverSrc } from "./album.ts";
+import { albumCount, albumCover, albumCoverSrc, albumEventCount, albumPreview } from "./album.ts";
 
 /* ------------------------------------------------------------------ *
  * Hero card layout, in a 1440 x 675 reference frame.
@@ -533,7 +533,7 @@ const albumsModal = () => `
         ${albums
           .map(
             (a) =>
-              `<li><a href="/album/${a.slug}" data-link><img src="${albumCover(a) ? thumb(albumCover(a).id) : albumCoverSrc(a)}" alt=""><div><b>${esc(a.title)}</b><span>${esc(a.en)} · ${albumCount(a)}</span></div></a></li>`,
+              `<li><a href="/album/${a.slug}" data-link><span class="why-pv">${albumPreview(a)}</span><div><b>${esc(a.title)}</b><span>${esc(a.en)} · ${albumCount(a)}${albumEventCount(a) ? ` · ${albumEventCount(a)} เหตุการณ์` : ""}</span></div></a></li>`,
           )
           .join("")}
       </ul>

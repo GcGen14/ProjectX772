@@ -5,7 +5,7 @@
 //                 builds in /me; shown instead of their face when they hide it (or use it as avatar)
 //
 //   GET  /api/extras                  public: everyone's extras (no secrets in here)
-//   PUT  /api/me/extras               { socials?, privacy?, character? } — logged-in student only
+//   PUT  /api/me/extras               { socials?, privacy?, character?, info? } — logged-in student only
 //   GET  /api/character/parts         part names per slot (for the builder)
 //   GET  /api/character/preview?s=..  SVG preview of a character state (no saving)
 //   GET  /media/characters/<no>.svg   a student's saved character
@@ -28,6 +28,23 @@ export type Privacy = {
   hideFace?: boolean;
   useCharacter?: boolean;
 };
+/** "More about me": university, portfolio, skills, awards, goals and contact. All optional. */
+export type Info = {
+  university?: string;
+  faculty?: string;
+  /** TCAS round / admission path, free text */
+  round?: string;
+  status?: "applying" | "admitted" | "studying" | "gap" | "other";
+  portfolios?: { title: string; url: string }[];
+  skills?: string[];
+  awards?: string[];
+  activities?: string[];
+  goal?: string;
+  /** shown on the profile only if the student typed it in here */
+  email?: string;
+  openTo?: string[];
+};
+export const INFO_STATUS = ["applying", "admitted", "studying", "gap", "other"] as const;
 export type CharacterState = { selections: Record<string, string>; colors: Record<string, string> };
 
 export const SOCIAL_TYPES = [
@@ -47,6 +64,7 @@ type SocialType = (typeof SOCIAL_TYPES)[number];
 const SLOTS = ["head", "body", "bottom", "item", "glasses"] as const;
 const COLOR_KEYS = ["hair", "skin", "clothes", "bottom", "background"] as const;
 const MAX_SOCIALS = 10;
+const MAX_PORTFOLIOS = 6;
 
 let ready = false;
 function ensure() {
@@ -61,6 +79,9 @@ function ensure() {
       updated_at TEXT NOT NULL DEFAULT ''
     );
   `);
+  const cols = getDb().prepare("PRAGMA table_info(student_extras)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "info"))
+    getDb().exec("ALTER TABLE student_extras ADD COLUMN info TEXT NOT NULL DEFAULT '{}'");
   ready = true;
 }
 
@@ -98,6 +119,63 @@ function cleanSocials(v: unknown): Social[] {
     }
     out.push({ type: type as SocialType, value: val });
   }
+  return out;
+}
+
+const httpUrl = (v: unknown): string | null => {
+  let val = clean(v, 300);
+  if (!val) return null;
+  if (!/^https?:\/\//i.test(val)) val = `https://${val}`;
+  try {
+    const u = new URL(val);
+    if ((u.protocol !== "https:" && u.protocol !== "http:") || !u.hostname.includes("."))
+      return null;
+    return u.toString().slice(0, 300);
+  } catch {
+    return null;
+  }
+};
+const cleanList = (v: unknown, max: number, len: number): string[] | undefined => {
+  if (!Array.isArray(v)) return undefined;
+  const out = [...new Set(v.map((x) => clean(x, len)).filter(Boolean))].slice(0, max);
+  return out.length ? out : undefined;
+};
+
+export function cleanInfo(v: unknown): Info {
+  const o = v && typeof v === "object" ? (v as Record<string, unknown>) : {};
+  const out: Info = {};
+  for (const [k, len] of [
+    ["university", 80],
+    ["faculty", 100],
+    ["round", 60],
+    ["goal", 200],
+  ] as const) {
+    const t = clean(o[k], len);
+    if (t) out[k] = t;
+  }
+  if (typeof o.status === "string" && (INFO_STATUS as readonly string[]).includes(o.status))
+    out.status = o.status as Info["status"];
+  const email = clean(o.email, 100);
+  if (/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(email)) out.email = email;
+  if (Array.isArray(o.portfolios)) {
+    const list: { title: string; url: string }[] = [];
+    for (const it of o.portfolios.slice(0, MAX_PORTFOLIOS)) {
+      if (!it || typeof it !== "object") continue;
+      const url = httpUrl((it as Record<string, unknown>).url);
+      if (!url) continue;
+      const title = clean((it as Record<string, unknown>).title, 60) || new URL(url).hostname;
+      list.push({ title, url });
+    }
+    if (list.length) out.portfolios = list;
+  }
+  const skills = cleanList(o.skills, 12, 30);
+  const awards = cleanList(o.awards, 8, 120);
+  const activities = cleanList(o.activities, 8, 120);
+  const openTo = cleanList(o.openTo, 6, 40);
+  if (skills) out.skills = skills;
+  if (awards) out.awards = awards;
+  if (activities) out.activities = activities;
+  if (openTo) out.openTo = openTo;
   return out;
 }
 
@@ -214,6 +292,7 @@ export function getExtras(no: number) {
     socials: parse<Social[]>(r?.socials, []),
     privacy: parse<Privacy>(r?.privacy, {}),
     character: parse<CharacterState>(r?.character, { selections: {}, colors: {} }),
+    info: parse<Info>(r?.info, {}),
     hasCharacter: !!r?.character_svg,
     updatedAt: typeof r?.updated_at === "string" ? r.updated_at : "",
   };
@@ -233,17 +312,19 @@ function saveExtras(no: number, body: Record<string, unknown>) {
   const socials = "socials" in body ? cleanSocials(body.socials) : cur.socials;
   const privacy = "privacy" in body ? cleanPrivacy(body.privacy) : cur.privacy;
   const character = "character" in body ? cleanCharacter(body.character) : cur.character;
+  const info = "info" in body ? cleanInfo(body.info) : cur.info;
   const svg = "character" in body || !cur.hasCharacter ? renderCharacter(no, character) : null;
   const d = getDb();
   d.prepare(
-    `INSERT INTO student_extras (no, socials, privacy, character, character_svg, updated_at) VALUES (?, ?, ?, ?, ?, ?)
-     ON CONFLICT(no) DO UPDATE SET socials = excluded.socials, privacy = excluded.privacy, character = excluded.character,
+    `INSERT INTO student_extras (no, socials, privacy, character, info, character_svg, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(no) DO UPDATE SET socials = excluded.socials, privacy = excluded.privacy, character = excluded.character, info = excluded.info,
        character_svg = COALESCE(excluded.character_svg, student_extras.character_svg), updated_at = excluded.updated_at`,
   ).run(
     no,
     JSON.stringify(socials),
     JSON.stringify(privacy),
     JSON.stringify(character),
+    JSON.stringify(info),
     svg,
     new Date().toISOString(),
   );
