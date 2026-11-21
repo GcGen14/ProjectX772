@@ -20,6 +20,7 @@ import "./styles/timeline.css";
 import "./styles/album-page.css";
 import "./styles/badge-decos.css";
 import "./styles/signature.css";
+import "./styles/hover-preview.css";
 import "./styles/responsive.css";
 import {
   applyAlbums,
@@ -36,6 +37,7 @@ import { api, refreshSession } from "./lib/api.ts";
 import { refreshChatBadge } from "./lib/chat-badge.ts";
 import { mountSongMini } from "./lib/song.ts";
 import { loadExtras, setNoindex, startFaceGuard } from "./lib/extras.ts";
+import { initHoverPreview } from "./lib/hover-preview.ts";
 import { bindLinks, setRouteHandler, type Cleanup } from "./lib/router.ts";
 import { applyBadges } from "./lib/badges.ts";
 import { renderLanding } from "./pages/landing.ts";
@@ -73,6 +75,7 @@ async function route() {
   setNoindex(false); // profile pages turn it back on for students who opted out
   const path = decodeURIComponent(location.pathname);
   const album = path.match(/^\/album\/([^/]+)\/?$/);
+  const eventPage = path.match(/^\/event\/(e[0-9a-f]{6})\/?$/);
   // /student/:no is the old address; send it to /member/:no
   const oldStudent = path.match(/^\/student\/(\d+)\/?$/);
   if (oldStudent)
@@ -104,6 +107,12 @@ async function route() {
       const { renderStudent } = await import("./pages/student.ts");
       const owner = studentBySlug(meSlug[1]);
       mount = () => renderStudent(app, owner ? owner.no : -1);
+    } else if (eventPage) {
+      const { renderEvent } = await import("./pages/event.ts");
+      mount = () => renderEvent(app, eventPage[1]);
+    } else if (/^\/events\/?$/.test(path)) {
+      const { renderEvents } = await import("./pages/events.ts");
+      mount = () => renderEvents(app);
     } else if (album) {
       const { renderAlbum } = await import("./pages/album.ts");
       mount = () => renderAlbum(app, album[1]);
@@ -171,6 +180,7 @@ setRouteHandler(() => void route());
 bindLinks();
 mountSongMini(); // เพลงห้อง: floating player that keeps playing across pages
 startFaceGuard(); // swaps faces for characters for students who chose to hide theirs
+initHoverPreview(); // bigger photo / playing clip when the mouse rests on a tile
 void loadLiveData().then(async () => {
   await route();
   // fade out the boot screen from index.html; the landing splash picks up from the same spot
