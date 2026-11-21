@@ -4,6 +4,7 @@
 // in class photos (grids, covers, the viewer, ...). It works on any page without that page knowing.
 import { allPhotos, getPhoto, photoTags, portraitSrc, studentAvatar, students } from "../data.ts";
 import { icon } from "./icons.ts";
+import type { Layout } from "./layout.ts";
 import { esc } from "./router.ts";
 
 export type SocialType =
@@ -52,6 +53,8 @@ export type Extras = {
   privacy: Privacy;
   character: CharacterState;
   info: Info;
+  /** how they arranged their profile page (src/lib/layout.ts) */
+  layout: Layout;
   hasCharacter: boolean;
   updatedAt: string;
 };
@@ -75,12 +78,14 @@ const EMPTY: Extras = {
   privacy: {},
   character: { selections: {}, colors: {} },
   info: {},
+  layout: {},
   hasCharacter: false,
   updatedAt: "",
 };
 let EXTRAS: Record<number, Extras> = {};
 
 export const extrasOf = (no: number): Extras => EXTRAS[no] ?? EMPTY;
+export const layoutOf = (no: number): Layout => extrasOf(no).layout ?? {};
 export const usesCharacter = (no: number) =>
   !!(extrasOf(no).privacy.hideFace || extrasOf(no).privacy.useCharacter);
 export const characterUrl = (no: number) => {
@@ -103,7 +108,7 @@ export async function loadExtras() {
 }
 
 export async function saveMyExtras(
-  patch: Partial<Pick<Extras, "socials" | "privacy" | "character" | "info">>,
+  patch: Partial<Pick<Extras, "socials" | "privacy" | "character" | "info" | "layout">>,
 ) {
   const r = await fetch("/api/me/extras", {
     method: "PUT",

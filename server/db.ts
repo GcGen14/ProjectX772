@@ -6,7 +6,8 @@ import { DatabaseSync } from "node:sqlite";
 import { hashSecret, newCode } from "./auth.ts";
 
 export const ROOT = path.resolve(import.meta.dirname, "..");
-const DATA_DIR = path.join(ROOT, "data");
+// CLASS_DATA_DIR: tests point this at a temp folder so they never touch the real database
+const DATA_DIR = process.env.CLASS_DATA_DIR || path.join(ROOT, "data");
 const DB_FILE = path.join(DATA_DIR, "602.sqlite");
 const SEED_FILE = path.join(ROOT, "src", "data", "students.json");
 const ADMIN_FILE = path.join(DATA_DIR, "ADMIN_PASSWORD.txt");

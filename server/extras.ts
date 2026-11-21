@@ -5,7 +5,7 @@
 //                 builds in /me; shown instead of their face when they hide it (or use it as avatar)
 //
 //   GET  /api/extras                  public: everyone's extras (no secrets in here)
-//   PUT  /api/me/extras               { socials?, privacy?, character?, info? } — logged-in student only
+//   PUT  /api/me/extras               { socials?, privacy?, character?, info?, layout? } — logged-in student only
 //   GET  /api/character/parts         part names per slot (for the builder)
 //   GET  /api/character/preview?s=..  SVG preview of a character state (no saving)
 //   GET  /media/characters/<no>.svg   a student's saved character
@@ -19,6 +19,7 @@ import path from "node:path";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { ROOT, clean, getDb, getStudentRow } from "./db.ts";
+import { cleanLayout, type Layout } from "./layout.ts";
 
 type Req = IncomingMessage;
 type Res = ServerResponse;
@@ -83,6 +84,8 @@ function ensure() {
     );
   `);
   const cols = getDb().prepare("PRAGMA table_info(student_extras)").all() as { name: string }[];
+  if (!cols.some((c) => c.name === "layout"))
+    getDb().exec("ALTER TABLE student_extras ADD COLUMN layout TEXT NOT NULL DEFAULT '{}'");
   if (!cols.some((c) => c.name === "info"))
     getDb().exec("ALTER TABLE student_extras ADD COLUMN info TEXT NOT NULL DEFAULT '{}'");
   ready = true;
@@ -296,6 +299,7 @@ export function getExtras(no: number) {
     privacy: parse<Privacy>(r?.privacy, {}),
     character: parse<CharacterState>(r?.character, { selections: {}, colors: {} }),
     info: parse<Info>(r?.info, {}),
+    layout: cleanLayout(parse<unknown>(r?.layout, {})),
     hasCharacter: !!r?.character_svg,
     updatedAt: typeof r?.updated_at === "string" ? r.updated_at : "",
   };
@@ -309,18 +313,19 @@ export function listExtras() {
   return out;
 }
 
-function saveExtras(no: number, body: Record<string, unknown>) {
+export function saveExtras(no: number, body: Record<string, unknown>) {
   ensure();
   const cur = getExtras(no);
   const socials = "socials" in body ? cleanSocials(body.socials) : cur.socials;
   const privacy = "privacy" in body ? cleanPrivacy(body.privacy) : cur.privacy;
   const character = "character" in body ? cleanCharacter(body.character) : cur.character;
   const info = "info" in body ? cleanInfo(body.info) : cur.info;
+  const layout: Layout = "layout" in body ? cleanLayout(body.layout) : cur.layout;
   const svg = "character" in body || !cur.hasCharacter ? renderCharacter(no, character) : null;
   const d = getDb();
   d.prepare(
-    `INSERT INTO student_extras (no, socials, privacy, character, info, character_svg, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT(no) DO UPDATE SET socials = excluded.socials, privacy = excluded.privacy, character = excluded.character, info = excluded.info,
+    `INSERT INTO student_extras (no, socials, privacy, character, info, layout, character_svg, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(no) DO UPDATE SET socials = excluded.socials, privacy = excluded.privacy, character = excluded.character, info = excluded.info, layout = excluded.layout,
        character_svg = COALESCE(excluded.character_svg, student_extras.character_svg), updated_at = excluded.updated_at`,
   ).run(
     no,
@@ -328,6 +333,7 @@ function saveExtras(no: number, body: Record<string, unknown>) {
     JSON.stringify(privacy),
     JSON.stringify(character),
     JSON.stringify(info),
+    JSON.stringify(layout),
     svg,
     new Date().toISOString(),
   );
