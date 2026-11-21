@@ -1,11 +1,13 @@
 // /me sections: my character (Humation), social links and privacy.
 // Rendered inside the profile editor (me.ts) and saved together with the rest of the profile.
 import {
+  INFO_STATUS,
   SOCIALS,
   extrasOf,
   saveMyExtras,
   setExtrasFor,
   type CharacterState,
+  type Info,
   type Privacy,
   type Social,
   type SocialType,
@@ -28,6 +30,7 @@ const COLOR_LABELS: Record<string, string> = {
   background: "พื้นหลัง",
 };
 const MAX_SOCIALS = 10;
+const MAX_PORTFOLIOS = 6;
 const nice = (name: string) => name.replace(/-/g, " ");
 
 const toggle = (key: keyof Privacy, on: boolean, title: string, help: string) => `
@@ -44,11 +47,20 @@ const socialRow = (s: Social) => `
     <button type="button" class="mx-icon-btn" data-social-remove aria-label="ลบ">${icon("trash", 16)}</button>
   </div>`;
 
-export type ExtrasPart = "character" | "socials" | "privacy";
+const portRow = (p: { title: string; url: string }) => `
+  <div class="mx-social mx-port" data-port-row>
+    <input type="text" data-port-title maxlength="60" value="${esc(p.title)}" placeholder="ชื่อ เช่น พอร์ตออกแบบ" aria-label="ชื่อพอร์ต">
+    <input type="text" data-port-url maxlength="300" value="${esc(p.url)}" placeholder="https://..." aria-label="ลิงก์พอร์ต" inputmode="url">
+    <button type="button" class="mx-icon-btn" data-port-remove aria-label="ลบ">${icon("trash", 16)}</button>
+  </div>`;
+
+export type ExtrasPart = "character" | "socials" | "privacy" | "more";
 
 /** All three sections in one block (kept for callers that want them together). */
 export const extrasEditorHtml = (no: number): string =>
-  (["character", "socials", "privacy"] as const).map((k) => extrasSectionHtml(no, k)).join("");
+  (["more", "character", "socials", "privacy"] as const)
+    .map((k) => extrasSectionHtml(no, k))
+    .join("");
 
 /** One section; the editor can put each in its own tab as long as all sit inside bindExtrasEditor's host. */
 export function extrasSectionHtml(no: number, part: ExtrasPart): string {
@@ -71,6 +83,53 @@ export function extrasSectionHtml(no: number, part: ExtrasPart): string {
       </div>
       ${toggle("useCharacter", !!p.useCharacter, "ใช้ตัวการ์ตูนเป็นรูปโปรไฟล์", "รูปโปรไฟล์ทุกที่ในเว็บจะเป็นตัวการ์ตูนนี้แทนรูปหน้า")}
     </section>`;
+  if (part === "more") {
+    const i = e.info;
+    const txt = (
+      k: string,
+      label: string,
+      v: string | undefined,
+      ph: string,
+      max: number,
+      wide = false,
+    ) =>
+      `<label class="me-field${wide ? " th-wide" : ""}"><span>${label}</span><input type="text" data-info="${k}" maxlength="${max}" value="${esc(v ?? "")}" placeholder="${esc(ph)}"></label>`;
+    const lines = (k: string, label: string, hint: string, v: string[] | undefined, ph: string) =>
+      `<label class="me-field th-wide"><span>${label} <em>${hint}</em></span><textarea data-info-list="${k}" rows="3" placeholder="${esc(ph)}">${esc((v ?? []).join("\n"))}</textarea></label>`;
+    return `
+    <section class="me-section me2-first" data-mx-more>
+      <h2>${icon("book", 18)} มหาวิทยาลัย / เป้าหมาย</h2>
+      <p class="me-help small">ทุกช่องเว้นว่างได้ ช่องไหนไม่กรอกจะไม่แสดงในหน้าโปรไฟล์</p>
+      <div class="me-grid">
+        ${txt("university", "มหาวิทยาลัย", i.university, "เช่น จุฬาลงกรณ์มหาวิทยาลัย", 80)}
+        ${txt("faculty", "คณะ / สาขา", i.faculty, "เช่น วิศวกรรมศาสตร์ คอมพิวเตอร์", 100)}
+        ${txt("round", "รอบ / ช่องทางสมัคร", i.round, "เช่น TCAS รอบ 1 พอร์ต", 60)}
+        <label class="me-field"><span>สถานะ</span>
+          <select data-info="status"><option value="">ไม่ระบุ</option>${INFO_STATUS.map((s) => `<option value="${s.key}"${i.status === s.key ? " selected" : ""}>${esc(s.name)}</option>`).join("")}</select>
+        </label>
+        ${txt("goal", "เป้าหมาย / ความฝันในอนาคต", i.goal, "เช่น อยากเป็นนักพัฒนาเกม", 200, true)}
+      </div>
+    </section>
+    <section class="me-section">
+      <h2>${icon("folder", 18)} เปิดพอร์ต</h2>
+      <p class="me-help small">ลิงก์พอร์ตโฟลิโอ ผลงาน (Drive, Behance, GitHub, Canva ฯลฯ) ได้สูงสุด ${MAX_PORTFOLIOS} ลิงก์</p>
+      <div class="mx-socials" data-port-list>${(i.portfolios ?? []).map(portRow).join("")}</div>
+      <button type="button" class="btn-outline me-small" data-port-add>${icon("plus", 14)} เพิ่มพอร์ต</button>
+    </section>
+    <section class="me-section">
+      <h2>${icon("sparkle", 18)} ทักษะ รางวัล กิจกรรม</h2>
+      <div class="me-grid">
+        ${lines("skills", "ทักษะ", "บรรทัดละ 1 อย่าง", i.skills, "Python\nวาดรูป\nตัดต่อวิดีโอ")}
+        ${lines("openTo", "เปิดรับ", "เช่น รับงานฟรีแลนซ์", i.openTo, "รับงานออกแบบ\nหาเพื่อนทำโปรเจกต์")}
+        ${lines("awards", "รางวัล / ผลงาน", "บรรทัดละ 1 อย่าง", i.awards, "ชนะเลิศ Hackathon 2568")}
+        ${lines("activities", "กิจกรรม / ชมรม", "บรรทัดละ 1 อย่าง", i.activities, "ประธานชมรมถ่ายภาพ")}
+      </div>
+    </section>
+    <section class="me-section">
+      <h2>${icon("message", 18)} ช่องทางติดต่อ</h2>
+      <div class="me-grid">${txt("email", "อีเมล (แสดงให้ทุกคนเห็นในหน้าโปรไฟล์)", i.email, "ไม่อยากแสดงก็เว้นว่าง", 100, true)}</div>
+    </section>`;
+  }
   if (part === "socials")
     return `
     <section class="me-section" data-mx-socials>
@@ -102,6 +161,7 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
     selections: { ...e.character.selections },
     colors: { ...e.character.colors },
   };
+  let info: Info = JSON.parse(JSON.stringify(e.info));
   let charChanged = false;
   let parts: Record<string, string[]> = {};
 
@@ -229,6 +289,55 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
     if (el.matches("[data-social-value]")) syncSocials();
   });
 
+  /* ---- more about me ---- */
+  function readInfo(): Info {
+    const out: Record<string, unknown> = {};
+    host.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-info]").forEach((el) => {
+      if (el.value.trim()) out[el.dataset.info!] = el.value.trim();
+    });
+    host.querySelectorAll<HTMLTextAreaElement>("[data-info-list]").forEach((el) => {
+      const list = el.value
+        .split("\n")
+        .map((x) => x.trim())
+        .filter(Boolean);
+      if (list.length) out[el.dataset.infoList!] = list;
+    });
+    const ports = [...host.querySelectorAll<HTMLElement>("[data-port-row]")]
+      .map((row) => ({
+        title: row.querySelector<HTMLInputElement>("[data-port-title]")!.value.trim(),
+        url: row.querySelector<HTMLInputElement>("[data-port-url]")!.value.trim(),
+      }))
+      .filter((p) => p.url);
+    if (ports.length) out.portfolios = ports;
+    return out as Info;
+  }
+  const syncInfo = () => {
+    info = readInfo();
+    host.querySelector<HTMLButtonElement>("[data-port-add]")!.disabled =
+      host.querySelectorAll("[data-port-row]").length >= MAX_PORTFOLIOS;
+    onDirty();
+  };
+  host.addEventListener("click", (ev) => {
+    const t = ev.target as Element;
+    if (t.closest("[data-port-add]")) {
+      const list = host.querySelector<HTMLElement>("[data-port-list]")!;
+      if (list.children.length >= MAX_PORTFOLIOS) return;
+      list.insertAdjacentHTML("beforeend", portRow({ title: "", url: "" }));
+      list.querySelector<HTMLInputElement>("[data-port-row]:last-child [data-port-title]")?.focus();
+      syncInfo();
+    } else if (t.closest("[data-port-remove]")) {
+      t.closest("[data-port-row]")?.remove();
+      syncInfo();
+    }
+  });
+  host.addEventListener("input", (ev) => {
+    const el = ev.target as HTMLElement;
+    if (el.matches("[data-info], [data-info-list], [data-port-title], [data-port-url]")) syncInfo();
+  });
+  host.addEventListener("change", (ev) => {
+    if ((ev.target as HTMLElement).matches("[data-info]")) syncInfo();
+  });
+
   /* ---- socials ---- */
   function readSocials(): Social[] {
     return [...host.querySelectorAll<HTMLElement>("[data-social-row]")]
@@ -247,13 +356,17 @@ export function bindExtrasEditor(host: HTMLElement, no: number, onDirty: () => v
 
   return {
     async save() {
-      const patch: Parameters<typeof saveMyExtras>[0] = { socials, privacy };
+      const patch: Parameters<typeof saveMyExtras>[0] = { socials, privacy, info };
       if (charChanged) patch.character = character;
       const saved = await saveMyExtras(patch);
       setExtrasFor(no, saved); // avatars + face stickers update everywhere right away
       charChanged = false;
       // show what the server kept (it tidies handles / links)
       socials = saved.socials;
+      info = saved.info;
+      host.querySelector<HTMLElement>("[data-port-list]")!.innerHTML = (saved.info.portfolios ?? [])
+        .map(portRow)
+        .join("");
       host.querySelector<HTMLElement>("[data-social-list]")!.innerHTML = saved.socials
         .map(socialRow)
         .join("");

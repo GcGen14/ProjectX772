@@ -27,7 +27,7 @@ import { myNo, session } from "../lib/api.ts";
 import { bindSongPlayers, songNavButton, songSectionHtml } from "../lib/song.ts";
 import { chatBadge } from "../lib/chat-badge.ts";
 import { clamp, esc, prefersReducedMotion, type Cleanup } from "../lib/router.ts";
-import { albumCount, albumCover, albumCoverSrc, albumEventCount, albumPreview } from "./album.ts";
+import { albumCount, albumEventCount, albumPreview } from "./album.ts";
 
 /* ------------------------------------------------------------------ *
  * Hero card layout, in a 1440 x 675 reference frame.

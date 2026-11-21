@@ -18,7 +18,7 @@ import { icon } from "../lib/icons.ts";
 import { api, myNo } from "../lib/api.ts";
 import { effectiveTheme } from "../lib/signature.ts";
 import { hobbyList } from "../lib/theme.ts";
-import { extrasOf, setNoindex, socialLinksHtml } from "../lib/extras.ts";
+import { extrasOf, infoRowsHtml, setNoindex, socialLinksHtml } from "../lib/extras.ts";
 import { esc, type Cleanup } from "../lib/router.ts";
 import { albumCards, albumCover } from "./album.ts";
 import { mountMasonry, renderProfilePage, type ProfileTab } from "./profile.ts";
@@ -153,6 +153,7 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
           <div><span>${icon("cake", 18)} วันเกิด</span><b>${field(s.birthday, "รอเพิ่ม")}</b></div>
           <div><span>${icon("sparkle", 18)} ความฝัน</span><b>${field(s.dream.startsWith("ความฝัน: รอ") ? "" : s.dream, "รอเพิ่ม")}</b></div>
           <div class="pf-about-socials"><span>${icon("globe", 18)} โซเชียล</span><b>${socials || `<span class="pf-ph">รอเพิ่ม</span>`}</b></div>
+          ${infoRowsHtml(s.no)}
           ${theme.song ? `<div><span>${icon("music", 18)} เพลงโปรด</span><b>${esc(theme.song)}</b></div>` : ""}
           ${hobbies.length ? `<div><span>${icon("heart", 18)} สิ่งที่ชอบ</span><b>${hobbies.map(esc).join(" · ")}</b></div>` : ""}
           ${s.photoNote ? `<div><span>${icon("image", 18)} หมายเหตุ</span><b>${esc(s.photoNote)}</b></div>` : ""}
@@ -174,8 +175,8 @@ export function renderStudent(root: HTMLElement, no: number): Cleanup {
     name: s.nickname,
     nameBadge: theme.emoji,
     theme,
-    badges: s.badges,
     sharePass: true,
+    badges: s.badges,
     handle: `@602.${String(s.no).padStart(2, "0")}`,
     handleNote: `<b>เลขที่ ${s.no}</b>${s.studentId ? ` · ID ${esc(s.studentId)}` : ` ${CLASS.name}`}`,
     bio: s.quote,

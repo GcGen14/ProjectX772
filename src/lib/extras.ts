@@ -25,11 +25,33 @@ export type Privacy = {
   hideFace?: boolean;
   useCharacter?: boolean;
 };
+export type InfoStatus = "applying" | "admitted" | "studying" | "gap" | "other";
+export type Info = {
+  university?: string;
+  faculty?: string;
+  round?: string;
+  status?: InfoStatus;
+  portfolios?: { title: string; url: string }[];
+  skills?: string[];
+  awards?: string[];
+  activities?: string[];
+  goal?: string;
+  email?: string;
+  openTo?: string[];
+};
+export const INFO_STATUS: { key: InfoStatus; name: string }[] = [
+  { key: "applying", name: "กำลังสมัครเข้ามหาวิทยาลัย" },
+  { key: "admitted", name: "ติดแล้ว" },
+  { key: "studying", name: "กำลังเรียนอยู่" },
+  { key: "gap", name: "พักก่อน / Gap year" },
+  { key: "other", name: "อื่น ๆ" },
+];
 export type CharacterState = { selections: Record<string, string>; colors: Record<string, string> };
 export type Extras = {
   socials: Social[];
   privacy: Privacy;
   character: CharacterState;
+  info: Info;
   hasCharacter: boolean;
   updatedAt: string;
 };
@@ -52,6 +74,7 @@ const EMPTY: Extras = {
   socials: [],
   privacy: {},
   character: { selections: {}, colors: {} },
+  info: {},
   hasCharacter: false,
   updatedAt: "",
 };
@@ -80,7 +103,7 @@ export async function loadExtras() {
 }
 
 export async function saveMyExtras(
-  patch: Partial<Pick<Extras, "socials" | "privacy" | "character">>,
+  patch: Partial<Pick<Extras, "socials" | "privacy" | "character" | "info">>,
 ) {
   const r = await fetch("/api/me/extras", {
     method: "PUT",
@@ -149,6 +172,65 @@ export function socialLinksHtml(no: number, legacyIg = ""): string {
         : `<span class="sx-chip">${inner}</span>`;
     })
     .join("")}</div>`;
+}
+
+/* ---------------- "more about me" (university, portfolio, skills, ...) ---------------- */
+
+export const hasInfo = (i: Info) =>
+  !!(
+    i.university ||
+    i.faculty ||
+    i.status ||
+    i.goal ||
+    i.email ||
+    i.portfolios?.length ||
+    i.skills?.length ||
+    i.awards?.length ||
+    i.activities?.length ||
+    i.openTo?.length
+  );
+
+/** Rows for the profile's "about" card. Empty string when the student filled in nothing. */
+export function infoRowsHtml(no: number): string {
+  const i = extrasOf(no).info;
+  if (!hasInfo(i)) return "";
+  const row = (ic: string, label: string, html: string) =>
+    html ? `<div><span>${icon(ic, 18)} ${label}</span><b>${html}</b></div>` : "";
+  const chips = (list: string[] | undefined, cls = "") =>
+    list?.length
+      ? `<span class="inf-chips${cls}">${list.map((x) => `<span class="inf-chip">${esc(x)}</span>`).join("")}</span>`
+      : "";
+  const list = (l: string[] | undefined) =>
+    l?.length ? `<ul class="inf-list">${l.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "";
+  const status = INFO_STATUS.find((s) => s.key === i.status)?.name ?? "";
+  const uni = [i.university, i.faculty]
+    .filter((x): x is string => !!x)
+    .map(esc)
+    .join(" · ");
+  const port = i.portfolios?.length
+    ? `<span class="inf-ports">${i.portfolios
+        .map(
+          (p) =>
+            `<a class="inf-port" href="${esc(p.url)}" target="_blank" rel="noopener nofollow ugc">${icon("folder", 14)}<span>${esc(p.title)}</span>${icon("arrowUpRight", 12)}</a>`,
+        )
+        .join("")}</span>`
+    : "";
+  const mail = i.email ? `<a href="mailto:${esc(i.email)}" rel="nofollow">${esc(i.email)}</a>` : "";
+  return [
+    row(
+      "book",
+      "มหาวิทยาลัย / คณะ",
+      uni + (i.round ? ` <small class="muted">(${esc(i.round)})</small>` : ""),
+    ),
+    row("check", "สถานะ", esc(status)),
+    row("folder", "เปิดพอร์ต", port),
+    row("compass", "เป้าหมาย", esc(i.goal ?? "")),
+    row("code", "ทักษะ", chips(i.skills)),
+    row("sparkle", "รางวัล / ผลงาน", list(i.awards)),
+    row("users", "กิจกรรม", list(i.activities)),
+    row("briefcase", "เปิดรับ", chips(i.openTo)),
+    row("message", "ติดต่อ", mail),
+  ].join("");
 }
 
 /* ---------------- search engines ---------------- */
