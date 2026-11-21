@@ -17,6 +17,7 @@
 import type { ServerResponse } from "node:http";
 import { HttpError, readJson, type Req } from "./http.ts";
 import { handleSocial } from "./social.ts";
+import { clientIp, safeDecode, sendJsonCompressed } from "./security.ts";
 import { handleRoster, serveUploads } from "./roster.ts";
 import {
   clearFails,
@@ -71,18 +72,22 @@ type Next = (err?: unknown) => void;
 
 const COOKIE = "s602";
 
+// the request being answered, so send() can gzip big lists (students, photos, people...) for browsers that accept it
+let current: Req | null = null;
 function send(res: Res, status: number, body: unknown) {
+  const json = JSON.stringify(body);
+  if (current) return sendJsonCompressed(current, res, status, json);
   res.statusCode = status;
   res.setHeader("content-type", "application/json; charset=utf-8");
   res.setHeader("cache-control", "no-store");
-  res.end(JSON.stringify(body));
+  res.end(json);
 }
 
 function cookies(req: Req): Record<string, string> {
   const out: Record<string, string> = {};
   for (const part of (req.headers.cookie ?? "").split(";")) {
     const i = part.indexOf("=");
-    if (i > 0) out[part.slice(0, i).trim()] = decodeURIComponent(part.slice(i + 1).trim());
+    if (i > 0) out[part.slice(0, i).trim()] = safeDecode(part.slice(i + 1).trim()) ?? "";
   }
   return out;
 }
@@ -103,17 +108,30 @@ function checkOrigin(req: Req) {
   if (!(req.headers["content-type"] ?? "").includes("application/json"))
     throw new HttpError(415, "ต้องส่งเป็น JSON");
   const origin = req.headers.origin;
-  if (origin && new URL(origin).host !== req.headers.host) throw new HttpError(403, "ไม่อนุญาต");
+  if (origin) {
+    let host = "";
+    try {
+      host = new URL(origin).host;
+    } catch {
+      /* "null" or garbage: refused below */
+    }
+    if (host !== req.headers.host) throw new HttpError(403, "ไม่อนุญาต");
+  }
 }
 
-const ip = (req: Req) =>
-  String(req.headers["x-forwarded-for"] ?? req.socket.remoteAddress ?? "?")
-    .split(",")[0]
-    .trim();
-// the admin-made special theme is only for its owner (/api/me) and the admin
+const ip = clientIp;
+
+/** Session of a plain request (used by the static server to hand the admin chunk only to the admin). */
+export function sessionFrom(req: Req) {
+  return readSession(getDb(), cookies(req)[COOKIE]);
+}
+
+// the admin-made special theme is only for its owner (/api/me) and the admin;
+// the admin's private note on a student is for the admin only
 const publicStudent = (s: ReturnType<typeof listStudents>[number]) => {
   const out: Partial<typeof s> = { ...s };
   delete out.specialTheme;
+  delete out.photoNote;
   return out;
 };
 
@@ -129,6 +147,7 @@ export function createApi() {
     if (serveUploads(req, res)) return;
     const url = new URL(req.url ?? "/", "http://x");
     if (!url.pathname.startsWith("/api/")) return next();
+    current = req;
     handle(req, res, url.pathname).catch((e: unknown) => {
       if (e instanceof HttpError) send(res, e.status, { error: e.message });
       else {
@@ -180,6 +199,7 @@ async function handle(req: Req, res: Res, path: string) {
   /* ---------------- albums ---------------- */
   if (path === "/api/albums" && m === "GET") return send(res, 200, { albums: listAlbums(false) });
   if (path === "/api/people" && m === "GET") return send(res, 200, readPeople());
+  if (path === "/api/events" && m === "GET") return send(res, 200, readEvents());
 
   /* ---------------- photos ---------------- */
   if (path === "/api/photos" && m === "GET") return send(res, 200, listPhotoData());
@@ -408,6 +428,17 @@ async function handle(req: Req, res: Res, path: string) {
   }
 
   throw new HttpError(404, "ไม่พบ");
+}
+
+/* events.json (photos grouped into events by scripts/events.py): same idea, data/faces/events.json wins. */
+let eventsCache: { file: string; mtime: number; data: unknown } | null = null;
+function readEvents(): unknown {
+  const own = path.join(FACES_HOME, "events.json");
+  const file = fs.existsSync(own) ? own : path.join(ROOT, "src", "data", "events.json");
+  const mtime = fs.statSync(file).mtimeMs;
+  if (!eventsCache || eventsCache.file !== file || eventsCache.mtime !== mtime)
+    eventsCache = { file, mtime, data: JSON.parse(fs.readFileSync(file, "utf8")) };
+  return eventsCache.data;
 }
 
 /* people.json (face matching output) is read from disk so re-running faces.py shows up without a rebuild.
