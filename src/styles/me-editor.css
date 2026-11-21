@@ -232,6 +232,63 @@
   font-size: 14px;
 }
 
+.me2-up-status.has-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.up-bar {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue) 14%, transparent);
+  overflow: hidden;
+}
+
+.up-bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: var(--blue);
+  transition: width 0.18s ease-out;
+}
+
+.is-processing .up-bar i {
+  background: linear-gradient(90deg, var(--blue) 0 40%, #7cc0ff 50%, var(--blue) 60% 100%);
+  background-size: 200% 100%;
+  animation: up-stripe 1s linear infinite;
+}
+
+.is-done .up-bar i {
+  background: #16a34a;
+}
+
+.is-done .up-text {
+  color: #15803d;
+}
+
+.is-fail .up-bar i {
+  background: #e11d48;
+}
+
+.is-fail .up-text {
+  color: #e11d48;
+}
+
+@keyframes up-stripe {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-processing .up-bar i {
+    animation: none;
+  }
+}
+
 /* ---- theme presets ---- */
 .me2-presets {
   display: grid;

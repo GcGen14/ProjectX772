@@ -7,6 +7,84 @@ import { icon } from "./icons.ts";
 export type UploadBody = { data: string; face: string; w: number; h: number };
 const FACE = 240;
 
+/** Where an upload is at: "uploading" has a 0–100 `pct`; "processing" = bytes sent, server is saving. */
+export type UploadProgress = {
+  phase: "uploading" | "processing";
+  pct: number;
+  sent: number;
+  total: number;
+};
+
+/** POST JSON with upload progress (fetch can't report it, XHR can). */
+function sendWithProgress<T>(
+  url: string,
+  body: unknown,
+  onProgress: (p: UploadProgress) => void,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    const payload = JSON.stringify(body);
+    xhr.open("POST", url);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader("content-type", "application/json");
+    xhr.timeout = 120_000;
+    xhr.upload.onprogress = (e) => {
+      if (!e.lengthComputable) return;
+      const pct = Math.min(100, Math.round((e.loaded / e.total) * 100));
+      onProgress({ phase: "uploading", pct, sent: e.loaded, total: e.total });
+    };
+    xhr.upload.onload = () =>
+      onProgress({ phase: "processing", pct: 100, sent: payload.length, total: payload.length });
+    xhr.onerror = () => reject(new ApiError(0, "อินเทอร์เน็ตมีปัญหา อัปโหลดไม่สำเร็จ ลองใหม่อีกครั้ง"));
+    xhr.ontimeout = () => reject(new ApiError(0, "อัปโหลดนานเกินไป ลองใหม่อีกครั้ง"));
+    xhr.onabort = () => reject(new ApiError(0, "ยกเลิกการอัปโหลด"));
+    xhr.onload = () => {
+      let out: { error?: string } = {};
+      try {
+        out = JSON.parse(xhr.responseText || "{}");
+      } catch {
+        /* non-JSON error page */
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(out as T);
+      else reject(new ApiError(xhr.status, out.error ?? "อัปโหลดไม่สำเร็จ"));
+    };
+    xhr.send(payload);
+  });
+}
+
+const sizeText = (n: number) =>
+  n > 1_000_000 ? `${(n / 1_000_000).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1000))} KB`;
+
+/** A progress bar inside `host` that follows UploadProgress. */
+export function progressBar(host: HTMLElement) {
+  host.innerHTML = `<span class="up-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i></span><span class="up-text"></span>`;
+  host.classList.add("has-progress");
+  const bar = host.querySelector<HTMLElement>(".up-bar")!;
+  const fill = bar.querySelector<HTMLElement>("i")!;
+  const text = host.querySelector<HTMLElement>(".up-text")!;
+  const set = (pct: number, msg: string, cls = "") => {
+    bar.setAttribute("aria-valuenow", String(Math.round(pct)));
+    fill.style.width = `${pct}%`;
+    host.classList.remove("is-processing", "is-done", "is-fail");
+    if (cls) host.classList.add(cls);
+    text.textContent = msg;
+  };
+  set(2, "กำลังเตรียมรูป…");
+  return {
+    prepare: (msg: string) => set(2, msg),
+    update(p: UploadProgress) {
+      if (p.phase === "uploading")
+        set(
+          Math.max(4, p.pct * 0.92),
+          `กำลังอัปโหลด ${p.pct}% · ${sizeText(p.sent)} / ${sizeText(p.total)}`,
+        );
+      else set(96, "กำลังบันทึกรูปบนเซิร์ฟเวอร์…", "is-processing");
+    },
+    done: (msg: string) => set(100, msg, "is-done"),
+    fail: (msg: string) => set(100, msg, "is-fail"),
+  };
+}
+
 async function send<T>(method: string, url: string, body?: unknown): Promise<T> {
   const r = await fetch(url, {
     method,
@@ -93,8 +171,13 @@ export const toBody = (full: HTMLCanvasElement, box?: { x: number; y: number; si
 });
 
 /** Upload one of my photos; refreshes the photo roster so it shows up as mine right away. */
-export async function uploadMine(body: UploadBody): Promise<string> {
-  const r = await send<Roster & { uploaded: string }>("POST", "/api/me/upload", body);
+export async function uploadMine(
+  body: UploadBody,
+  onProgress?: (p: UploadProgress) => void,
+): Promise<string> {
+  const r = onProgress
+    ? await sendWithProgress<Roster & { uploaded: string }>("/api/me/upload", body, onProgress)
+    : await send<Roster & { uploaded: string }>("POST", "/api/me/upload", body);
   applyRoster(r);
   return r.uploaded;
 }
