@@ -1,0 +1,154 @@
+/*
+  เลขที่ 4 · ถั่วพู — วิ่ง / ออกกำลังกาย
+  แนวคิด: ป้ายเบอร์นักวิ่ง (race bib) บนหน้าปก + ลู่วิ่งสีดินเหนียวที่ขอบรูป
+  โทนอุ่น สีแดงส้มของลู่ ใช้ตัวเอียงให้รู้สึกถึงความเร็ว
+*/
+:root {
+  --pf-accent: #e5421d;
+  --pf-accent2: #ff9a62;
+  --t4-ink: #231815;
+  --t4-clay: #cf4a28;
+}
+
+.pf-head {
+  position: relative;
+  isolation: isolate;
+}
+
+/* เส้นลู่วิ่งบาง ๆ ไล่หายไปทางล่าง */
+.pf-head::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -14px 0 -28px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, rgba(229, 66, 29, 0.1) 0 1px, transparent 1px 26px),
+    radial-gradient(ellipse 60% 90% at 12% 0, rgba(255, 154, 98, 0.16), transparent 70%),
+    linear-gradient(#fff6f1, #fff);
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 55%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 55%, transparent);
+}
+
+.pf-info-text::before {
+  content: "RUN CLUB · BIB 04";
+  margin-bottom: 2px;
+  color: var(--pf-accent);
+  font:
+    800 11px/1 Inter,
+    system-ui,
+    sans-serif;
+  font-style: italic;
+  letter-spacing: 0.2em;
+}
+
+.pf-info h1 {
+  color: var(--t4-ink);
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.pf-handle {
+  color: #7a625a;
+}
+
+/* ลูกศรความเร็ว 3 ชั้นท้ายแฮนเดิล */
+.pf-handle::after {
+  content: "";
+  width: 22px;
+  height: 12px;
+  background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 12' fill='none' stroke='%23e5421d' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M2 1l4 5-4 5' opacity='.35'/><path d='M8 1l4 5-4 5' opacity='.65'/><path d='M14 1l4 5-4 5'/></svg>")
+    center / contain no-repeat;
+}
+
+:root.has-theme .pf-line .icon {
+  color: var(--pf-accent);
+}
+
+.pf-avatar {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 5.5px var(--pf-accent);
+}
+
+/* หน้าปก = ลู่วิ่ง: แถบสีดินเหนียวพร้อมเส้นแบ่งเลน */
+:root.has-theme .pf-cover {
+  border-radius: 14px;
+  box-shadow: 0 18px 34px -24px rgba(35, 24, 21, 0.6);
+}
+
+.pf-cover::before {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 16px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 28px) 0 5px / 100% 1.5px
+      no-repeat,
+    repeating-linear-gradient(90deg, #fff 0 14px, transparent 14px 28px) 0 10px / 100% 1.5px
+      no-repeat,
+    var(--t4-clay);
+}
+
+/* ป้ายเบอร์ติดอก (BIB) มีเข็มกลัดสี่มุม */
+.pf-cover::after {
+  content: "04";
+  position: absolute;
+  z-index: 4;
+  bottom: 28px;
+  left: 18px;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 42px;
+  border: 1.5px solid var(--t4-ink);
+  border-radius: 4px;
+  color: var(--t4-ink);
+  font:
+    italic 800 24px/1 Inter,
+    system-ui,
+    sans-serif;
+  letter-spacing: -0.04em;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, #b9b0aa 1.6px, transparent 2px) 4px 4px / 8px 8px no-repeat,
+    radial-gradient(circle, #b9b0aa 1.6px, transparent 2px) right 4px top 4px / 8px 8px no-repeat,
+    radial-gradient(circle, #b9b0aa 1.6px, transparent 2px) left 4px bottom 4px / 8px 8px no-repeat,
+    radial-gradient(circle, #b9b0aa 1.6px, transparent 2px) right 4px bottom 4px / 8px 8px no-repeat,
+    #fff;
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.45);
+  transform: rotate(-3deg);
+}
+
+:root.has-theme .pf-tag {
+  border: 0;
+  border-radius: 999px;
+  background: #ffece5;
+  color: #a8310f;
+  font-weight: 600;
+}
+
+:root.has-theme .pf-tag .icon {
+  color: var(--pf-accent);
+}
+
+.pf-tab.is-active {
+  color: var(--t4-ink);
+  font-style: italic;
+  font-weight: 700;
+}
+
+.pf-tab.is-active::after {
+  height: 4px;
+  background: var(--pf-accent);
+  transform: skewX(-24deg);
+}
+
+:root.has-theme .pf-tab-count {
+  color: var(--pf-accent);
+}
