@@ -543,8 +543,10 @@ export function startFaces(): Job {
       await run(["class"]);
       job.message = "กำลังจับคู่ใบหน้ากับเพื่อนในห้อง…";
       await run(["match"]);
+      job.message = "กำลังจัดรูปเป็นเหตุการณ์…";
+      await run(["events"]);
       job.state = "done";
-      job.message = "จับคู่ใบหน้าเสร็จแล้ว";
+      job.message = "จับคู่ใบหน้าและจัดกลุ่มเหตุการณ์เสร็จแล้ว";
     } catch (e) {
       job.state = "error";
       job.message = (e as Error).message;

@@ -43,7 +43,7 @@ jobs:
         # its models, cache and output live in data/faces/ on the server
         run: |
           mkdir -p server/faces
-          cp scripts/faces.py scripts/people_groups.json scripts/people_overrides.json server/faces/
+          cp scripts/faces.py scripts/events.py scripts/events_overrides.json scripts/people_groups.json scripts/people_overrides.json server/faces/
           tar -czf bundle.tgz --exclude=server/tsconfig.json \
             dist server src/data package.json package-lock.json
 

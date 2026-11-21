@@ -1,5 +1,6 @@
 // Site data: class info, albums (from the synced Google Drive manifest) and students.
 import albumsMeta from "./data/albums.json";
+import eventsDb from "./data/events.json";
 import manifest from "./data/manifest.json";
 import peopleDb from "./data/people.json";
 import photoMetaDb from "./data/photo_meta.json";
@@ -156,6 +157,47 @@ export function applyAlbums(list: AlbumData[]) {
   albums.splice(0, albums.length, ...list.map(buildAlbum));
   indexAlbums();
   applyStudentRecords(students.map((s) => s.raw)); // memories point at photos by id
+}
+
+/* ------------------------------ events ------------------------------ */
+// Photos grouped by occasion (scripts/events.py -> src/data/events.json, or data/faces/events.json
+// on the server), whatever Drive folder / LINE album they were uploaded in.
+
+export type EventRec = {
+  id: string;
+  title: string;
+  en?: string;
+  place?: string;
+  note?: string;
+  /** "YYYY-MM-DD" (null = unknown) */
+  day: string | null;
+  /** "YYYY-MM-DD HH:MM" when a clock time is known */
+  start: string | null;
+  end: string | null;
+  /** the day comes from a LINE album name, not the camera */
+  approx?: boolean;
+  /** leftovers that fit no event */
+  other?: boolean;
+  /** not worth listing on its own (its photos stay in their albums) */
+  minor?: boolean;
+  camera?: string;
+  lat?: number;
+  lon?: number;
+  albums: Record<string, number>;
+  photos: string[];
+  cover: string;
+};
+let EVENTS: EventRec[] = (eventsDb as unknown as { events: EventRec[] }).events;
+let EVENT_OF = new Map<string, EventRec>();
+const indexEvents = () => {
+  EVENT_OF = new Map(EVENTS.flatMap((e) => e.photos.map((id) => [id, e] as const)));
+};
+indexEvents();
+export const eventList = () => EVENTS;
+export const eventOfPhoto = (id: string) => EVENT_OF.get(id);
+export function applyEvents(list: EventRec[]) {
+  EVENTS = list;
+  indexEvents();
 }
 
 export const getAlbum = (slug: string) => albums.find((a) => a.slug === slug);
