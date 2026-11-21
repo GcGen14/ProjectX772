@@ -32,6 +32,12 @@ Manual photo fixes go in scripts/people_overrides.json:
   { "addPhotos": { "12": ["<drive file id>"] }, "removePhotos": { "12": ["<drive file id>"] } }
   (keys are portrait set numbers)
 
+Masks / sunglasses / hands over the mouth: every face is also embedded with its lower half blanked out
+("upper-face" embedding, eyes + brow + forehead only) and compared against the references' upper-face
+embeddings. A face that the normal comparison can't place but whose upper face matches clearly
+(stricter threshold, bigger margin, calibrated on the class photos) is still tagged. Each face also
+gets a "mask" score (how different its lower half looks from its forehead) which is saved for the site.
+
 Needs the two OpenCV Zoo models in scripts/models/:
   face_detection_yunet_2023mar.onnx, face_recognition_sface_2021dec.onnx
 """
@@ -79,6 +85,7 @@ PUBLIC_PEOPLE = os.path.join(ROOT, "public", "photos", "people")
 
 REFS = os.path.join(CACHE, "refs")  # school profile photos, NN.jpg = student number NN (git-ignored)
 REF_FEATS = os.path.join(CACHE, "ref_feats.npy")
+REF_FEATS_UP = os.path.join(CACHE, "ref_feats_up.npy")
 STUDENTS_JSON = os.path.join(ROOT, "src", "data", "students.json")
 DB_FILE = os.path.join(ROOT, "data", "602.sqlite")
 KEEP_NUMBERS = {1}  # numbers whose portrait set was checked by hand
@@ -94,11 +101,18 @@ LARGE_FACE_PX = 70
 MARGIN = 0.07  # best match must beat the runner-up classmate by this much
 TURNED_EXTRA = 0.04  # extra similarity needed for a clearly turned face (|yaw| > TURNED_YAW)
 TURNED_YAW = 0.35
+# upper-face fallback (masks). Calibrated with scripts/calibrate_masks.py on the class photos.
+UP_THRESHOLD = 0.57
+UP_UNCOVERED_EXTRA = 0.03  # a face that does not look covered has less excuse for failing the normal comparison
+UP_MARGIN = 0.08
+UP_MIN_PX = 40
+UP_MASK_MIN = 0.35
 SOLO_EXTRA = 0.03  # extra similarity for people known from their school photo only (one reference)
 
 # detection
-SCAN_VERSION = 2  # bump when detection / embedding changes so "class" re-scans every photo
-DET_SCORE = 0.6
+SCAN_VERSION = 3  # bump when detection / embedding changes so "class" re-scans every photo
+DET_SCORE = 0.5  # masked faces score lower than bare ones; matching is what keeps this safe
+MASK_DET_MIN = 0.58  # a low-score detection must also look like a face in size / shape (see faces_in)
 MIN_FACE_PX = 24
 HIRES_BELOW_PX = 48  # photos with faces smaller than this are re-scanned from the full-size original
 HIRES_SIZE = 3200
@@ -163,6 +177,27 @@ def unit(v):
     return v / (np.linalg.norm(v) + 1e-9)
 
 
+UPPER_ROWS = 68  # rows of the 112px aligned crop from here down are blanked (eyes sit at ~y=52, nose tip ~72)
+UPPER_FILL = 127
+
+
+def mask_score(crop):
+    """0..1: how much the mouth/chin area differs from the forehead/skin (colour + texture).
+    Bare faces sit near 0; surgical / cloth masks, scarves and hands push it up."""
+    lab = cv2.cvtColor(crop, cv2.COLOR_BGR2LAB).astype(np.float32)
+    skin = np.median(lab[26:46, 38:74].reshape(-1, 3), 0)  # forehead between the brows
+    cheek = np.median(np.concatenate([lab[54:64, 24:40].reshape(-1, 3), lab[54:64, 72:88].reshape(-1, 3)]), 0)
+    low = np.median(lab[78:104, 34:78].reshape(-1, 3), 0)
+    ref = (skin + cheek) / 2
+    d = float(np.linalg.norm(low - ref))
+    g = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+    tex = float(cv2.Laplacian(g[76:106, 32:80], cv2.CV_64F).var())
+    # masks are flat (low texture) and a different colour from the skin above
+    return round(float(min(1.0, d / 45.0) * 0.7 + (0.3 if tex < 60 else 0.0) * min(1.0, d / 20.0)), 3)
+
+
+
+
 def read_image(path, max_side):
     img = cv2.imdecode(np.fromfile(path, np.uint8), cv2.IMREAD_COLOR) if path and os.path.exists(path) else None
     if img is None:
@@ -179,12 +214,20 @@ class Faces:
         self.det = cv2.FaceDetectorYN.create(os.path.join(MODELS, "face_detection_yunet_2023mar.onnx"), "", (320, 320), DET_SCORE, 0.3, 5000)
         self.rec = cv2.FaceRecognizerSF.create(os.path.join(MODELS, "face_recognition_sface_2021dec.onnx"), "")
 
+    @staticmethod
+    def _unit_feat(rec, crop):
+        return unit(rec.feature(crop).flatten()) + unit(rec.feature(cv2.flip(crop, 1)).flatten())
+
     def embed(self, img, d):
-        """Aligned 112px crop -> unit feature (crop + its mirror image averaged), plus sharpness."""
+        """Aligned 112px crop -> unit feature (crop + its mirror image averaged), the same for the
+        upper face only (lower half greyed out: for masks), sharpness and a "maskiness" score."""
         crop = self.rec.alignCrop(img, d)
-        f = unit(self.rec.feature(crop).flatten()) + unit(self.rec.feature(cv2.flip(crop, 1)).flatten())
+        f = unit(self._unit_feat(self.rec, crop))
+        up = crop.copy()
+        up[UPPER_ROWS:] = UPPER_FILL  # nose tip and everything below it
+        fu = unit(self._unit_feat(self.rec, up))
         sharp = float(cv2.Laplacian(cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY), cv2.CV_64F).var())
-        return unit(f).astype(np.float32), sharp
+        return f.astype(np.float32), fu.astype(np.float32), sharp, mask_score(crop)
 
     @staticmethod
     def yaw(d):
@@ -204,9 +247,11 @@ class Faces:
             fw, fh = d[2], d[3]
             if min(fw, fh) < MIN_FACE_PX:  # too small to recognise reliably
                 continue
-            feat, sharp = self.embed(img, d)
+            if d[14] < MASK_DET_MIN and not (0.6 < fw / max(fh, 1) < 1.2 and min(fw, fh) >= 32):
+                continue  # weak detection that is also an odd shape: not a face
+            feat, featu, sharp, mask = self.embed(img, d)
             box = [float(d[0] / w), float(d[1] / h), float(fw / w), float(fh / h)]
-            out.append({"box": box, "score": float(d[14]), "size": float(min(fw, fh)), "yaw": self.yaw(d), "sharp": sharp, "feat": feat})
+            out.append({"box": box, "score": float(d[14]), "size": float(min(fw, fh)), "yaw": self.yaw(d), "sharp": sharp, "mask": mask, "feat": feat, "featu": featu})
         return out
 
     def faces(self, path, max_side=1600):
@@ -218,20 +263,23 @@ def cmd_portraits():
     print("portraits in folder:", len(items))
     paths = download([i["id"] for i in items], os.path.join(CACHE, "people"), "w1200")
     F = Faces()
-    feats, boxes = [], []
+    feats, featsu, boxes = [], [], []
     for it, p in zip(items, paths):
         fs = F.faces(p) if p else []
         if not fs:
             print("  no face:", it["name"])
             feats.append(np.zeros(128, np.float32))
+            featsu.append(np.zeros(128, np.float32))
             boxes.append(None)
         else:
             f = max(fs, key=lambda f: f["size"])
             feats.append(f["feat"])
+            featsu.append(f["featu"])
             boxes.append(f["box"])
     for it, b in zip(items, boxes):
         it["face"] = b
     np.save(os.path.join(CACHE, "portrait_feats.npy"), np.array(feats))
+    np.save(os.path.join(CACHE, "portrait_feats_up.npy"), np.array(featsu))
     json.dump(items, open(os.path.join(CACHE, "portraits.json"), "w", encoding="utf8"), ensure_ascii=False)
     print("embedded", len(items))
 
@@ -276,34 +324,55 @@ def scan_photo(F, pid, path):
     return F.faces_in(hi)
 
 
+_WORKER = None
+
+
+def _worker_init():
+    global _WORKER
+    cv2.setNumThreads(2)
+    _WORKER = Faces()
+
+
+def _worker_scan(job):
+    pid, path = job
+    return scan_photo(_WORKER, pid, path) if path else []
+
+
 def cmd_class():
     """Detect + embed faces in class photos. Incremental: photos already processed are skipped
     (all photos are scanned again when SCAN_VERSION changes)."""
     faces_file = os.path.join(CACHE, "class_faces.json")
     feats_file = os.path.join(CACHE, "class_feats.npy")
+    featsu_file = os.path.join(CACHE, "class_feats_up.npy")
     done_file = os.path.join(CACHE, "class_done.json")
     faces = json.load(open(faces_file)) if os.path.exists(faces_file) else []
     feats = list(np.load(feats_file)) if os.path.exists(feats_file) and faces else []
+    featsu = list(np.load(featsu_file)) if os.path.exists(featsu_file) and faces else []
     saved = json.load(open(done_file)) if os.path.exists(done_file) else {}
     if not isinstance(saved, dict) or saved.get("version") != SCAN_VERSION or "--force" in sys.argv:
         print(f"scan settings changed (v{SCAN_VERSION}): scanning every photo again", flush=True)
-        faces, feats, saved = [], [], {}
+        faces, feats, featsu, saved = [], [], [], {}
     done = set(saved.get("done", []))
     ids = [i for i in class_photo_ids() if i not in done]
     print(f"class photos to scan: {len(ids)} new ({len(done)} already done)", flush=True)
 
     def save():
         np.save(feats_file, np.array(feats, np.float32).reshape(-1, 128))
+        np.save(featsu_file, np.array(featsu, np.float32).reshape(-1, 128))
         json.dump(faces, open(faces_file, "w"))
         json.dump({"version": SCAN_VERSION, "done": sorted(done)}, open(done_file, "w"))
 
     if ids:
         paths = download(ids, os.path.join(CACHE, "class"), "w1600")
-        F = Faces()
+        workers = max(1, min(int(os.environ.get("FACES_WORKERS", "0")) or (os.cpu_count() or 2) // 3, 8))
+        print(f"scanning with {workers} workers", flush=True)
+        pool = cf.ProcessPoolExecutor(workers, initializer=_worker_init)
+        results = pool.map(_worker_scan, zip(ids, paths), chunksize=2)
         for k, (pid, path) in enumerate(zip(ids, paths)):
-            for f in scan_photo(F, pid, path) if path else []:
-                faces.append({"photo": pid, **{x: round(f[x], 4) if x != "box" else f[x] for x in ("box", "score", "size", "yaw", "sharp")}})
+            for f in next(results) if path else []:
+                faces.append({"photo": pid, **{x: round(f[x], 4) if x != "box" else f[x] for x in ("box", "score", "size", "yaw", "sharp", "mask")}})
                 feats.append(f["feat"])
+                featsu.append(f["featu"])
             if path:
                 done.add(pid)  # failed downloads are tried again next run
             if k % 20 == 0 or k == len(ids) - 1:
@@ -413,13 +482,16 @@ def cmd_refs():
     F = Faces()
     nos = [no for no, _, _ in roster()]
     feats = np.zeros((max(nos, default=0), 128), np.float32)
+    featsu = np.zeros_like(feats)
     for no in nos:
         fs = F.faces(ref_path(no))
         if not fs:
             print(f"  no face for number {no}")
             continue
-        feats[no - 1] = max(fs, key=lambda f: f["size"])["feat"]
+        best = max(fs, key=lambda f: f["size"])
+        feats[no - 1], featsu[no - 1] = best["feat"], best["featu"]
     np.save(REF_FEATS, feats)
+    np.save(REF_FEATS_UP, featsu)
     print("embedded", int((np.linalg.norm(feats, axis=1) > 0).sum()), "school photos")
 
 
@@ -504,10 +576,14 @@ def cmd_assign():
 
 def identities(sets, items):
     """Who can be tagged: one entry per portrait set (its portraits + its owner's school photo), plus
-    one per student without a set who has a school photo. Each: {set, no, feats (n x 128)}."""
-    pfeats = np.load(os.path.join(CACHE, "portrait_feats.npy"))
-    by_id = {it["id"]: pfeats[i] for i, it in enumerate(items)}
+    one per student without a set who has a school photo. Each: {set, no, feats, featu (n x 128)}:
+    the full-face and the upper-face (mask-proof) references."""
+    load = lambda f: np.load(os.path.join(CACHE, f))
+    pfeats = load("portrait_feats.npy")
+    pup = load("portrait_feats_up.npy") if os.path.exists(os.path.join(CACHE, "portrait_feats_up.npy")) else pfeats * 0
+    by_id = {it["id"]: (pfeats[i], pup[i]) for i, it in enumerate(items)}
     school = np.load(REF_FEATS) if os.path.exists(REF_FEATS) else np.zeros((0, 128), np.float32)
+    school_up = np.load(REF_FEATS_UP) if os.path.exists(REF_FEATS_UP) else np.zeros_like(school)
     has_school = lambda no: bool(no) and no <= len(school) and np.linalg.norm(school[no - 1]) > 0
     numbers = set_of_numbers()
     owner = {}
@@ -516,31 +592,48 @@ def identities(sets, items):
             owner[ps] = no
     out = []
     for k, s in enumerate(sets):
-        fs = [by_id[p["id"]] for p in s if np.linalg.norm(by_id[p["id"]]) > 0]
+        pairs = [by_id[p["id"]] for p in s if np.linalg.norm(by_id[p["id"]][0]) > 0]
+        fs = [a for a, _ in pairs]
+        fu = [b for _, b in pairs if np.linalg.norm(b) > 0]
         no = owner.get(k + 1)
         if has_school(no):
             fs += [school[no - 1]] * 2  # the school photo counts double: it is the reference face
-        out.append({"set": k + 1, "no": no, "feats": np.array(fs, np.float32).reshape(-1, 128)})
+            if np.linalg.norm(school_up[no - 1]) > 0:
+                fu += [school_up[no - 1]] * 2
+        out.append({"set": k + 1, "no": no, "feats": np.array(fs, np.float32).reshape(-1, 128), "featu": np.array(fu, np.float32).reshape(-1, 128)})
     for no, ps in sorted(numbers.items()):
         if (not ps or ps > len(sets)) and has_school(no):
-            out.append({"set": None, "no": no, "feats": school[no - 1][None, :]})
+            fu = school_up[no - 1][None, :] if np.linalg.norm(school_up[no - 1]) > 0 else np.zeros((0, 128), np.float32)
+            out.append({"set": None, "no": no, "feats": school[no - 1][None, :], "featu": fu})
     return out
 
 
-def match_faces(faces, feats, ids):
+def top3(feats, refs):
+    """Per face: mean of the 3 most similar references (robust to sunglasses / odd poses)."""
+    if not len(refs):
+        return np.full(len(feats), -1.0)
+    sims = feats @ refs.T
+    k = min(3, sims.shape[1])
+    return np.sort(sims, 1)[:, -k:].mean(1)
+
+
+def match_faces(faces, feats, featsu, ids):
     """One pass: each face goes to its most similar person if it's similar enough and clearly ahead
     of the runner-up; a person is tagged at most once per photo (their most similar face).
-    Returns, per identity, {photo: (sim, box, face index)}."""
-    def score(r):  # average of the 3 most similar references (robust to sunglasses / odd poses)
-        if not len(r):
-            return np.full(len(feats), -1.0)
-        sims = feats @ r.T
-        k = min(3, sims.shape[1])
-        return np.sort(sims, 1)[:, -k:].mean(1)
-
-    S = np.stack([score(i["feats"]) for i in ids], 1)  # faces x identities
+    Faces the full-face comparison can't place (masks, sunglasses, a hand over the mouth) get a
+    second chance on the upper face alone, with stricter limits.
+    Returns, per identity, {photo: (sim, box, face index)}, the margins and the number of upper-face tags."""
+    S = np.stack([top3(feats, i["feats"]) for i in ids], 1)  # faces x identities
+    U = np.stack([top3(featsu, i["featu"]) for i in ids], 1)
     hits = [dict() for _ in ids]
     margins = np.zeros(len(faces))
+    upper_tags = 0
+
+    def offer(best, f, sim, fi):
+        prev = hits[best].get(f["photo"])
+        if prev is None or prev[0] < sim:
+            hits[best][f["photo"]] = (float(sim), f["box"], fi)
+
     for fi, f in enumerate(faces):
         row = S[fi]
         best = int(np.argmax(row))
@@ -553,13 +646,31 @@ def match_faces(faces, feats, ids):
         if ids[best]["set"] is None:
             need += SOLO_EXTRA
         if top >= need and top - second >= MARGIN:
-            prev = hits[best].get(f["photo"])
-            if prev is None or prev[0] < top:
-                hits[best][f["photo"]] = (float(top), f["box"], fi)
-    return hits, margins
+            offer(best, f, top, fi)
+            continue
+        # ---- second chance: upper face only ----
+        if f["size"] < UP_MIN_PX:
+            continue
+        urow = U[fi]
+        ub = int(np.argmax(urow))
+        utop = urow[ub]
+        usecond = np.partition(urow, -2)[-2] if len(urow) > 1 else 0
+        covered = f.get("mask", 0) >= UP_MASK_MIN
+        uneed = UP_THRESHOLD + (0 if covered else UP_UNCOVERED_EXTRA)
+        if abs(f.get("yaw", 0)) > TURNED_YAW:
+            uneed += TURNED_EXTRA
+        if ids[ub]["set"] is None:
+            uneed += SOLO_EXTRA
+        # the full-face comparison must not clearly point at somebody else
+        if utop >= uneed and utop - usecond >= UP_MARGIN and (S[fi, ub] >= S[fi].max() - 0.12):
+            before = ub in range(len(hits)) and f["photo"] in hits[ub]
+            offer(ub, f, utop, fi)
+            upper_tags += 0 if before else 1
+            margins[fi] = max(margins[fi], utop - usecond)
+    return hits, margins, upper_tags
 
 
-def grow(ids, hits, margins, faces, feats):
+def grow(ids, hits, margins, faces, feats, featsu):
     """Add each person's most certain class-photo faces (one per photo) to their references."""
     added = 0
     for i, h in zip(ids, hits):
@@ -571,20 +682,28 @@ def grow(ids, hits, margins, faces, feats):
         sure = [fi for _, fi in sorted(sure, reverse=True)[:GROW_MAX]]
         if sure:
             i["feats"] = np.vstack([i["feats"], feats[sure]])
+            i["featu"] = np.vstack([i["featu"], featsu[sure]])
             added += len(sure)
     return added
+
+
+def load_class():
+    faces = json.load(open(os.path.join(CACHE, "class_faces.json")))
+    feats = np.load(os.path.join(CACHE, "class_feats.npy")).reshape(-1, 128)
+    fu = os.path.join(CACHE, "class_feats_up.npy")
+    featsu = np.load(fu).reshape(-1, 128) if os.path.exists(fu) else feats * 0
+    return faces, feats, featsu
 
 
 def cmd_match():
     items, sets = load_sets()
     ids = identities(sets, items)
-    faces = json.load(open(os.path.join(CACHE, "class_faces.json")))
-    feats = np.load(os.path.join(CACHE, "class_feats.npy")).reshape(-1, 128)
-    hits, margins = match_faces(faces, feats, ids)
+    faces, feats, featsu = load_class()
+    hits, margins, up1 = match_faces(faces, feats, featsu, ids)
     first = sum(len(h) for h in hits)
-    print(f"pass 1: {first} tags; adding {grow(ids, hits, margins, faces, feats)} certain faces to the references")
-    hits, _ = match_faces(faces, feats, ids)
-    print(f"pass 2: {sum(len(h) for h in hits)} tags")
+    print(f"pass 1: {first} tags ({up1} from the upper face); adding {grow(ids, hits, margins, faces, feats, featsu)} certain faces to the references")
+    hits, _, up2 = match_faces(faces, feats, featsu, ids)
+    print(f"pass 2: {sum(len(h) for h in hits)} tags ({up2} from the upper face: masks / sunglasses)")
     hits = [{pid: (sim, box) for pid, (sim, box, _fi) in h.items()} for h in hits]
 
     ov = json.load(open(OVERRIDES, encoding="utf8")) if os.path.exists(OVERRIDES) else {}
@@ -640,6 +759,16 @@ def cmd_match():
         cmd_pool()
 
 
+def cmd_events():
+    """Group the photos into events (scripts/events.py, which sits next to this file)."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("events", os.path.join(HERE, "events.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.main()
+
+
 if __name__ == "__main__":
     {
         "portraits": cmd_portraits,
@@ -649,4 +778,5 @@ if __name__ == "__main__":
         "school": cmd_school,
         "refs": cmd_refs,
         "assign": cmd_assign,
+        "events": cmd_events,
     }[sys.argv[1]]()
