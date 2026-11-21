@@ -371,3 +371,170 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* =====================================================================
+   Every device: phones, tablets (iPad), laptops, desktops, TVs
+   ===================================================================== */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+  text-size-adjust: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-wrap: break-word;
+  /* notched phones in landscape: keep content out of the cutout */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* nothing may push the page wider than the screen (clip, unlike hidden, keeps position: sticky working) */
+@supports (overflow: clip) {
+  html,
+  body {
+    overflow-x: clip;
+  }
+}
+
+img,
+video,
+canvas,
+svg,
+iframe {
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+/* grid / flex children may shrink below their content so long words and wide media cannot overflow */
+main,
+section,
+article,
+form,
+.me-card,
+.me-wrap {
+  min-width: 0;
+}
+
+/* wide tables and code scroll inside themselves instead of widening the page */
+table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* ---------- touch screens (phones, tablets) ---------- */
+@media (pointer: coarse) {
+  /* 16px inputs stop iOS from zooming the page when a field is focused */
+  input,
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+
+  .me-btn,
+  .btn-outline,
+  .adm-btn,
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+    min-height: 44px;
+  }
+
+  /* tap targets in lists: no accidental double-tap zoom */
+  a,
+  button,
+  [role="button"],
+  [role="tab"] {
+    touch-action: manipulation;
+  }
+}
+
+/* ---------- keyboard / TV remote (D-pad) focus must be visible ---------- */
+:focus-visible {
+  outline: 3px solid var(--blue, #0569ff);
+  outline-offset: 2px;
+}
+
+/* ---------- phones held sideways: short screens ---------- */
+@media (max-height: 480px) and (orientation: landscape) {
+  .site-nav {
+    position: static;
+  }
+}
+
+/* ---------- tablets (iPad portrait / small laptops) ---------- */
+@media (min-width: 820px) and (max-width: 1100px) {
+  .me-wrap,
+  .adm {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+/* ---------- large desktops and TVs: use the extra room instead of a narrow column ---------- */
+@media (min-width: 1600px) {
+  .al-page {
+    max-width: 1560px;
+  }
+
+  .classmates {
+    max-width: 1440px;
+  }
+
+  .mem {
+    max-width: 1400px;
+  }
+
+  .footer-inner,
+  .platform-rows {
+    max-width: 1520px;
+  }
+
+  .showcase-chrome {
+    max-width: 1640px;
+  }
+}
+
+@media (min-width: 2200px) {
+  body {
+    font-size: 19px;
+  }
+
+  .al-page {
+    max-width: 2000px;
+  }
+
+  .classmates {
+    max-width: 1800px;
+  }
+
+  .mem {
+    max-width: 1760px;
+  }
+
+  .footer-inner,
+  .platform-rows {
+    max-width: 1900px;
+  }
+
+  .showcase-chrome {
+    max-width: 2100px;
+  }
+}
+
+/* big screens that are only used from the sofa: bigger text and tap/click targets */
+@media (min-width: 1920px) and (pointer: coarse), (min-width: 1920px) and (hover: none) {
+  body {
+    font-size: 19px;
+  }
+
+  .me-btn,
+  .btn-outline {
+    min-height: 56px;
+  }
+}
